@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    // select lines and press F9 to sort them (for imports)
+    "tyriar.sort-lines",
+    // tailwind styles autocomplete for in CSS strings
+    "bradlc.vscode-tailwindcss",
+    // bash shell language syntax support
+    "bmalehorn.shell-syntax",
+    // Noir language syntax support
+    "noir-lang.vscode-noir"
+  ]
+}

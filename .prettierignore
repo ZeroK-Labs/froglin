@@ -1,0 +1,6 @@
+node_modules
+dist
+build
+
+src/contracts/**/*.json
+src/contracts/**/*.ts

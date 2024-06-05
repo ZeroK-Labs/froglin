@@ -1,0 +1,2 @@
+*.nr linguist-language=Rust
+*.lockb binary diff=lockb

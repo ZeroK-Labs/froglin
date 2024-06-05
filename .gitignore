@@ -1,0 +1,54 @@
+# misc
+.DS_Store
+.env*
+
+# vscode: ignore all files...
+.vscode/*
+# ...except
+!.vscode/extensions.json
+!.vscode/settings.json
+
+########################
+### PACKAGE MANAGERS ###
+########################
+
+# pnp
+**/.pnp
+.pnp.js
+
+# yarn
+**/.yarn
+
+####################
+### DEPENDENCIES ###
+####################
+
+**/node_modules
+
+# eslint
+.eslintcache
+
+# next.js
+# build output
+.next
+.vercel
+out/
+next-env.d.ts
+# certificates for https
+certificates
+
+# typescript
+*.tsbuildinfo
+
+# webpack
+# build-related output
+src/contracts/artifacts
+src/contracts/target
+codegenCache.json
+
+############
+### LOGS ###
+############
+
+*-debug.log*
+*-error.log*

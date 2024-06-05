@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "baseUrl": "src",
+    "target": "ES2020",
+    "lib": ["esnext", "dom", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "checkJs": true,
+    "strict": true,
+    "alwaysStrict": true,
+    // "downlevelIteration": true,
+    // "importHelpers": true,
+    // "declaration": true,
+    // "declarationMap": true,
+    "sourceMap": true,
+    "composite": true,
+    "skipLibCheck": true,
+    // "noUnusedLocals": true,
+    "allowArbitraryExtensions": false,
+    "allowUnreachableCode": false,
+    "removeComments": true,
+    "jsx": "react-jsx",
+    "types": ["bun-types"]
+  },
+  "include": [
+    "scripts/loadenv.js",
+    "src/contracts/target/*.json",
+    "src/**/*.ts*",
+    "tests/**/*.ts"
+  ],
+  "exclude": ["**/node_modules"]
+}

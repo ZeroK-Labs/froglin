@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  * {
+    box-sizing: border-box !important;
+  }
+
+  body {
+    min-width: 480px;
+    min-height: 100vh;
+
+    opacity: 1;
+    background: none;
+    background-color: rgba(0, 0, 0, 1);
+    color: rgba(235, 235, 235, 1);
+
+    display: flex;
+    place-items: center;
+
+    overflow: hidden;
+    scrollbar-width: none;
+    overscroll-behavior: none;
+
+    -webkit-touch-callout: none; /* prevent callout to copy image, etc when tap to hold */
+    -webkit-text-size-adjust: none; /* prevent webkit from resizing text to fit */
+
+    user-select: none;
+    -webkit-user-select: none; /* prevent copy paste, to allow, change 'none' to 'text' */
+  }
+  #root {
+    width: 100%;
+    text-align: center;
+  }
+
+  img {
+    pointer-events: none;
+  }
+}
