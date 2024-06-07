@@ -19,7 +19,6 @@ export default function MapScreen() {
     close: [] as MapCoordinates[],
   });
 
-  console.log(122);
   function mapCallback(node: MapRef) {
     if (flownIn.current) return;
 
@@ -44,7 +43,6 @@ export default function MapScreen() {
   }
 
   useEffect(() => {
-    console.log(2);
     if (!location.initial) return;
 
     froglinCoordinates.current = {

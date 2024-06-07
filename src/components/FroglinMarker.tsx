@@ -8,7 +8,7 @@ export default function FroglinMarker({
   location: MapCoordinates;
 }) {
   if (!location) return null;
-  // console.log(location);
+
   return (
     <Marker
       longitude={location.longitude}
