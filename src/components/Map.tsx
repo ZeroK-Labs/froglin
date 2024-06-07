@@ -1,50 +1,51 @@
-import { Map, MapRef } from "react-map-gl";
+import { Map } from "react-map-gl";
 
 import PlayerMarker from "components/PlayerMarker";
-import useLocation from "hooks/useLocation";
-import { useEffect, useRef } from "react";
+import FroglinMarker from "components/FroglinMarker";
+import { dummyLocation } from "mocks/location";
+import { generateRandomCoordinates } from "mocks/froglincoords";
 
 export default function MapScreen() {
-  const location = useLocation();
-  const flownIn = useRef(false);
-
-  function mapCallback(node: MapRef) {
-    if (flownIn.current) return;
-
-    if (!node) return;
-
-    if (node.isMoving()) return;
-
-    if (!location.current) {
-      flownIn.current = false;
-      return;
-    }
-
-    flownIn.current = true;
-
-    node.flyTo({
-      center: [location.current.longitude, location.current.latitude],
-      zoom: 17,
-      pitch: 60,
-      bearing: -30,
-      duration: 7000,
-    });
-  }
-
-  useEffect(() => {}, []);
-
+  const randomFroglins = generateRandomCoordinates(
+    dummyLocation,
+    30,
+    0.004,
+    0.0001,
+  );
+  const closeFroglins = generateRandomCoordinates(
+    dummyLocation,
+    10,
+    0.0005,
+    0.0001,
+  );
   return (
     <div className="fixed inset-0 h-screen w-screen">
       <Map
-        ref={mapCallback}
-        mapboxAccessToken={process.env.MAPBOX_ACCESS_TOKEN}
-        mapStyle="mapbox://styles/mapbox/dark-v11"
         attributionControl={false}
+        initialViewState={{
+          longitude: dummyLocation.longitude,
+          latitude: dummyLocation.latitude,
+          zoom: 18,
+        }}
+        mapStyle="mapbox://styles/mapbox/dark-v11"
+        mapboxAccessToken={process.env.MAPBOX_ACCESS_TOKEN}
         projection={{ name: "globe" }}
         // @ts-ignore make all animations essential
         respectPrefersReducedMotion={false}
       >
-        {location.current ? <PlayerMarker location={location.current} /> : null}
+        <PlayerMarker location={dummyLocation} />
+        {randomFroglins.map((location, index) => (
+          <FroglinMarker
+            key={index}
+            location={location}
+          />
+        ))}
+        {closeFroglins.map((location, index) => (
+          <FroglinMarker
+            key={index}
+            location={location}
+          />
+        ))}
       </Map>
     </div>
   );

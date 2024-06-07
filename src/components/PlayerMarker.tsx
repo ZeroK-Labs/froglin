@@ -15,7 +15,7 @@ export default function PlayerMarker(props: Props) {
       latitude={props.location.latitude}
     >
       <div className="h-[40px] rounded-full flex justify-center">
-        <div className="absolute -top-4 text-white text-[9px] whitespace-nowrap bg-green-800 px-2 leading-3 tracking-wider">
+        <div className="absolute -top-4 text-white text-[9px] whitespace-nowrap bg-purple-900 px-2 leading-3 tracking-wider">
           Jules Verne
         </div>
 
