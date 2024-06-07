@@ -1,18 +1,23 @@
+import { GeoJSONSource, Map, MapRef } from "react-map-gl";
+import { Position } from "geojson";
 import { useEffect, useRef } from "react";
-import { Map, MapRef } from "react-map-gl";
 
 import FroglinMarker from "components/FroglinMarker";
 import MapCoordinates from "types/MapCoordinates";
 import PlayerMarker from "components/PlayerMarker";
 import useLocation from "hooks/useLocation";
+import { generateEventBounds } from "mocks/eventBounds";
 import {
   generateCloseFroglinsCoordinates,
   generateWideFroglinsCoordinates,
 } from "mocks/froglincoords";
+import { EventBoundsVisualizer } from "./EventBoundsVisualizer";
 
 export default function MapScreen() {
   const location = useLocation();
   const flownIn = useRef(false);
+
+  const eventBounds = useRef<Position[][]>([]);
 
   const froglinCoordinates = useRef({
     wide: [] as MapCoordinates[],
@@ -40,10 +45,38 @@ export default function MapScreen() {
       bearing: -30,
       duration: 7000,
     });
+
+    function updateData() {
+      const map = node.getMap();
+
+      if (!map.getLayer("area")) {
+        setTimeout(updateData, 500);
+
+        return;
+      }
+
+      map.setPaintProperty("area", "fill-opacity", 0);
+      map.setPaintProperty("outline", "line-blur", 15);
+
+      (map.getSource("eventBounds") as GeoJSONSource).setData({
+        type: "Feature",
+        properties: {},
+        geometry: { type: "Polygon", coordinates: eventBounds.current },
+      });
+
+      setTimeout(() => {
+        map.setPaintProperty("area", "fill-opacity", 0.5);
+        map.setPaintProperty("outline", "line-blur", 3);
+      }, 2_000);
+    }
+
+    updateData();
   }
 
   useEffect(() => {
     if (!location.initial) return;
+
+    eventBounds.current = generateEventBounds(location.initial);
 
     froglinCoordinates.current = {
       wide: generateWideFroglinsCoordinates(location.initial),
@@ -57,8 +90,9 @@ export default function MapScreen() {
         ref={mapCallback}
         mapboxAccessToken={process.env.MAPBOX_ACCESS_TOKEN}
         mapStyle="mapbox://styles/mapbox/dark-v11"
-        attributionControl={false}
         projection={{ name: "globe" }}
+        // disable right-bottom information
+        attributionControl={false}
         // @ts-ignore make all animations essential
         respectPrefersReducedMotion={false}
       >
@@ -78,6 +112,8 @@ export default function MapScreen() {
                 location={location}
               />
             ))}
+
+            <EventBoundsVisualizer />
           </>
         ) : null}
       </Map>
