@@ -14,17 +14,17 @@ export default function PlayerMarker({
       longitude={location.longitude}
       latitude={location.latitude}
     >
-      <div className="h-[54px] rounded-full border-2 flex justify-center border-black">
-        <div className="absolute -top-5 text-black drop-shadow-[1px_1px_darkorange] text-[16px] font-bold">
-          JulesVerne
+      <div className="h-[40px] rounded-full flex justify-center">
+        <div className="absolute -top-4 text-white text-[9px] whitespace-nowrap bg-green-800 px-2 leading-3 tracking-wider">
+          Jules Verne
         </div>
 
         <div>
           <img
             className="rounded-full"
             src="/images/profilePic.webp"
-            width="50"
-            height="50"
+            width="40"
+            height="40"
             alt={""}
           />
         </div>
