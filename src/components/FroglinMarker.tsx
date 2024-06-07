@@ -8,9 +8,7 @@ export default function FroglinMarker({
   location: MapCoordinates;
 }) {
   if (!location) return null;
-  console.log(location);
-  location.longitude = location.longitude + 0.0001;
-  location.latitude = location.latitude - 0.0005;
+  // console.log(location);
   return (
     <Marker
       longitude={location.longitude}
@@ -27,7 +25,7 @@ export default function FroglinMarker({
             src="/images/froglin1.png"
             width="25"
             height="25"
-            alt={""}
+            alt=""
           />
         </div>
       </div>

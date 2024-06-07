@@ -1,26 +1,33 @@
 import MapCoordinates from "types/MapCoordinates";
 
-export function generateRandomCoordinates(
-  baseCoord: MapCoordinates,
+function generateRandomCoordinates(
+  coords: MapCoordinates,
   n: number,
   max: number,
   min: number,
 ): MapCoordinates[] {
   const newCoords: MapCoordinates[] = [];
 
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i !== n; ++i) {
     const randomLat = Math.random() * (max - min) + min;
     const randomLong = Math.random() * (max - min) + min;
 
-    // Randomly add or subtract the random values
     const latAdjustment = Math.random() < 0.5 ? -randomLat : randomLat;
     const longAdjustment = Math.random() < 0.5 ? -randomLong : randomLong;
 
     newCoords.push({
-      latitude: baseCoord.latitude + latAdjustment,
-      longitude: baseCoord.longitude + longAdjustment,
+      latitude: coords.latitude + latAdjustment,
+      longitude: coords.longitude + longAdjustment,
     });
   }
 
   return newCoords;
+}
+
+export function generateWideFroglinsCoordinates(coords: MapCoordinates) {
+  return generateRandomCoordinates(coords, 30, 0.004, 0.0001);
+}
+
+export function generateCloseFroglinsCoordinates(coords: MapCoordinates) {
+  return generateRandomCoordinates(coords, 10, 0.0005, 0.0001);
 }

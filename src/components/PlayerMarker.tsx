@@ -25,7 +25,7 @@ export default function PlayerMarker(props: Props) {
             src="/images/profilePic.webp"
             width="40"
             height="40"
-            alt={""}
+            alt=""
           />
         </div>
       </div>

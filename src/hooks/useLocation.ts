@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import MapCoordinates from "types/MapCoordinates";
 
@@ -12,6 +12,12 @@ export default function useLocation() {
   const [initial, setInitial] = useState<MapCoordinates | null>(null);
   const [current, setCurrent] = useState<MapCoordinates | null>(null);
   const [lost, setLost] = useState(false);
+  const currentRef = useRef<MapCoordinates | null>(null);
+
+  function setCurrentLocation(coords: MapCoordinates | null) {
+    setCurrent(coords);
+    currentRef.current = coords;
+  }
 
   function handleUpdated(position: GeolocationPosition) {
     const coords = {
@@ -19,13 +25,14 @@ export default function useLocation() {
       longitude: position.coords.longitude,
     };
 
-    if (current === null) setInitial(coords);
-    else {
-      coords.longitude = (coords.longitude + current.longitude) / 2;
-      coords.latitude = (coords.latitude + current.latitude) / 2;
+    if (currentRef.current === null) {
+      setInitial(coords);
+    } else {
+      coords.longitude = (coords.longitude + currentRef.current.longitude) / 2;
+      coords.latitude = (coords.latitude + currentRef.current.latitude) / 2;
     }
 
-    setCurrent(coords);
+    setCurrentLocation(coords);
   }
 
   function handleError(error: GeolocationPositionError) {
@@ -35,7 +42,7 @@ export default function useLocation() {
 
     if (error.code === error.PERMISSION_DENIED) {
       setInitial(null);
-      setCurrent(null);
+      setCurrentLocation(null);
     } else if (error.code === error.TIMEOUT) setLost(true);
   }
 
@@ -56,5 +63,9 @@ export default function useLocation() {
     };
   }, []);
 
-  return { initial, current, lost };
+  return {
+    initial,
+    current,
+    lost,
+  };
 }
