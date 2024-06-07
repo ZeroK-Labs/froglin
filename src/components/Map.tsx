@@ -12,6 +12,8 @@ export default function MapScreen() {
     location: { latitude: 0, longitude: 0 },
     bounds: [],
     epochs: 100,
+    timePerEpoch: 30_000,
+    startTime: 0,
     froglinCoordinates: {
       spreadOut: [],
       close: [],

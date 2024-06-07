@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { GeoJSONSource, Layer, Source, useMap } from "react-map-gl";
 
-import { GameEvent, MapCoordinates } from "types";
+import { GameEvent } from "types";
 import { generateEventBounds } from "mocks/eventBounds";
 import {
   generateSpreadOutFroglinsCoordinates,
@@ -16,6 +16,7 @@ type Props = {
 
 export default function GameEventView({ game }: Props) {
   const map = useMap().current?.getMap();
+  const tickerRef = useRef<ReturnType<typeof setInterval>>();
 
   function updateData() {
     if (!map) return;
@@ -51,6 +52,28 @@ export default function GameEventView({ game }: Props) {
     };
 
     updateData();
+
+    clearInterval(tickerRef.current);
+    game.startTime = Date.now();
+    tickerRef.current = setInterval(() => {
+      const diff = Date.now() - game.startTime;
+
+      // console.log(Math.floor(diff/1000));
+
+      if (diff >= game.timePerEpoch) {
+        game.startTime = Date.now();
+        game.epochs -= 1;
+
+        game.froglinCoordinates = {
+          spreadOut: generateSpreadOutFroglinsCoordinates(game.location),
+          close: generateCloseFroglinsCoordinates(game.location),
+        };
+      }
+    }, 1_000);
+
+    return () => {
+      clearInterval(tickerRef.current);
+    };
   }, [map, game.location]);
 
   return (
