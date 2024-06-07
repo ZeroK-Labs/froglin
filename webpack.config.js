@@ -47,6 +47,7 @@ export default (_, argv) => {
         "process.env": {
           NODE_ENV: JSON.stringify(process.env.NODE_ENV),
           PXE_URL: JSON.stringify(process.env.PXE_URL),
+          MAPBOX_ACCESS_TOKEN: JSON.stringify(process.env.MAPBOX_ACCESS_TOKEN),
         },
       }),
       new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] }),
