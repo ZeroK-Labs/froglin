@@ -24,7 +24,7 @@ function generateRandomCoordinates(
   return newCoords;
 }
 
-export function generateWideFroglinsCoordinates(coords: MapCoordinates) {
+export function generateSpreadOutFroglinsCoordinates(coords: MapCoordinates) {
   return generateRandomCoordinates(coords, 30, 0.004, 0.0001);
 }
 

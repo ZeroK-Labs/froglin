@@ -1,6 +1,6 @@
 import { Position } from "geojson";
 
-import { EventBounds, MapCoordinates } from "types";
+import { MapCoordinates } from "types";
 import { AngleToRadian } from "utils/math";
 
 const offset = 222; // 1 degree of latitude is ~111 km
@@ -13,7 +13,7 @@ export function generateEventBounds(location: MapCoordinates): Position[][] {
   // adjust based on latitude
   const longitudeDelta = 1 / (offset * Math.cos(latitude * AngleToRadian)); // ~500 m
 
-  const box: EventBounds = {
+  const box = {
     northeast: {
       latitude: latitude + latitudeDelta,
       longitude: longitude + longitudeDelta,
