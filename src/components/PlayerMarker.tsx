@@ -2,17 +2,17 @@ import { Marker } from "react-map-gl";
 
 import MapCoordinates from "types/MapCoordinates";
 
-export default function PlayerMarker({
-  location,
-}: {
+type Props = {
   location: MapCoordinates;
-}) {
+};
+
+export default function PlayerMarker(props: Props) {
   if (!location) return null;
 
   return (
     <Marker
-      longitude={location.longitude}
-      latitude={location.latitude}
+      longitude={props.location.longitude}
+      latitude={props.location.latitude}
     >
       <div className="h-[40px] rounded-full flex justify-center">
         <div className="absolute -top-4 text-white text-[9px] whitespace-nowrap bg-green-800 px-2 leading-3 tracking-wider">
