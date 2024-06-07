@@ -28,36 +28,10 @@ if ! scripts/webpack/create_keys.sh; then return $?; fi
 # compile contracts
 if ! scripts/aztec/prep.sh; then return $?; fi
 
-start_tailwind() {
-  # load env
-  local env_file=.env/dev
-  if [[ "$arg" == "production" ]]; then env_file=.env/prod; fi
-  source $env_file
-
-  local WEBPACK_URL=${WEBPACK_PROTOCOL:-https}://${WEBPACK_HOST:-localhost}:${WEBPACK_PORT:-8080}
-
-  # wait for webpack to ready up
-  while true; do
-    # stop if webpack quit
-    local count=$(pgrep -f "webpack" | wc -l)
-    if (( count < 4 )); then return 0; fi
-
-    # ping the URL for a known status, and break when good
-    local status=$(curl -sSf "$WEBPACK_URL" > /dev/null 2>&1; echo $?)
-    if [[ $status -eq 60 ]] || [[ $status -eq 200 ]]; then break; fi
-    sleep 1
-  done
-
-  # start tailwind watcher
-  tailwindcss -i src/styles/tailwind.css -o src/styles/global.css -w
-  echo -e "\ntailwind watcher enabled\n"
-}
+echo -e "\n\033[32m$arg\033[0m mode\n"
 
 # run tailwind watcher concurrently
-start_tailwind &
-
-echo -e "\n\033[32m$arg\033[0m mode\n"
-webpack serve --env $arg
+concurrently -k "scripts/tailwind/start.sh" "webpack serve --env $arg"
 
 # kill tailwind watcher
 pkill -f "tailwind"
