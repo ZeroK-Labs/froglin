@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 const TIMEOUT = 5_000;
 const URL = process.env.PXE_URL!;
 
-export const PXEConnectionTracker = () => {
+export default function PXEConnectionTracker() {
   const [pxeClient] = useState<PXE>(createPXEClient(URL));
   const [connected, setConnected] = useState(false);
 
@@ -45,4 +45,4 @@ export const PXEConnectionTracker = () => {
       {connected ? "✅" : "🟥"}
     </div>
   );
-};
+}

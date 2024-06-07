@@ -1,4 +1,4 @@
-import { PXEConnectionTracker } from "components/PXEConnectionTracker";
+import { PXEConnectionTracker } from "components";
 
 export function Home() {
   return (

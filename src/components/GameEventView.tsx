@@ -14,7 +14,7 @@ type Props = {
   game: GameEvent;
 };
 
-export const GameEventView = ({ game }: Props) => {
+export default function GameEventView({ game }: Props) {
   const map = useMap().current?.getMap();
 
   function updateData() {
@@ -91,4 +91,4 @@ export const GameEventView = ({ game }: Props) => {
       />
     </>
   );
-};
+}

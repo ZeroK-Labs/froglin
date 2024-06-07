@@ -1,10 +1,8 @@
 import { Map, MapRef } from "react-map-gl";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
-import FroglinMarker from "components/FroglinMarker";
-import PlayerMarker from "components/PlayerMarker";
 import useLocation from "hooks/useLocation";
-import { GameEventView } from "components/GameEventView";
+import { FroglinMarker, GameEventView, PlayerMarker } from "components";
 import { GameEvent } from "types";
 
 export default function MapScreen() {
