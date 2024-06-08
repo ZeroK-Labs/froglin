@@ -5,3 +5,4 @@ export { default as HamburgerMenu } from "components/PXEConnectionTracker";
 export { default as Map } from "components/Map";
 export { default as PXEConnectionTracker } from "components/PXEConnectionTracker";
 export { default as PlayerMarker } from "components/PlayerMarker";
+export { default as InfoBar } from "components/InfoBar";

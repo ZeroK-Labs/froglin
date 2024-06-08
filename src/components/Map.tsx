@@ -2,7 +2,12 @@ import { Map, MapRef, useMap } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 
 import { BurgerMenu } from "components";
-import { FroglinMarker, GameEventView, PlayerMarker } from "components";
+import {
+  FroglinMarker,
+  GameEventView,
+  PlayerMarker,
+  InfoBar,
+} from "components";
 import { GameEvent } from "types";
 import { MAP_VIEWS } from "enums";
 import { useLocation } from "hooks";
@@ -19,6 +24,7 @@ export default function MapScreen() {
   const durationRef = useRef(7_000);
   const zoomLevelRef = useRef(MAP_VIEWS.WORLD);
   const [view, setView] = useState(MAP_VIEWS.PLAYGROUND);
+  const [countdownTime, setCountdownTime] = useState(0);
 
   const location = useLocation();
   let map = useMap().current?.getMap();
@@ -103,7 +109,9 @@ export default function MapScreen() {
     gameEventRef.current.startTime = Date.now();
     tickerRef.current = setInterval(() => {
       const diff = Date.now() - gameEventRef.current.startTime;
+      const timeLeft = gameEventRef.current.timePerEpoch - diff;
 
+      setCountdownTime(timeLeft);
       // console.log(Math.floor(diff/1000));
 
       if (diff >= gameEventRef.current.timePerEpoch) {
@@ -125,7 +133,12 @@ export default function MapScreen() {
   }, [location.initial]);
 
   return (
-    <div className="fixed inset-0 h-full w-full">
+    <div className="fixed left-0 top-0 h-full w-full">
+      <InfoBar
+        countdownTime={countdownTime}
+        className="absolute top-2 mx-2 z-10"
+      />
+
       <Map
         ref={mapCallback}
         mapboxAccessToken={process.env.MAPBOX_ACCESS_TOKEN}
