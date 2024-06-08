@@ -66,7 +66,7 @@ export default (_, argv) => {
     },
     experiments: {
       // asyncWebAssembly: true,
-      lazyCompilation: true,
+      // lazyCompilation: true,
     },
     optimization: {
       nodeEnv: process.env.NODE_ENV,
@@ -82,6 +82,10 @@ export default (_, argv) => {
       // open: true,
       // compress: true,
       port: process.env.WEBPACK_PORT,
+      // If you know the specific host, add it here
+      // allowedHosts: ["bore.pub", "192.168.*.*", "localhost"],
+      allowedHosts: "all",
+
       server: {
         type: "https",
         options: {
