@@ -9,15 +9,18 @@ import {
   PlayerMarker,
   InfoBar,
 } from "components";
-import { GameEvent } from "types";
+import { GameEvent, MapCoordinates } from "types";
 import { MAP_VIEWS } from "enums";
 import { useLocation } from "hooks";
+import { getDistance } from "utils/get-distance";
 import {
   createGameEvent,
   generateCloseFroglinsCoordinates,
   generateEventBounds,
   generateSpreadOutFroglinsCoordinates,
 } from "mocks";
+
+const INTERACTION_RADIUS = 50;
 
 export default function MapScreen() {
   const gameEventRef = useRef<GameEvent>(createGameEvent());
@@ -26,6 +29,9 @@ export default function MapScreen() {
   const zoomLevelRef = useRef(MAP_VIEWS.WORLD);
   const [view, setView] = useState(MAP_VIEWS.PLAYGROUND);
   const [countdownTime, setCountdownTime] = useState(0);
+  const [revealedFroglins, setRevealedFroglins] = useState<MapCoordinates[]>(
+    [],
+  );
 
   const location = useLocation();
   let map = useMap().current?.getMap();
@@ -93,12 +99,10 @@ export default function MapScreen() {
 
   useEffect(() => {
     function createFroglins() {
-      gameEventRef.current.froglinCoordinates = {
-        spreadOut: generateSpreadOutFroglinsCoordinates(
-          gameEventRef.current.location,
-        ),
-        close: generateCloseFroglinsCoordinates(gameEventRef.current.location),
-      };
+      gameEventRef.current.froglinCoordinates = [
+        ...generateSpreadOutFroglinsCoordinates(gameEventRef.current.location),
+        ...generateCloseFroglinsCoordinates(gameEventRef.current.location),
+      ];
     }
 
     gameEventRef.current.bounds = generateEventBounds(
@@ -133,6 +137,39 @@ export default function MapScreen() {
     else gameEventRef.current.location = { latitude: 0, longitude: 0 };
   }, [location.initial]);
 
+  function inRange(coordinates: [number, number], location: MapCoordinates) {
+    return (
+      getDistance(
+        coordinates[1], // latitude
+        location.latitude,
+        coordinates[0], // longitude
+        location.longitude,
+      ) <= INTERACTION_RADIUS
+    );
+  }
+  function handleFlute() {
+    console.log("flute", gameEventRef.current.froglinCoordinates);
+    const allFroglins = gameEventRef.current.froglinCoordinates;
+    const inRangeFroglins = allFroglins.filter((froglins) =>
+      inRange([froglins.longitude, froglins.latitude], location.current!),
+    );
+    if (inRangeFroglins.length === 0) return;
+    let emptyFroglinSpot: MapCoordinates[] = [];
+    inRangeFroglins.forEach((froglin) => {
+      if (Math.random() < 0.5) {
+        console.log("froglin", froglin);
+        setRevealedFroglins((prev) => [...prev, froglin]);
+      } else {
+        emptyFroglinSpot.push(froglin);
+      }
+    });
+    gameEventRef.current.froglinCoordinates =
+      gameEventRef.current.froglinCoordinates.filter(
+        (froglin) => !emptyFroglinSpot.includes(froglin),
+      );
+    console.log("closeFroglins", inRangeFroglins);
+  }
+
   return (
     <div className="fixed left-0 top-0 h-full w-full">
       <InfoBar
@@ -160,30 +197,29 @@ export default function MapScreen() {
         {location.current ? (
           <>
             <CanvasOverlay coordinates={location.initial!} />
-
-            {gameEventRef.current.froglinCoordinates.spreadOut.map(
-              (location, index) => (
-                <FroglinMarker
-                  key={index}
-                  location={location}
-                />
-              ),
-            )}
-            {gameEventRef.current.froglinCoordinates.close.map(
-              (location, index) => (
-                <FroglinMarker
-                  key={index}
-                  location={location}
-                />
-              ),
-            )}
+            {gameEventRef.current.froglinCoordinates.map((location, index) => (
+              <FroglinMarker
+                key={index}
+                location={location}
+              />
+            ))}
+            {revealedFroglins.map((location, index) => (
+              <FroglinMarker
+                key={index}
+                location={location}
+                revealed={true}
+              />
+            ))}
 
             <GameEventView
               visible={view === MAP_VIEWS.EVENT}
               game={gameEventRef.current}
             />
 
-            <PlayerMarker location={location.current} />
+            <PlayerMarker
+              location={location.current}
+              handleFlute={handleFlute}
+            />
           </>
         ) : null}
       </Map>

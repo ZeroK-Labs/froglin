@@ -9,10 +9,7 @@ type GameEvent = {
   epochs: number;
   timePerEpoch: number;
   startTime: number;
-  froglinCoordinates: {
-    close: MapCoordinates[];
-    spreadOut: MapCoordinates[];
-  };
+  froglinCoordinates: MapCoordinates[];
   getLngLatBoundsLike: () => LngLatBoundsLike;
 };
 

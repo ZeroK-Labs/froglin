@@ -4,6 +4,7 @@ import MapCoordinates from "types/MapCoordinates";
 
 type Props = {
   location: MapCoordinates;
+  handleFlute: () => void;
 };
 
 export default function PlayerMarker(props: Props) {
@@ -27,6 +28,7 @@ export default function PlayerMarker(props: Props) {
       document.removeEventListener("click", handleDocumentClick);
     };
   }, []);
+  const handleFlute = props.handleFlute;
 
   if (!location) return null;
 
@@ -70,7 +72,10 @@ export default function PlayerMarker(props: Props) {
           <div className={`${cssMenuButton} blue`}>
             <p className="fa-solid fa-hat-wizard text-[36px]" />
           </div>
-          <div className={`${cssMenuButton} green`}>
+          <div
+            className={`${cssMenuButton} green`}
+            onClick={handleFlute}
+          >
             <p className="fa-brands fa-pied-piper-alt text-[46px] rotate-[50deg]" />
           </div>
           <div className={`${cssMenuButton} red`}>
