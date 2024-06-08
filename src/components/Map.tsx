@@ -137,6 +137,7 @@ export default function MapScreen() {
     <div className="fixed left-0 top-0 h-full w-full">
       <InfoBar
         countdownTime={countdownTime}
+        distance={location.distance}
         className="absolute top-2 mx-2 z-10"
       />
 

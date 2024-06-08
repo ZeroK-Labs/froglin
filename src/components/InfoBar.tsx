@@ -3,9 +3,11 @@ import CountdownTimer from "components/CountDownTimer";
 export default function InfoBar({
   countdownTime,
   className = "",
+  distance = 0,
 }: {
   countdownTime: number;
   className: string;
+  distance: number;
 }) {
   return (
     <div
@@ -22,7 +24,7 @@ export default function InfoBar({
       </div>
       <div className="flex items-center space-x-1">
         <MapPinIcon className="h-6 w-6" />
-        <span className="font-semibold">1092m</span>
+        <span className="font-semibold">{Math.ceil(distance)}m</span>
       </div>
     </div>
   );
