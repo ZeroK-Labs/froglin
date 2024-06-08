@@ -19,7 +19,7 @@ export function Home() {
         />
       </div>
 
-      <div className="fixed inset-0 h-screen flex items-center justify-center">
+      <div className="fixed inset-0 h-full w-full flex items-center justify-center">
         <div className="relative min-w-[440px] max-w-[680px] h-[420px] border-4 m-10 p-8 flex flex-col justify-between border-white">
           <h1 className="p-4 text-xl font-bold rounded self-center text-center bg-white text-black shadow-lg">
             Welcome to Froglin!

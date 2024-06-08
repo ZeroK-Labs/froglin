@@ -1,4 +1,4 @@
-import { LngLatBoundsLike, Map, MapRef, useMap } from "react-map-gl";
+import { Map, MapRef, useMap } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 
 import { BurgerMenu } from "components";
@@ -38,6 +38,8 @@ export default function MapScreen() {
     zoomLevelRef.current = view;
     map = node.getMap();
 
+    map!.setMinZoom(0);
+    map!.setMaxZoom(21);
     map.dragPan.disable();
     map.dragRotate.disable();
 
@@ -54,6 +56,8 @@ export default function MapScreen() {
       map.setMaxPitch(70);
 
       setTimeout(() => {
+        map!.setMinZoom(17.25);
+        map!.setMaxZoom(18);
         map!.dragPan.enable();
         map!.dragRotate.enable();
       }, durationRef.current);
@@ -73,6 +77,8 @@ export default function MapScreen() {
       map.setMaxPitch(40);
 
       setTimeout(() => {
+        map!.setMinZoom(15);
+        map!.setMaxZoom(15);
         map!.dragRotate.enable();
       }, durationRef.current);
     }
@@ -119,7 +125,7 @@ export default function MapScreen() {
   }, [location.initial]);
 
   return (
-    <div className="fixed left-0 top-0 h-full w-full">
+    <div className="fixed inset-0 h-full w-full">
       <Map
         ref={mapCallback}
         mapboxAccessToken={process.env.MAPBOX_ACCESS_TOKEN}
