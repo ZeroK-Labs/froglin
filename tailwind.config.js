@@ -6,14 +6,18 @@ export default {
   ],
   theme: {
     extend: {
+      animation: {
+        "fade-in-out": "fade-in-out 2s infinite",
+      },
+      colors: {
+        "main-purple": "rgba(88, 28, 135, 0.5)",
+        "main-hover-purple": "rgba(102, 34, 155, 0.8)",
+      },
       keyframes: {
         "fade-in-out": {
           "0%, 100%": { opacity: 0 },
           "50%": { opacity: 1 },
         },
-      },
-      animation: {
-        "fade-in-out": "fade-in-out 2s infinite",
       },
     },
   },

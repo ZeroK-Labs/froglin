@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { Marker } from "react-map-gl";
 import MapCoordinates from "types/MapCoordinates";
 
@@ -8,82 +8,81 @@ type Props = {
 
 export default function PlayerMarker(props: Props) {
   const [open, setOpen] = useState<boolean>(false);
-  const [selected, setSelected] = useState<number | null>(null);
-  const handleIconClick = (index: number) => {
-    if (selected === index) {
-      setSelected(null);
-    } else {
-      setSelected(index);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const cssMenuButton = `${open ? "" : "opacity-0"} menu-item`;
+
+  function handleChange(ev: ChangeEvent<HTMLInputElement>) {
+    setOpen(ev.target.checked);
+  }
+
+  function handleDocumentClick(event: MouseEvent) {
+    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      setOpen(false);
     }
-  };
-  const pictures = [
-    "/images/flute.png",
-    "/images/net.png",
-    "/images/witch-hat.png",
-    "/images/scroll.png",
-    "/images/shoe.png",
-  ];
+  }
+
+  useEffect(() => {
+    document.addEventListener("click", handleDocumentClick);
+    return () => {
+      document.removeEventListener("click", handleDocumentClick);
+    };
+  }, []);
+
   if (!location) return null;
 
   return (
     <Marker
       longitude={props.location.longitude}
       latitude={props.location.latitude}
-      style={{ zIndex: 1000 }}
     >
-      <div className="relative h-[40px] rounded-full flex justify-center z-10">
-        {!open ? (
-          <div className="absolute -top-4 text-white text-[9px] whitespace-nowrap bg-purple-900 px-2 leading-3 tracking-wider z-20">
-            Jules Verne
-          </div>
-        ) : null}
-
-        <div
-          onClick={() => setOpen(!open)}
-          className={`z-50`}
-        >
-          <img
-            className="rounded-full"
-            src="/images/profilePic.webp"
-            width={`${open ? 50 : 40}`}
-            height={`${open ? 50 : 40}`}
-            alt=""
+      <div
+        ref={menuRef}
+        className="h-[40px] rounded-full flex justify-center z-[9999]"
+      >
+        <nav className="menu">
+          <input
+            id="menu-options"
+            type="checkbox"
+            checked={open}
+            className="menu-options hidden"
+            onChange={handleChange}
+            // @ts-ignore
+            href="#"
           />
-        </div>
-        {open && (
-          <div className="absolute inset-0 flex items-center justify-center opacity-90">
-            <div className="absolute flex items-center justify-center w-60 h-60 rounded-full border-2 bg-green-500">
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                {pictures.map((el, index) => {
-                  const angle = (index / pictures.length) * 360;
-                  const transform = `translate(-50%, -50%) rotate(${angle}deg) translate(18vw) rotate(-${angle}deg)`;
-                  const isSelected = index === selected;
-                  return (
-                    <div
-                      key={index}
-                      className="absolute w-12 h-12"
-                      style={{
-                        transform,
-                        border: isSelected ? "2px solid orange" : "",
-                        boxShadow: isSelected ? "0 0 8px 3px #ffa500" : "",
-                        transformOrigin: "center center",
-                        transition: "all 0.3s",
-                        scale: isSelected ? 1.2 : 1,
-                      }}
-                      onClick={() => handleIconClick(index)}
-                    >
-                      <img
-                        src={el}
-                        className="w-full h-full"
-                        alt={`icon-${index}`}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
+          <label
+            className="flex justify-center"
+            htmlFor="menu-options"
+          >
+            <div
+              className={`absolute -top-4 px-2 text-xs leading-5 whitespace-nowrap bg-main-purple text-white transition-opacity duration-500 ${open ? "opacity-0" : ""}`}
+            >
+              Jules Verne
             </div>
+            <img
+              className="relative self-center rounded-full border-gray-800 border-solid border-2"
+              src="/images/profilePic.webp"
+              width="60px"
+              height="60px"
+              alt=""
+            />
+          </label>
+
+          <div className={`${cssMenuButton} blue`}>
+            <p className="fa-solid fa-hat-wizard text-[36px]" />
           </div>
-        )}
+          <div className={`${cssMenuButton} green`}>
+            <p className="fa-brands fa-pied-piper-alt text-[46px] rotate-[50deg]" />
+          </div>
+          <div className={`${cssMenuButton} red`}>
+            <p className="fa-solid fa-hand-sparkles text-[34px] rotate-[15deg]" />
+          </div>
+          <div className={`${cssMenuButton} purple`}>
+            <p className=" fa-solid fa-mosquito-net text-[42px] rotate-[-15deg]" />
+          </div>
+          <div className={`${cssMenuButton} orange`}>
+            <p className="fa-solid fa-shoe-prints text-[28px] rotate-[290deg]" />
+          </div>
+        </nav>
       </div>
     </Marker>
   );
