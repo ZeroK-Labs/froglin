@@ -1,4 +1,5 @@
 import { Position } from "geojson";
+import { LngLatBoundsLike } from "mapbox-gl";
 
 import { MapCoordinates } from "types";
 
@@ -12,6 +13,7 @@ type GameEvent = {
     close: MapCoordinates[];
     spreadOut: MapCoordinates[];
   };
+  getLngLatBoundsLike: () => LngLatBoundsLike;
 };
 
 export default GameEvent;
