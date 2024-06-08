@@ -159,6 +159,7 @@ export default function MapScreen() {
       if (Math.random() < 0.5) {
         console.log("froglin", froglin);
         setRevealedFroglins((prev) => [...prev, froglin]);
+        emptyFroglinSpot.push(froglin);
       } else {
         emptyFroglinSpot.push(froglin);
       }

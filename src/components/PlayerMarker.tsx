@@ -74,7 +74,10 @@ export default function PlayerMarker(props: Props) {
           </div>
           <div
             className={`${cssMenuButton} green`}
-            onClick={handleFlute}
+            onClick={() => {
+              handleFlute();
+              setOpen(false);
+            }}
           >
             <p className="fa-brands fa-pied-piper-alt text-[46px] rotate-[50deg]" />
           </div>
