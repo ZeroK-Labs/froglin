@@ -1,4 +1,5 @@
 export { default as BurgerMenu } from "components/BurgerMenu";
+export { default as CanvasOverlay } from "components/CanvasOverlay";
 export { default as FroglinMarker } from "components/FroglinMarker";
 export { default as GameEventView } from "components/GameEventView";
 export { default as HamburgerMenu } from "components/PXEConnectionTracker";

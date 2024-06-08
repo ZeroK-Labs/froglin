@@ -1,8 +1,9 @@
 import { Map, MapRef, useMap } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 
-import { BurgerMenu } from "components";
 import {
+  BurgerMenu,
+  CanvasOverlay,
   FroglinMarker,
   GameEventView,
   PlayerMarker,
@@ -157,6 +158,8 @@ export default function MapScreen() {
       >
         {location.current ? (
           <>
+            <CanvasOverlay coordinates={location.initial!} />
+
             {gameEventRef.current.froglinCoordinates.spreadOut.map(
               (location, index) => (
                 <FroglinMarker
