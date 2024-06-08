@@ -634,6 +634,22 @@ video {
   top: 0.5rem;
 }
 
+.left-2 {
+  left: 0.5rem;
+}
+
+.top-6 {
+  top: 1.5rem;
+}
+
+.top-12 {
+  top: 3rem;
+}
+
+.top-20 {
+  top: 5rem;
+}
+
 .z-0 {
   z-index: 0;
 }
@@ -653,6 +669,11 @@ video {
 .mx-2 {
   margin-left: 0.5rem;
   margin-right: 0.5rem;
+}
+
+.mx-10 {
+  margin-left: 2.5rem;
+  margin-right: 2.5rem;
 }
 
 .ml-2 {
@@ -791,6 +812,10 @@ video {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.flex-row {
+  flex-direction: row;
 }
 
 .flex-col {
@@ -963,6 +988,16 @@ video {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
 }
 
 .font-bold {

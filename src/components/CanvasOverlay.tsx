@@ -5,9 +5,12 @@ import { MapCoordinates } from "types";
 
 export default function CanvasOverlay({
   coordinates,
+  mode = "flute",
 }: {
   coordinates: MapCoordinates;
+  mode?: "flute" | "capture";
 }) {
+  let radius: number = mode === "flute" ? 50 : 10;
   return (
     <Canvas
       center={coordinates}
@@ -27,9 +30,9 @@ export default function CanvasOverlay({
       />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[48, 50, 64]} />
+        <ringGeometry args={[radius - 1, radius, 64]} />
         <meshStandardMaterial
-          color={"green"}
+          color={mode === "flute" ? "green" : "red"}
           opacity={0.6}
           transparent
           side={THREE.DoubleSide}

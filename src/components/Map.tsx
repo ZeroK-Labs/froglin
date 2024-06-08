@@ -20,7 +20,8 @@ import {
   generateSpreadOutFroglinsCoordinates,
 } from "mocks";
 
-const INTERACTION_RADIUS = 50;
+const FLUTE_RADIUS = 50;
+const CAPTURE_RADIUS = 50;
 
 export default function MapScreen() {
   const gameEventRef = useRef<GameEvent>(createGameEvent());
@@ -28,10 +29,12 @@ export default function MapScreen() {
   const durationRef = useRef(7_000);
   const zoomLevelRef = useRef(MAP_VIEWS.WORLD);
   const [view, setView] = useState(MAP_VIEWS.PLAYGROUND);
-  const [countdownTime, setCountdownTime] = useState(0);
+  const [countdownTime, setCountdownTime] = useState<number>(0);
   const [revealedFroglins, setRevealedFroglins] = useState<MapCoordinates[]>(
     [],
   );
+  const [capturedFroglins, setCapturedFroglins] = useState<number>(0);
+  const [mode, setMode] = useState<"flute" | "capture">("flute");
 
   const location = useLocation();
   let map = useMap().current?.getMap();
@@ -136,6 +139,16 @@ export default function MapScreen() {
     if (location.initial) gameEventRef.current.location = location.initial;
     else gameEventRef.current.location = { latitude: 0, longitude: 0 };
   }, [location.initial]);
+  useEffect(() => {
+    if (mode === "capture") {
+      revealedFroglins.forEach((froglin) => {
+        if (inRange([froglin.longitude, froglin.latitude], location.current!)) {
+          setCapturedFroglins((prev) => prev + 1);
+          setRevealedFroglins((prev) => prev.filter((f) => f !== froglin));
+        }
+      });
+    }
+  }, [location.current, mode, revealedFroglins]);
 
   function inRange(coordinates: [number, number], location: MapCoordinates) {
     return (
@@ -144,31 +157,41 @@ export default function MapScreen() {
         location.latitude,
         coordinates[0], // longitude
         location.longitude,
-      ) <= INTERACTION_RADIUS
+      ) <= (mode === "flute" ? FLUTE_RADIUS : CAPTURE_RADIUS)
     );
   }
   function handleFlute() {
-    console.log("flute", gameEventRef.current.froglinCoordinates);
+    setMode("flute");
     const allFroglins = gameEventRef.current.froglinCoordinates;
     const inRangeFroglins = allFroglins.filter((froglins) =>
       inRange([froglins.longitude, froglins.latitude], location.current!),
     );
+
     if (inRangeFroglins.length === 0) return;
+
     let emptyFroglinSpot: MapCoordinates[] = [];
+
     inRangeFroglins.forEach((froglin) => {
       if (Math.random() < 0.5) {
-        console.log("froglin", froglin);
         setRevealedFroglins((prev) => [...prev, froglin]);
         emptyFroglinSpot.push(froglin);
       } else {
         emptyFroglinSpot.push(froglin);
       }
     });
+
     gameEventRef.current.froglinCoordinates =
       gameEventRef.current.froglinCoordinates.filter(
         (froglin) => !emptyFroglinSpot.includes(froglin),
       );
-    console.log("closeFroglins", inRangeFroglins);
+  }
+
+  function handleCapture() {
+    if (mode === "capture") {
+      setMode("flute");
+    } else {
+      setMode("capture");
+    }
   }
 
   return (
@@ -177,6 +200,10 @@ export default function MapScreen() {
         countdownTime={countdownTime}
         distance={location.distance}
         className="absolute top-2 mx-2 z-10"
+      />
+      <CapturesFroglins
+        count={capturedFroglins}
+        className="absolute top-20 mx-10 z-10"
       />
 
       <Map
@@ -197,7 +224,10 @@ export default function MapScreen() {
       >
         {location.current ? (
           <>
-            <CanvasOverlay coordinates={location.initial!} />
+            <CanvasOverlay
+              coordinates={location.initial!}
+              mode={mode}
+            />
             {gameEventRef.current.froglinCoordinates.map((location, index) => (
               <FroglinMarker
                 key={index}
@@ -220,6 +250,7 @@ export default function MapScreen() {
             <PlayerMarker
               location={location.current}
               handleFlute={handleFlute}
+              handleCapture={handleCapture}
             />
           </>
         ) : null}
@@ -229,6 +260,27 @@ export default function MapScreen() {
         view={view}
         setView={setView}
       />
+    </div>
+  );
+}
+
+function CapturesFroglins({
+  count = 0,
+  className,
+}: {
+  count: number;
+  className: string;
+}) {
+  return (
+    <div className={`flex flex-row ${className}`}>
+      {Array.from({ length: count }).map((count) => (
+        <img
+          src="/images/froglin2.png"
+          width="30"
+          height="30"
+          alt=""
+        />
+      ))}
     </div>
   );
 }

@@ -5,9 +5,14 @@ import MapCoordinates from "types/MapCoordinates";
 type Props = {
   location: MapCoordinates;
   handleFlute: () => void;
+  handleCapture: () => void;
 };
 
-export default function PlayerMarker(props: Props) {
+export default function PlayerMarker({
+  location,
+  handleCapture,
+  handleFlute,
+}: Props) {
   const [open, setOpen] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const cssMenuButton = `${open ? "" : "opacity-0"} menu-item`;
@@ -28,14 +33,13 @@ export default function PlayerMarker(props: Props) {
       document.removeEventListener("click", handleDocumentClick);
     };
   }, []);
-  const handleFlute = props.handleFlute;
 
   if (!location) return null;
 
   return (
     <Marker
-      longitude={props.location.longitude}
-      latitude={props.location.latitude}
+      longitude={location.longitude}
+      latitude={location.latitude}
     >
       <div
         ref={menuRef}
@@ -81,7 +85,13 @@ export default function PlayerMarker(props: Props) {
           >
             <p className="fa-brands fa-pied-piper-alt text-[46px] rotate-[50deg]" />
           </div>
-          <div className={`${cssMenuButton} red`}>
+          <div
+            className={`${cssMenuButton} red`}
+            onClick={() => {
+              handleCapture();
+              setOpen(false);
+            }}
+          >
             <p className="fa-solid fa-hand-sparkles text-[34px] rotate-[15deg]" />
           </div>
           <div className={`${cssMenuButton} purple`}>
