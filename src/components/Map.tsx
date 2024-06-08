@@ -119,7 +119,7 @@ export default function MapScreen() {
   }, [location.initial]);
 
   return (
-    <div className="fixed inset-0 h-screen w-screen">
+    <div className="fixed left-0 top-0 h-full w-full">
       <Map
         ref={mapCallback}
         mapboxAccessToken={process.env.MAPBOX_ACCESS_TOKEN}
