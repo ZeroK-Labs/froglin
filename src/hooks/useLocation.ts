@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import MapCoordinates from "types/MapCoordinates";
+import { MapCoordinates } from "types";
 
 const options = {
   enableHighAccuracy: false,
