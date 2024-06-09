@@ -8,14 +8,12 @@ export default function CapturedFroglinsList({
 }) {
   return (
     <div className="absolute top-20 mx-10 flex flex-row gap-1 hide-scrollbar">
-      {froglins.length
-        ? froglins.map((froglin, index) => (
-            <CapturedFroglinsListItem
-              key={index}
-              item={froglin}
-            />
-          ))
-        : null}
+      {froglins.map((froglin, index) => (
+        <CapturedFroglinsListItem
+          key={index}
+          item={froglin}
+        />
+      ))}
     </div>
   );
 }

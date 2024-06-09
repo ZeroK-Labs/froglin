@@ -14,7 +14,7 @@ type Props = {
     revealedFroglins: Froglin[],
     remainingFroglins: MapCoordinates[],
   ) => void;
-  updateCaught: (froglin: Froglin, index: number) => void;
+  updateCaught: (index: number) => void;
 };
 
 const REVEAL_RADIUS = 40;
@@ -53,6 +53,7 @@ export default function PlayerMarker(props: Props) {
         if (Math.random() < 0.7) continue;
         else
           revealedFroglins.push({
+            id: revealedFroglins.length,
             coordinates: coords,
             type: getRandomInRange(2, 7),
           });
@@ -99,8 +100,7 @@ export default function PlayerMarker(props: Props) {
       const coords = props.revealedFroglins[i].coordinates;
       if (!inRange(coords, props.location, CAPTURE_RADIUS)) continue;
 
-      console.log("caught");
-      props.updateCaught(props.revealedFroglins[i], i);
+      props.updateCaught(i);
       break;
     }
   }, [props.location.latitude, props.location.longitude]);

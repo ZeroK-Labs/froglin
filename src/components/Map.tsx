@@ -38,8 +38,10 @@ export default function MapScreen() {
     gameEventRef.current.dormantFroglins = remainingFroglins;
   }
 
-  function updateCaught(froglin: Froglin, index: number) {
-    gameEventRef.current.revealedFroglins.splice(index, 1);
+  function updateCaught(index: number) {
+    console.log("capture");
+
+    const froglin = gameEventRef.current.revealedFroglins.splice(index, 1)[0];
     setCapturedFroglins((c) => [...c, froglin]);
   }
 
@@ -176,8 +178,8 @@ export default function MapScreen() {
               <FroglinMarker
                 key={index}
                 location={froglin.coordinates}
-                revealed={true}
                 froglin={froglin}
+                updateCaught={updateCaught}
               />
             ))}
 
