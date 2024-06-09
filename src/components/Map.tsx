@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from "react";
 
 import { GameEvent, MapCoordinates, Froglin } from "types";
 import { MAP_VIEWS } from "enums";
-import { useKeyboardLocation as useLocation } from "hooks";
+import { CircleIndicatorPropsProvider } from "providers/CircleIndicatorProps";
 import { createGameEvent } from "mocks";
+import { useKeyboardLocation as useLocation } from "hooks";
 import {
   BurgerMenu,
   CanvasOverlay,
@@ -165,8 +166,8 @@ export default function MapScreen() {
         dragPan={false}
       >
         {location.current ? (
-          <>
-            <CanvasOverlay coordinates={location.current!} />
+          <CircleIndicatorPropsProvider>
+            <CanvasOverlay coordinates={location.initial!} />
 
             {gameEventRef.current.dormantFroglins.map((location, index) => (
               <FroglinMarker
@@ -200,7 +201,7 @@ export default function MapScreen() {
               map={map!}
               location={location.current}
             />
-          </>
+          </CircleIndicatorPropsProvider>
         ) : null}
       </Map>
 

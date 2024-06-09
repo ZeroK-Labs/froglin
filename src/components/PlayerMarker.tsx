@@ -2,8 +2,9 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { Marker } from "react-map-gl";
 
 import { AvatarImage } from "components";
-import { MapCoordinates, Froglin } from "types";
-import { inRange } from "utils";
+import { Froglin, MapCoordinates } from "types";
+import { inRange } from "utils/map";
+import { useCircleIndicatorProps } from "providers/CircleIndicatorProps";
 
 type Props = {
   location: MapCoordinates;
@@ -16,8 +17,8 @@ type Props = {
   updateCaught: (froglin: Froglin, index: number) => void;
 };
 
-const REVEAL_RADIUS = 50;
-const CAPTURE_RADIUS = 2;
+const REVEAL_RADIUS = 40;
+const CAPTURE_RADIUS = 5;
 
 function getRandomInRange(a: number, b: number): number {
   const min = Math.min(a, b);
@@ -28,6 +29,7 @@ function getRandomInRange(a: number, b: number): number {
 export default function PlayerMarker(props: Props) {
   const [open, setOpen] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { setVisible, setSize, setColor } = useCircleIndicatorProps();
   const cssMenuButton = `${open ? "" : "opacity-0"} menu-item`;
 
   function handleMenuStateChange(ev: ChangeEvent<HTMLInputElement>) {
@@ -40,30 +42,58 @@ export default function PlayerMarker(props: Props) {
     }
   }
 
-  function handleFlute() {
-    setOpen(false);
-
+  function doReveal() {
     const remainingFroglins: MapCoordinates[] = [];
     const revealedFroglins: Froglin[] = [];
 
     for (let i = 0; i !== props.dormantFroglins.length; ++i) {
       const coords = props.dormantFroglins[i];
-      if (!inRange(coords, props.location, REVEAL_RADIUS)) {
-        remainingFroglins.push(coords);
+      if (inRange(coords, props.location, REVEAL_RADIUS)) {
+        // send some goblins to the void
+        if (Math.random() < 0.7) continue;
+        else
+          revealedFroglins.push({
+            coordinates: coords,
+            type: getRandomInRange(2, 7),
+            revealed: true,
+            captured: false,
+          });
       } //
-      else if (Math.random() < 0.7) continue;
-      else
-        revealedFroglins.push({
-          coordinates: coords,
-          type: getRandomInRange(2, 7),
-          revealed: true,
-          captured: false,
-        });
+      else remainingFroglins.push(coords);
     }
 
     if (revealedFroglins.length === 0) return;
 
     props.updateRevealed(revealedFroglins, remainingFroglins);
+  }
+
+  function handleFluteButtonClick() {
+    setOpen(false);
+
+    const duration = 1_000;
+    const increment = 8;
+    const loops = 5;
+    let radius = 0;
+
+    setSize(radius);
+    setVisible(true);
+    setColor("green");
+
+    let i = 0;
+    const id = setInterval(
+      () => {
+        radius += increment;
+        setSize(radius);
+        if (++i === loops) clearInterval(id);
+      },
+      Math.floor(duration / loops),
+    );
+
+    setTimeout(() => {
+      setVisible(false);
+    }, duration + 100);
+
+    setTimeout(doReveal, duration);
   }
 
   useEffect(() => {
@@ -123,7 +153,7 @@ export default function PlayerMarker(props: Props) {
           </div>
           <div
             className={`${cssMenuButton} green`}
-            onClick={handleFlute}
+            onClick={handleFluteButtonClick}
           >
             <p className="fa-brands fa-pied-piper-alt text-[46px] rotate-[50deg]" />
           </div>

@@ -2,15 +2,18 @@ import * as THREE from "three";
 
 import { Canvas } from "adapters/R3FMabox";
 import { MapCoordinates } from "types";
+import { MinusHalfPI } from "utils/math";
+import { useCircleIndicatorProps } from "providers/CircleIndicatorProps";
 
 export default function CanvasOverlay({
   coordinates,
-  mode = "flute",
 }: {
   coordinates: MapCoordinates;
-  mode?: "flute" | "capture";
 }) {
-  let radius: number = mode === "flute" ? 50 : 10;
+  const { visible, size, color, opacity } = useCircleIndicatorProps();
+
+  console.log(size);
+
   return (
     <Canvas
       center={coordinates}
@@ -29,12 +32,15 @@ export default function CanvasOverlay({
         intensity={4}
       />
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[radius - 1, radius, 64]} />
+      <mesh
+        visible={visible}
+        rotation={[MinusHalfPI, 0, 0]}
+      >
+        <ringGeometry args={[size - 0.5, size, 64]} />
         <meshStandardMaterial
-          color={mode === "flute" ? "green" : "red"}
-          opacity={0.6}
           transparent
+          color={color}
+          opacity={opacity}
           side={THREE.DoubleSide}
         />
       </mesh>

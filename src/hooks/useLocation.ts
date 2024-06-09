@@ -1,6 +1,7 @@
-import { MapCoordinates } from "types";
-import { getDistance } from "utils";
 import { useEffect, useRef, useState } from "react";
+
+import { MapCoordinates } from "types";
+import { getDistance } from "utils/map";
 
 const options = {
   enableHighAccuracy: false,
