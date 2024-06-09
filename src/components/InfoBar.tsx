@@ -1,16 +1,17 @@
 import { CountDownTimer } from "components";
 import CapturedFroglinsList from "./CapturedFroglinsList";
+import { Froglin } from "types";
 
 export default function InfoBar({
   countdownTime,
   className = "",
   distance = 0,
-  captureCount = 0,
+  froglins = [],
 }: {
   countdownTime: number;
   className: string;
   distance: number;
-  captureCount: number;
+  froglins: Froglin[];
 }) {
   return (
     <>
@@ -33,7 +34,7 @@ export default function InfoBar({
           <MapPinIcon className="h-6 w-6" />
         </div>
       </div>
-      <CapturedFroglinsList count={captureCount} />
+      <CapturedFroglinsList froglins={froglins} />
     </>
   );
 }

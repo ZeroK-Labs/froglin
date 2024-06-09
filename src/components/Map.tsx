@@ -2,7 +2,7 @@ import mapboxgl from "mapbox-gl";
 import { Map, MapRef } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 
-import { GameEvent, MapCoordinates } from "types";
+import { GameEvent, MapCoordinates, Froglin } from "types";
 import { MAP_VIEWS } from "enums";
 import { useKeyboardLocation as useLocation } from "hooks";
 import { createGameEvent } from "mocks";
@@ -22,26 +22,23 @@ export default function MapScreen() {
   const durationRef = useRef(7_000);
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
-  const [_, setRevealed] = useState<MapCoordinates[]>([]);
   const [view, setView] = useState(MAP_VIEWS.PLAYGROUND);
   const [countdownTime, setCountdownTime] = useState(0);
-  const [capturedFroglins, setCapturedFroglins] = useState<number>(0);
+  const [capturedFroglins, setCapturedFroglins] = useState<Froglin[]>([]);
 
   const location = useLocation();
 
   function updateRevealed(
-    revealedFroglins: MapCoordinates[],
+    revealedFroglins: Froglin[],
     remainingFroglins: MapCoordinates[],
   ) {
     gameEventRef.current.revealedFroglins.push(...revealedFroglins);
     gameEventRef.current.dormantFroglins = remainingFroglins;
-
-    setRevealed([]); //...gameEventRef.current.revealedFroglins
   }
 
-  function updateCaught(index: number) {
+  function updateCaught(froglin: Froglin, index: number) {
     gameEventRef.current.revealedFroglins.splice(index, 1);
-    setCapturedFroglins((c) => c + 1);
+    setCapturedFroglins((c) => [...c, froglin]);
   }
 
   function mapCallback(node: MapRef) {
@@ -70,7 +67,7 @@ export default function MapScreen() {
       node.flyTo({
         center: [location.current.longitude, location.current.latitude],
         zoom: MAP_VIEWS.PLAYGROUND,
-        pitch: 60,
+        pitch: 30,
         bearing: -30,
         duration: durationRef.current,
       });
@@ -147,7 +144,7 @@ export default function MapScreen() {
       <InfoBar
         countdownTime={countdownTime}
         distance={location.metersTravelled}
-        captureCount={capturedFroglins}
+        froglins={capturedFroglins}
         className="absolute top-2 mx-2 z-10"
       />
 
@@ -177,10 +174,10 @@ export default function MapScreen() {
                 location={location}
               />
             ))}
-            {gameEventRef.current.revealedFroglins.map((location, index) => (
+            {gameEventRef.current.revealedFroglins.map((froglin, index) => (
               <FroglinMarker
                 key={index}
-                location={location}
+                location={froglin.coordinates}
                 revealed={true}
               />
             ))}

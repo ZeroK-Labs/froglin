@@ -2,22 +2,28 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { Marker } from "react-map-gl";
 
 import { AvatarImage } from "components";
-import { MapCoordinates } from "types";
-import { getDistance, inRange } from "utils";
+import { MapCoordinates, Froglin } from "types";
+import { inRange } from "utils";
 
 type Props = {
   location: MapCoordinates;
   dormantFroglins: MapCoordinates[];
-  revealedFroglins: MapCoordinates[];
+  revealedFroglins: Froglin[];
   updateRevealed: (
-    revealedFroglins: MapCoordinates[],
+    revealedFroglins: Froglin[],
     remainingFroglins: MapCoordinates[],
   ) => void;
-  updateCaught: (index: number) => void;
+  updateCaught: (froglin: Froglin, index: number) => void;
 };
 
 const REVEAL_RADIUS = 50;
 const CAPTURE_RADIUS = 2;
+
+function getRandomInRange(a: number, b: number): number {
+  const min = Math.min(a, b);
+  const max = Math.max(a, b);
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
 
 export default function PlayerMarker(props: Props) {
   const [open, setOpen] = useState<boolean>(false);
@@ -38,7 +44,7 @@ export default function PlayerMarker(props: Props) {
     setOpen(false);
 
     const remainingFroglins: MapCoordinates[] = [];
-    const revealedFroglins: MapCoordinates[] = [];
+    const revealedFroglins: Froglin[] = [];
 
     for (let i = 0; i !== props.dormantFroglins.length; ++i) {
       const coords = props.dormantFroglins[i];
@@ -46,7 +52,13 @@ export default function PlayerMarker(props: Props) {
         remainingFroglins.push(coords);
       } //
       else if (Math.random() < 0.7) continue;
-      else revealedFroglins.push(coords);
+      else
+        revealedFroglins.push({
+          coordinates: coords,
+          type: getRandomInRange(2, 7),
+          revealed: true,
+          captured: false,
+        });
     }
 
     if (revealedFroglins.length === 0) return;
@@ -57,11 +69,16 @@ export default function PlayerMarker(props: Props) {
   useEffect(() => {
     console.log("chasing");
     for (let i = 0; i !== props.revealedFroglins.length; ++i) {
-      const coords = props.revealedFroglins[i];
+      const coords = props.revealedFroglins[i].coordinates;
       if (!inRange(coords, props.location, CAPTURE_RADIUS)) continue;
-
+      const froglin = {
+        coordinates: coords,
+        type: getRandomInRange(2, 7),
+        revealed: true,
+        captured: false,
+      };
       console.log("caught");
-      props.updateCaught(i);
+      props.updateCaught(froglin, i);
       break;
     }
   }, [props.location.latitude, props.location.longitude]);
@@ -82,7 +99,7 @@ export default function PlayerMarker(props: Props) {
     >
       <div
         ref={menuRef}
-        className="h-[40px] rounded-full flex justify-center z-[9999]"
+        className="h-[40px] -translate-y-3 rounded-full flex justify-center z-[9999]"
       >
         <nav className="menu">
           <input

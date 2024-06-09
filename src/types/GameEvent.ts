@@ -1,7 +1,7 @@
 import { Position } from "geojson";
 import { LngLatBoundsLike } from "mapbox-gl";
 
-import { MapCoordinates } from "types";
+import { Froglin, MapCoordinates } from "types";
 
 type GameEvent = {
   location: MapCoordinates;
@@ -10,7 +10,7 @@ type GameEvent = {
   epochDuration: number;
   epochStartTime: number;
   dormantFroglins: MapCoordinates[];
-  revealedFroglins: MapCoordinates[];
+  revealedFroglins: Froglin[];
   initialize: (location: MapCoordinates) => void;
   createFroglins: () => void;
   getBounds: () => LngLatBoundsLike;

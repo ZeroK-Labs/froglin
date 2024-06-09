@@ -1,5 +1,5 @@
 enum MAP_VIEWS {
-  PLAYGROUND = 21,
+  PLAYGROUND = 18,
   EVENT = 15,
   WORLD = 2,
 }

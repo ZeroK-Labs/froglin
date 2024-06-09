@@ -1,11 +1,18 @@
-export default function CapturedFroglinsList({ count = 0 }: { count: number }) {
+import { Froglin } from "types";
+
+export default function CapturedFroglinsList({
+  froglins = [],
+}: {
+  froglins: Froglin[];
+}) {
   return (
     <div className="absolute top-20 mx-10 z-10 flex flex-row">
-      {Array.from({ length: count }).map((index) => (
+      {froglins.map((froglin, index) => (
         <img
-          src="/images/froglin2.png"
-          width="30px"
-          height="30px"
+          key={index}
+          src={`/images/froglin${froglin.type}.png`}
+          width="30"
+          height="30"
           alt=""
         />
       ))}
