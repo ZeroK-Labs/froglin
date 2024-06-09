@@ -7,6 +7,10 @@
     box-sizing: border-box !important;
   }
 
+  html {
+    overscroll-behavior: none;
+  }
+
   body {
     min-width: 480px;
     min-height: 100vh;
@@ -34,6 +38,27 @@
     width: 100%;
     text-align: center;
   }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .hide-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  @media all and (display-mode: standalone) {
+    html.scrollable {
+      overscroll-behavior: auto;
+    }
+  }
+}
+
+body::-webkit-scrollbar {
+  display: none;
 }
 
 .mapboxgl-ctrl-logo {

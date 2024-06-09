@@ -2,7 +2,49 @@ import * as THREE from "three";
 import { MercatorCoordinate } from "mapbox-gl";
 
 import MapCoordinates from "types/MapCoordinates";
-import { HalfPI } from "utils/math";
+import { AngleToRadian, HalfPI } from "utils/math";
+
+// Radius of earth in kilometers; 3956 for miles
+const EARTH_RADIUS_KM = 6371;
+
+export function getDistance(
+  lat1: number,
+  lat2: number,
+  lon1: number,
+  lon2: number,
+) {
+  lon1 *= AngleToRadian;
+  lon2 *= AngleToRadian;
+  lat1 *= AngleToRadian;
+  lat2 *= AngleToRadian;
+
+  // Haversine formula
+  let dlon = lon2 - lon1;
+  let dlat = lat2 - lat1;
+  let a =
+    Math.pow(Math.sin(dlat / 2), 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(dlon / 2), 2);
+
+  let c = 2 * Math.asin(Math.sqrt(a));
+
+  // calculate the result in meters
+  return c * EARTH_RADIUS_KM * 1000;
+}
+
+export function inRange(
+  coordinates: MapCoordinates,
+  location: MapCoordinates,
+  distance: number,
+) {
+  return (
+    getDistance(
+      coordinates.latitude,
+      location.latitude,
+      coordinates.longitude,
+      location.longitude,
+    ) <= distance
+  );
+}
 
 const quaternion = new THREE.Quaternion();
 const euler = new THREE.Euler();

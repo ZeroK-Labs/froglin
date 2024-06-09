@@ -1,21 +1,11 @@
 export default function CountdownTimer(timeLeft: number) {
-  const diffInSeconds = Math.floor(timeLeft / 1000);
-
-  function renderTimeLeft() {
-    let minutes = 0,
-      seconds = 0;
-
-    if (diffInSeconds > 0) {
-      minutes = Math.floor(diffInSeconds / 60);
-      seconds = diffInSeconds % 60;
-    }
-
-    return `${minutes}m ${seconds}s`;
-  }
+  const diffInSeconds = Math.ceil(timeLeft / 1000);
+  const minutes = Math.floor(diffInSeconds / 60);
+  const seconds = diffInSeconds % 60;
 
   return (
     <div className="w-[52px] whitespace-nowrap text-center">
-      {renderTimeLeft()}
+      {`${minutes}m ${seconds}s`}
     </div>
   );
 }

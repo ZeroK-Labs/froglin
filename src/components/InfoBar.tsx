@@ -1,32 +1,40 @@
-import CountdownTimer from "components/CountDownTimer";
+import { CountDownTimer } from "components";
+import CapturedFroglinsList from "./CapturedFroglinsList";
 
 export default function InfoBar({
   countdownTime,
   className = "",
   distance = 0,
+  captureCount = 0,
 }: {
   countdownTime: number;
   className: string;
   distance: number;
+  captureCount: number;
 }) {
   return (
-    <div
-      className={`flex items-center justify-between bg-[#6c5ce7] text-white px-2 py-2 border-4 border-purple-950 ${className}`}
-      style={{ width: "calc(100% - 1rem)" }}
-    >
-      <div className="flex items-center space-x-1">
-        <BatteryIcon className="h-6 w-6 text-yellow-300" />
-        <span className="font-semibold">20 / 100</span>
+    <>
+      <div
+        className={`flex items-center justify-between bg-[#6c5ce7] text-white px-2 py-2 border-4 border-purple-950 ${className}`}
+        style={{ width: "calc(100% - 1rem)" }}
+      >
+        <div className="flex items-center space-x-1">
+          <BatteryIcon className="h-6 w-6 text-yellow-300" />
+          <span className="font-semibold">20 / 100</span>
+        </div>
+        <div className="flex items-center space-x-1">
+          🕦{" "}
+          <span className="pl-1 font-semibold">
+            {CountDownTimer(countdownTime)}
+          </span>
+        </div>
+        <div className="flex items-center space-x-1">
+          <span className="font-semibold">{Math.ceil(distance)} m</span>
+          <MapPinIcon className="h-6 w-6" />
+        </div>
       </div>
-      <div className="flex items-center space-x-1">
-        <TimerIcon className="h-6 w-6" />
-        <span className="font-semibold">{CountdownTimer(countdownTime)}</span>
-      </div>
-      <div className="flex items-center space-x-1">
-        <MapPinIcon className="h-6 w-6" />
-        <span className="font-semibold">{Math.ceil(distance)}m</span>
-      </div>
-    </div>
+      <CapturedFroglinsList count={captureCount} />
+    </>
   );
 }
 

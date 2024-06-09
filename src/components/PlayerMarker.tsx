@@ -1,23 +1,30 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { Marker } from "react-map-gl";
-import MapCoordinates from "types/MapCoordinates";
+
+import { AvatarImage } from "components";
+import { MapCoordinates } from "types";
+import { getDistance, inRange } from "utils";
 
 type Props = {
   location: MapCoordinates;
-  handleFlute: () => void;
-  handleCapture: () => void;
+  dormantFroglins: MapCoordinates[];
+  revealedFroglins: MapCoordinates[];
+  updateRevealed: (
+    revealedFroglins: MapCoordinates[],
+    remainingFroglins: MapCoordinates[],
+  ) => void;
+  updateCaught: (index: number) => void;
 };
 
-export default function PlayerMarker({
-  location,
-  handleCapture,
-  handleFlute,
-}: Props) {
+const REVEAL_RADIUS = 50;
+const CAPTURE_RADIUS = 2;
+
+export default function PlayerMarker(props: Props) {
   const [open, setOpen] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const cssMenuButton = `${open ? "" : "opacity-0"} menu-item`;
 
-  function handleChange(ev: ChangeEvent<HTMLInputElement>) {
+  function handleMenuStateChange(ev: ChangeEvent<HTMLInputElement>) {
     setOpen(ev.target.checked);
   }
 
@@ -27,6 +34,38 @@ export default function PlayerMarker({
     }
   }
 
+  function handleFlute() {
+    setOpen(false);
+
+    const remainingFroglins: MapCoordinates[] = [];
+    const revealedFroglins: MapCoordinates[] = [];
+
+    for (let i = 0; i !== props.dormantFroglins.length; ++i) {
+      const coords = props.dormantFroglins[i];
+      if (!inRange(coords, props.location, REVEAL_RADIUS)) {
+        remainingFroglins.push(coords);
+      } //
+      else if (Math.random() < 0.7) continue;
+      else revealedFroglins.push(coords);
+    }
+
+    if (revealedFroglins.length === 0) return;
+
+    props.updateRevealed(revealedFroglins, remainingFroglins);
+  }
+
+  useEffect(() => {
+    console.log("chasing");
+    for (let i = 0; i !== props.revealedFroglins.length; ++i) {
+      const coords = props.revealedFroglins[i];
+      if (!inRange(coords, props.location, CAPTURE_RADIUS)) continue;
+
+      console.log("caught");
+      props.updateCaught(i);
+      break;
+    }
+  }, [props.location.latitude, props.location.longitude]);
+
   useEffect(() => {
     document.addEventListener("click", handleDocumentClick);
     return () => {
@@ -34,12 +73,12 @@ export default function PlayerMarker({
     };
   }, []);
 
-  if (!location) return null;
+  if (!props.location) return null;
 
   return (
     <Marker
-      longitude={location.longitude}
-      latitude={location.latitude}
+      longitude={props.location.longitude}
+      latitude={props.location.latitude}
     >
       <div
         ref={menuRef}
@@ -51,7 +90,7 @@ export default function PlayerMarker({
             type="checkbox"
             checked={open}
             className="menu-options hidden"
-            onChange={handleChange}
+            onChange={handleMenuStateChange}
             // @ts-ignore
             href="#"
           />
@@ -64,13 +103,7 @@ export default function PlayerMarker({
             >
               Jules Verne
             </div>
-            <img
-              className="relative self-center rounded-full border-gray-800 border-solid border-2"
-              src="/images/profilePic.webp"
-              width="60px"
-              height="60px"
-              alt=""
-            />
+            <AvatarImage size="60px" />
           </label>
 
           <div className={`${cssMenuButton} blue`}>
@@ -78,20 +111,11 @@ export default function PlayerMarker({
           </div>
           <div
             className={`${cssMenuButton} green`}
-            onClick={() => {
-              handleFlute();
-              setOpen(false);
-            }}
+            onClick={handleFlute}
           >
             <p className="fa-brands fa-pied-piper-alt text-[46px] rotate-[50deg]" />
           </div>
-          <div
-            className={`${cssMenuButton} red`}
-            onClick={() => {
-              handleCapture();
-              setOpen(false);
-            }}
-          >
+          <div className={`${cssMenuButton} red`}>
             <p className="fa-solid fa-hand-sparkles text-[34px] rotate-[15deg]" />
           </div>
           <div className={`${cssMenuButton} purple`}>

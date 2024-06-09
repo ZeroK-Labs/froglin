@@ -1,9 +1,12 @@
+export { default as AvatarImage } from "components/AvatarImage";
 export { default as BurgerMenu } from "components/BurgerMenu";
 export { default as CanvasOverlay } from "components/CanvasOverlay";
+export { default as CountDownTimer } from "components/CountDownTimer";
 export { default as FroglinMarker } from "components/FroglinMarker";
 export { default as GameEventView } from "components/GameEventView";
 export { default as HamburgerMenu } from "components/PXEConnectionTracker";
+export { default as InfoBar } from "components/InfoBar";
 export { default as Map } from "components/Map";
+export { default as MyLocationButton } from "components/MyLocationButton";
 export { default as PXEConnectionTracker } from "components/PXEConnectionTracker";
 export { default as PlayerMarker } from "components/PlayerMarker";
-export { default as InfoBar } from "components/InfoBar";

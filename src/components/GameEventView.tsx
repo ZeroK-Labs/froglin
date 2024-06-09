@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
-import { GeoJSONSource, Layer, Source, useMap } from "react-map-gl";
 import { Position } from "geojson";
+import { GeoJSONSource, Layer, Source, useMap } from "react-map-gl";
+import { useEffect, useRef } from "react";
 
 import { GameEvent } from "types";
 

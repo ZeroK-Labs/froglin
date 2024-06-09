@@ -14,7 +14,7 @@ export default function BurgerMenu({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-6 left-6 z-[9999]">
+    <div className="absolute bottom-6 left-6 z-[9999]">
       <BurgerButton
         open={open}
         setOpen={setOpen}

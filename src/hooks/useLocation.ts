@@ -1,38 +1,19 @@
-import { useEffect, useRef, useState } from "react";
-import { getDistance } from "utils/get-distance";
 import { MapCoordinates } from "types";
+import { getDistance } from "utils";
+import { useEffect, useRef, useState } from "react";
 
 const options = {
   enableHighAccuracy: false,
   maximumAge: 0,
-  timeout: 3_000,
+  timeout: 10_000,
 };
-
-const MIN_DISTANCE_THRESHOLD_IN_METERS = 0.5;
 
 export default function useLocation() {
   const [initial, setInitial] = useState<MapCoordinates | null>(null);
-  const [current, setCurrent] = useState<MapCoordinates | null>(null);
   const [lost, setLost] = useState(false);
-  const [distance, setDistance] = useState(0); // in meters
+  const [metersTravelled, setMetersTravelled] = useState(0);
   const currentRef = useRef<MapCoordinates | null>(null);
-  const lastPosition = useRef<MapCoordinates | null>(null);
-  function setCurrentLocation(coords: MapCoordinates | null) {
-    setCurrent(coords);
-    currentRef.current = coords;
-    if (lastPosition.current && coords) {
-      const traveled = getDistance(
-        lastPosition.current.latitude,
-        coords.latitude,
-        lastPosition.current.longitude,
-        coords.longitude,
-      );
-      if (traveled > MIN_DISTANCE_THRESHOLD_IN_METERS) {
-        setDistance((prevDistance) => prevDistance + traveled);
-      }
-    }
-    lastPosition.current = coords;
-  }
+  const glitchCountRef = useRef(0);
 
   function handleUpdated(position: GeolocationPosition) {
     const coords = {
@@ -40,15 +21,33 @@ export default function useLocation() {
       longitude: position.coords.longitude,
     };
 
-    if (currentRef.current === null) {
-      setInitial(coords);
-      lastPosition.current = coords;
-    } else {
+    if (currentRef.current === null) setInitial(coords);
+    else {
+      const traveled = getDistance(
+        currentRef.current.latitude,
+        coords.latitude,
+        currentRef.current.longitude,
+        coords.longitude,
+      );
+
+      console.log(traveled / 2);
+
+      if (traveled > 15) {
+        glitchCountRef.current += 1;
+
+        if (glitchCountRef.current < 4) return;
+      } //
+      else if (traveled < 3) return;
+
+      glitchCountRef.current = 0;
       coords.longitude = (coords.longitude + currentRef.current.longitude) / 2;
       coords.latitude = (coords.latitude + currentRef.current.latitude) / 2;
+
+      setMetersTravelled((prevDistance) => prevDistance + traveled / 2);
     }
 
-    setCurrentLocation(coords);
+    setLost(false);
+    currentRef.current = coords;
   }
 
   function handleError(error: GeolocationPositionError) {
@@ -58,7 +57,7 @@ export default function useLocation() {
 
     if (error.code === error.PERMISSION_DENIED) {
       setInitial(null);
-      setCurrentLocation(null);
+      currentRef.current = null;
     } else if (error.code === error.TIMEOUT) setLost(true);
   }
 
@@ -81,8 +80,8 @@ export default function useLocation() {
 
   return {
     initial,
-    current,
+    current: currentRef.current,
     lost,
-    distance,
+    metersTravelled,
   };
 }

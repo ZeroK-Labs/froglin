@@ -11,13 +11,14 @@ export default function FroglinMarker({
   revealed?: boolean;
 }) {
   const [message, setMessage] = useState<string>("");
-  useEffect(() => {
-    if (message) {
-      setTimeout(() => {
-        setMessage("");
-      }, 1500);
-    }
-  }, [message]);
+
+  function showStats() {
+    setMessage("Show FROGLIN STATS");
+    setTimeout(() => {
+      setMessage("");
+    }, 1500);
+  }
+
   if (!location) return null;
 
   return (
@@ -27,7 +28,7 @@ export default function FroglinMarker({
     >
       <div
         className="h-[40px] rounded-full flex justify-center z-0"
-        onClick={() => setMessage("BADABUM!!!")}
+        onClick={showStats}
       >
         {revealed ? (
           <div className="absolute -top-4 text-white text-[8px] whitespace-nowrap bg-green-400 px-2 leading-3 tracking-wider">
@@ -40,27 +41,15 @@ export default function FroglinMarker({
           </div>
         ) : null}
 
-        {!revealed ? (
-          <div>
-            <img
-              className="rounded-full"
-              src="/images/froglin1.png"
-              width="20"
-              height="20"
-              alt=""
-            />
-          </div>
-        ) : (
-          <div>
-            <img
-              className="rounded-full"
-              src="/images/froglin2.png"
-              width="20"
-              height="20"
-              alt=""
-            />
-          </div>
-        )}
+        <div>
+          <img
+            className="rounded-full"
+            src={`/images/froglin${revealed ? "2" : "1"}.png`}
+            width={`${revealed ? "3" : "2"}0px`}
+            height={`${revealed ? "3" : "2"}0px`}
+            alt=""
+          />
+        </div>
       </div>
     </Marker>
   );

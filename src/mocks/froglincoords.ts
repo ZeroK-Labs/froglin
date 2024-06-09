@@ -24,10 +24,16 @@ function generateRandomCoordinates(
   return newCoords;
 }
 
-export function generateSpreadOutFroglinsCoordinates(coords: MapCoordinates) {
-  return generateRandomCoordinates(coords, 30, 0.004, 0.0001);
+export function generateSpreadOutFroglinsCoordinates(
+  coords: MapCoordinates,
+  count: number,
+) {
+  return generateRandomCoordinates(coords, count, 0.004, 0.0001);
 }
 
-export function generateCloseFroglinsCoordinates(coords: MapCoordinates) {
-  return generateRandomCoordinates(coords, 10, 0.0005, 0.0001);
+export function generateCloseFroglinsCoordinates(
+  coords: MapCoordinates,
+  count: number,
+) {
+  return generateRandomCoordinates(coords, count, 0.0005, 0.0001);
 }
