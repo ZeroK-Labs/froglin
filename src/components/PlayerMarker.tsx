@@ -55,8 +55,6 @@ export default function PlayerMarker(props: Props) {
           revealedFroglins.push({
             coordinates: coords,
             type: getRandomInRange(2, 7),
-            revealed: true,
-            captured: false,
           });
       } //
       else remainingFroglins.push(coords);
@@ -97,13 +95,12 @@ export default function PlayerMarker(props: Props) {
   }
 
   useEffect(() => {
-    console.log("chasing");
     for (let i = 0; i !== props.revealedFroglins.length; ++i) {
       const coords = props.revealedFroglins[i].coordinates;
       if (!inRange(coords, props.location, CAPTURE_RADIUS)) continue;
-      const froglin = props.revealedFroglins[i];
+
       console.log("caught");
-      props.updateCaught(froglin, i);
+      props.updateCaught(props.revealedFroglins[i], i);
       break;
     }
   }, [props.location.latitude, props.location.longitude]);
