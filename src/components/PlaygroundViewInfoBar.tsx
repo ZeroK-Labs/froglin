@@ -1,12 +1,12 @@
 import { CountDownTimer, CapturedFroglinsList } from "components";
 import { Froglin } from "types";
 
-export default function InfoBar({
-  countdownTime,
+export default function PlaygroundViewInfoBar({
+  secondsLeft,
   distance = 0,
   froglins = [],
 }: {
-  countdownTime: number;
+  secondsLeft: number;
   distance: number;
   froglins: Froglin[];
 }) {
@@ -23,7 +23,7 @@ export default function InfoBar({
         <div className="flex items-center space-x-1">
           <TimerIcon className="h-6 w-6" />
           <span className="pl-1 font-semibold">
-            {CountDownTimer(countdownTime)}
+            {CountDownTimer(secondsLeft)}
           </span>
         </div>
         <div className="flex items-center space-x-1">

@@ -25,7 +25,7 @@ export default function MapScreen() {
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const [view, setView] = useState(MAP_VIEWS.PLAYGROUND);
-  const [countdownTime, setCountdownTime] = useState(0);
+  const [secondsLeftInEpoch, setSecondsLeftInEpoch] = useState(0);
   const [capturedFroglins, setCapturedFroglins] = useState<Froglin[]>([]);
 
   const location = useLocation();
@@ -124,24 +124,32 @@ export default function MapScreen() {
 
     gameEventRef.current.epochStartTime = Date.now();
     epochTickerRef.current = setInterval(() => {
-      const timeLeft =
+      let timeLeft =
         gameEventRef.current.epochStartTime +
         gameEventRef.current.epochDuration -
         Date.now();
 
-      setTimeout(() => setCountdownTime(timeLeft), 0);
-
       if (timeLeft < 1) {
-        gameEventRef.current.epochStartTime = Date.now();
         gameEventRef.current.epochCount -= 1;
 
         if (gameEventRef.current.epochCount === 0) {
+          timeLeft = 0;
           clearInterval(epochTickerRef.current);
 
           console.log("game ended");
         } //
-        else gameEventRef.current.createFroglins();
-      }
+        else {
+          console.log("epoch ended");
+          gameEventRef.current.epochStartTime = Date.now();
+          timeLeft = Math.floor(
+            gameEventRef.current.epochDuration / 1_000 + 0.5,
+          );
+
+          gameEventRef.current.createFroglins();
+        }
+      } //
+
+      setSecondsLeftInEpoch(Math.floor(timeLeft / 1_000 + 0.5));
     }, 1_000);
 
     return () => {
@@ -207,7 +215,7 @@ export default function MapScreen() {
       <div className="absolute left-0 top-2 right-0 p-2 flex">
         {view === MAP_VIEWS.PLAYGROUND ? (
           <PlaygroundViewInfoBar
-            countdownTime={countdownTime}
+            secondsLeft={secondsLeftInEpoch}
             distance={location.metersTravelled}
             froglins={capturedFroglins}
           />
