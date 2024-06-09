@@ -15,7 +15,7 @@ const options = {
   timeout: 10_000,
 };
 
-const offset = 0.00001; // ~ 1m
+const offset = 0.00003; // ~ 1m
 
 export default function useKeyboardLocation() {
   const [current, setCurrent] = useState<MapCoordinates | null>(null);

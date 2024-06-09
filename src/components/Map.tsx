@@ -166,7 +166,7 @@ export default function MapScreen() {
       >
         {location.current ? (
           <>
-            <CanvasOverlay coordinates={location.initial!} />
+            <CanvasOverlay coordinates={location.current!} />
 
             {gameEventRef.current.dormantFroglins.map((location, index) => (
               <FroglinMarker
@@ -179,6 +179,7 @@ export default function MapScreen() {
                 key={index}
                 location={froglin.coordinates}
                 revealed={true}
+                froglin={froglin}
               />
             ))}
 

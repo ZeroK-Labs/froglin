@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { Marker } from "react-map-gl";
+import { Froglin } from "types";
 
 import MapCoordinates from "types/MapCoordinates";
 
 export default function FroglinMarker({
   location,
   revealed = false,
+  froglin,
 }: {
   location: MapCoordinates;
+  froglin?: Froglin;
   revealed?: boolean;
 }) {
   const [message, setMessage] = useState<string>("");
@@ -44,7 +47,7 @@ export default function FroglinMarker({
         <div>
           <img
             className="rounded-full"
-            src={`/images/froglin${revealed ? "2" : "1"}.png`}
+            src={`/images/froglin${revealed ? froglin?.type : "1"}.png`}
             width={`${revealed ? "3" : "2"}0px`}
             height={`${revealed ? "3" : "2"}0px`}
             alt=""
