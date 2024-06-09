@@ -845,10 +845,6 @@ video {
   align-self: center;
 }
 
-.overflow-hidden {
-  overflow: hidden;
-}
-
 .overflow-scroll {
   overflow: scroll;
 }
@@ -1262,6 +1258,12 @@ body::-webkit-scrollbar {
 .orange:hover {
   color: #fc913a;
   text-shadow: none;
+}
+
+.gray {
+  background-color: #bdc3c7;
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.12);
 }
 
 .hover\:bg-main-purple:hover {

@@ -127,13 +127,13 @@ export default function PlayerMarker(props: Props) {
           >
             <p className="fa-brands fa-pied-piper-alt text-[46px] rotate-[50deg]" />
           </div>
-          <div className={`${cssMenuButton} red`}>
-            <p className="fa-solid fa-hand-sparkles text-[34px] rotate-[15deg]" />
+          <div className={`${cssMenuButton} gray pointer-events-none`}>
+            <p className="fa-solid fa-hand-sparkles text-[34px] rotate-[15deg] " />
           </div>
-          <div className={`${cssMenuButton} purple`}>
-            <p className=" fa-solid fa-mosquito-net text-[42px] rotate-[-15deg]" />
+          <div className={`${cssMenuButton} gray pointer-events-none`}>
+            <p className=" fa-solid fa-mosquito-net text-[42px] rotate-[-15deg]e" />
           </div>
-          <div className={`${cssMenuButton} orange`}>
+          <div className={`${cssMenuButton} gray pointer-events-none`}>
             <p className="fa-solid fa-shoe-prints text-[28px] rotate-[290deg]" />
           </div>
         </nav>

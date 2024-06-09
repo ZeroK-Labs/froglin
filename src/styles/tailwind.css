@@ -201,3 +201,9 @@ body::-webkit-scrollbar {
   color: #fc913a;
   text-shadow: none;
 }
+
+.gray {
+  background-color: #bdc3c7;
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.12);
+}
