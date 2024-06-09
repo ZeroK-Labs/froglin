@@ -12,10 +12,10 @@ import {
   CanvasOverlay,
   FroglinMarker,
   GameEventView,
-  InfoBar,
+  PlaygroundViewInfoBar,
   MyLocationButton,
   PlayerMarker,
-  GameEventInfoBar,
+  EventViewInfoBar,
 } from "components";
 
 export default function MapScreen() {
@@ -149,17 +149,6 @@ export default function MapScreen() {
 
   return (
     <div className="absolute inset-0 h-full w-full">
-      {view === MAP_VIEWS.PLAYGROUND ? (
-        <InfoBar
-          countdownTime={countdownTime}
-          distance={location.metersTravelled}
-          froglins={capturedFroglins}
-          className="absolute top-2 mx-2 z-10"
-        />
-      ) : view === MAP_VIEWS.EVENT ? (
-        <GameEventInfoBar className="absolute top-2 mx-2 z-10" />
-      ) : null}
-
       <Map
         ref={mapCallback}
         mapboxAccessToken={process.env.MAPBOX_ACCESS_TOKEN}
@@ -212,6 +201,18 @@ export default function MapScreen() {
           </CircleIndicatorPropsProvider>
         ) : null}
       </Map>
+
+      <div className="absolute left-0 top-2 right-0 p-2 flex">
+        {view === MAP_VIEWS.PLAYGROUND ? (
+          <PlaygroundViewInfoBar
+            countdownTime={countdownTime}
+            distance={location.metersTravelled}
+            froglins={capturedFroglins}
+          />
+        ) : view === MAP_VIEWS.EVENT ? (
+          <EventViewInfoBar />
+        ) : null}
+      </div>
 
       <BurgerMenu
         view={view}

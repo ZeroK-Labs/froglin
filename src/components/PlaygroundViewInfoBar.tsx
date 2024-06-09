@@ -1,22 +1,19 @@
-import { CountDownTimer } from "components";
-import CapturedFroglinsList from "./CapturedFroglinsList";
+import { CountDownTimer, CapturedFroglinsList } from "components";
 import { Froglin } from "types";
 
 export default function InfoBar({
   countdownTime,
-  className = "",
   distance = 0,
   froglins = [],
 }: {
   countdownTime: number;
-  className: string;
   distance: number;
   froglins: Froglin[];
 }) {
   return (
     <>
       <div
-        className={`flex items-center justify-between bg-[#6c5ce7] text-white px-2 py-2 border-4 border-purple-950 ${className}`}
+        className="absolute h-12 p-2 border-4 flex items-center justify-between bg-[#6c5ce7] text-white border-purple-950"
         style={{ width: "calc(100% - 1rem)" }}
       >
         <div className="flex items-center space-x-1">
