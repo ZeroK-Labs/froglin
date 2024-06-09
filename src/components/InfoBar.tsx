@@ -24,7 +24,7 @@ export default function InfoBar({
           <span className="font-semibold">20 / 100</span>
         </div>
         <div className="flex items-center space-x-1">
-          🕦{" "}
+          <TimerIcon className="h-6 w-6" />
           <span className="pl-1 font-semibold">
             {CountDownTimer(countdownTime)}
           </span>
