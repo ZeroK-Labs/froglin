@@ -31,8 +31,6 @@ export default function useLocation() {
         coords.longitude,
       );
 
-      console.log(traveled / 2);
-
       if (traveled > 15) {
         glitchCountRef.current += 1;
 

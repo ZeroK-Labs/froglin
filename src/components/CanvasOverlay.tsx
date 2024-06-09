@@ -12,8 +12,6 @@ export default function CanvasOverlay({
 }) {
   const { visible, size, color, opacity } = useCircleIndicatorProps();
 
-  console.log(size);
-
   return (
     <Canvas
       center={coordinates}
