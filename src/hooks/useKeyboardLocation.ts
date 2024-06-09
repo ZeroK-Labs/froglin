@@ -19,7 +19,7 @@ const offset = 0.00003; // ~ 1m
 
 export default function useKeyboardLocation() {
   const [current, setCurrent] = useState<MapCoordinates | null>(null);
-  const initalRef = useRef<MapCoordinates | null>(null);
+  const initialRef = useRef<MapCoordinates | null>(null);
   const currentRef = useRef<MapCoordinates | null>(null);
   const keysRef = useRef<Keys>({ w: false, s: false, a: false, d: false });
 
@@ -47,14 +47,13 @@ export default function useKeyboardLocation() {
     document.addEventListener("keyup", handleKeyup);
 
     let pollerId: ReturnType<typeof setInterval>;
-
     navigator.geolocation.getCurrentPosition(
       (position: GeolocationPosition) => {
         currentRef.current = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         };
-        initalRef.current = { ...currentRef.current };
+        initialRef.current = { ...currentRef.current };
         setCurrent({ ...currentRef.current });
         pollerId = setInterval(poll, 500);
       },
@@ -71,7 +70,7 @@ export default function useKeyboardLocation() {
   }, []);
 
   return {
-    initial: initalRef.current,
+    initial: initialRef.current,
     current: currentRef.current,
     lost: false,
     metersTravelled: 0,
