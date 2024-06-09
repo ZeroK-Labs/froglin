@@ -60,10 +60,15 @@ export default function MapScreen() {
     const map = node.getMap();
     setMap(map);
 
+    map.setMinPitch(0);
+    map.setMaxPitch(85);
     map.setMinZoom(MAP_VIEWS.WORLD);
     map.setMaxZoom(MAP_VIEWS.PLAYGROUND);
     map.dragPan.disable();
     map.dragRotate.disable();
+    map.scrollZoom.disable();
+    map.touchPitch.disable();
+    map.touchZoomRotate.disable();
 
     if (view === MAP_VIEWS.PLAYGROUND) {
       node.flyTo({
@@ -74,16 +79,17 @@ export default function MapScreen() {
         duration: durationRef.current,
       });
 
-      map.setMinPitch(20);
-      map.setMaxPitch(80);
-
-      setTimeout(() => {
+      map.once("idle", () => {
+        map.setMinPitch(20);
+        map.setMaxPitch(80);
         map.setMinZoom(MAP_VIEWS.PLAYGROUND - 2);
         map.setMaxZoom(MAP_VIEWS.PLAYGROUND);
         map.dragPan.enable();
         map.dragRotate.enable();
         map.scrollZoom.enable();
-      }, durationRef.current + 50);
+        map.touchPitch.enable();
+        map.touchZoomRotate.enable();
+      });
 
       durationRef.current = 3_000;
     } //
@@ -96,14 +102,14 @@ export default function MapScreen() {
         duration: durationRef.current,
       });
 
-      map.setMinPitch(10);
-      map.setMaxPitch(40);
-
-      setTimeout(() => {
+      map.once("idle", () => {
+        map.setMinPitch(10);
+        map.setMaxPitch(40);
         map.setMinZoom(MAP_VIEWS.EVENT);
         map.setMaxZoom(MAP_VIEWS.EVENT);
+        map.dragPan.disable();
         map.dragRotate.enable();
-      }, durationRef.current + 50);
+      });
     }
   }
 
@@ -166,9 +172,6 @@ export default function MapScreen() {
         // fit the globe vertically in view
         initialViewState={{ zoom: 2.62 }}
         doubleClickZoom={false}
-        scrollZoom={false}
-        dragRotate={false}
-        dragPan={false}
       >
         {location.current ? (
           <CircleIndicatorPropsProvider>
