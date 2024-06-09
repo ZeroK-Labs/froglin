@@ -71,12 +71,7 @@ export default function PlayerMarker(props: Props) {
     for (let i = 0; i !== props.revealedFroglins.length; ++i) {
       const coords = props.revealedFroglins[i].coordinates;
       if (!inRange(coords, props.location, CAPTURE_RADIUS)) continue;
-      const froglin = {
-        coordinates: coords,
-        type: getRandomInRange(2, 7),
-        revealed: true,
-        captured: false,
-      };
+      const froglin = props.revealedFroglins[i];
       console.log("caught");
       props.updateCaught(froglin, i);
       break;

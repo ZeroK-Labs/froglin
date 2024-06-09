@@ -6,7 +6,7 @@ export default function CapturedFroglinsList({
   froglins: Froglin[];
 }) {
   return (
-    <div className="absolute top-20 mx-10 z-10 flex flex-row">
+    <div className="absolute top-20 mx-10 z-10 flex flex-row gap-1 overflow-scroll">
       {froglins.map((froglin, index) => (
         <img
           key={index}
