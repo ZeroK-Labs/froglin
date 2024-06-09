@@ -41,6 +41,7 @@ certificates
 *.tsbuildinfo
 
 # webpack
+dist
 # build-related output
 src/contracts/artifacts
 src/contracts/target
