@@ -17,14 +17,18 @@ export default function FroglinMarker({
 
   function showStats() {
     if (revealed) {
-      setMessage("Catch me if you can!");
+      setMessage("Catch me if you can, mr Hanks!");
     } else {
-      setMessage("Maybe there's a froglin here?");
+      setMessage("A froglin?! My flute will reveal it!");
     }
     setTimeout(() => {
       setMessage("");
-    }, 1500);
+    }, 3_000);
   }
+
+  useEffect(() => {
+    setMessage("");
+  }, [location.latitude, location.longitude]);
 
   if (!location) return null;
 
@@ -34,27 +38,22 @@ export default function FroglinMarker({
       latitude={location.latitude}
     >
       <div
-        className="h-[40px] rounded-full flex justify-center z-0"
+        className="rounded-full flex flex-col items-center justify-center"
         onClick={showStats}
       >
-        {revealed ? (
-          <div className="absolute -top-4 text-white text-[8px] whitespace-nowrap bg-green-400 px-2 leading-3 tracking-wider"></div>
-        ) : null}
         {message ? (
-          <div className="absolute -top-4 text-white text-[8px] whitespace-nowrap bg-green-400 px-2 leading-3 tracking-wider">
+          <div className="absolute -top-[20px] text-gray-800 text-[12px] whitespace-nowrap bg-green-400 p-1.5 rounded-sm leading-3 tracking-wider z-0">
             {message}
           </div>
         ) : null}
 
-        <div>
-          <img
-            className="rounded-full"
-            src={`/images/froglin${revealed ? froglin?.type : "1"}.png`}
-            width={`${revealed ? "3" : "2"}0px`}
-            height={`${revealed ? "3" : "2"}0px`}
-            alt=""
-          />
-        </div>
+        <img
+          className="rounded-full z-10"
+          src={`/images/froglin${revealed ? froglin?.type : "1"}.png`}
+          width={`${revealed ? "36" : "28"}px`}
+          height={`${revealed ? "36" : "28"}px`}
+          alt=""
+        />
       </div>
     </Marker>
   );
