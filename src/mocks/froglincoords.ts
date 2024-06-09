@@ -37,3 +37,9 @@ export function generateCloseFroglinsCoordinates(
 ) {
   return generateRandomCoordinates(coords, count, 0.0005, 0.0001);
 }
+export function generateEvenCloserFroglinsCoordinates(
+  coords: MapCoordinates,
+  count: number,
+) {
+  return generateRandomCoordinates(coords, count, 0.0001, 0.00009);
+}

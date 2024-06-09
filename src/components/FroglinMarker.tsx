@@ -16,7 +16,11 @@ export default function FroglinMarker({
   const [message, setMessage] = useState<string>("");
 
   function showStats() {
-    setMessage("Show FROGLIN STATS");
+    if (revealed) {
+      setMessage("Catch me if you can!");
+    } else {
+      setMessage("Maybe there's a froglin here?");
+    }
     setTimeout(() => {
       setMessage("");
     }, 1500);
@@ -34,9 +38,7 @@ export default function FroglinMarker({
         onClick={showStats}
       >
         {revealed ? (
-          <div className="absolute -top-4 text-white text-[8px] whitespace-nowrap bg-green-400 px-2 leading-3 tracking-wider">
-            !@#$ ??
-          </div>
+          <div className="absolute -top-4 text-white text-[8px] whitespace-nowrap bg-green-400 px-2 leading-3 tracking-wider"></div>
         ) : null}
         {message ? (
           <div className="absolute -top-4 text-white text-[8px] whitespace-nowrap bg-green-400 px-2 leading-3 tracking-wider">

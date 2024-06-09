@@ -2,6 +2,7 @@ import { GameEvent, MapCoordinates } from "types";
 
 import {
   generateCloseFroglinsCoordinates,
+  generateEvenCloserFroglinsCoordinates,
   generateEventBounds,
   generateSpreadOutFroglinsCoordinates,
 } from "mocks";
@@ -29,13 +30,17 @@ export function createGameEvent(): GameEvent {
     },
     createFroglins: () => {
       const nearCount = Math.floor(Math.random() * 12) + 3;
-
+      const veryNearCount = 5;
       gameEvent.dormantFroglins = [
         ...generateSpreadOutFroglinsCoordinates(
           gameEvent.location,
-          gameEvent.dormantFroglins.length - nearCount,
+          gameEvent.dormantFroglins.length - nearCount - veryNearCount,
         ),
         ...generateCloseFroglinsCoordinates(gameEvent.location, nearCount),
+        ...generateEvenCloserFroglinsCoordinates(
+          gameEvent.location,
+          veryNearCount,
+        ),
       ];
     },
     getBounds: () => {
