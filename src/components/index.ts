@@ -10,3 +10,4 @@ export { default as Map } from "components/Map";
 export { default as MyLocationButton } from "components/MyLocationButton";
 export { default as PXEConnectionTracker } from "components/PXEConnectionTracker";
 export { default as PlayerMarker } from "components/PlayerMarker";
+export { default as GameEventInfoBar } from "components/GameEventInfoBar";

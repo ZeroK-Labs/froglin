@@ -15,6 +15,7 @@ import {
   InfoBar,
   MyLocationButton,
   PlayerMarker,
+  GameEventInfoBar,
 } from "components";
 
 export default function MapScreen() {
@@ -142,12 +143,16 @@ export default function MapScreen() {
 
   return (
     <div className="absolute inset-0 h-full w-full">
-      <InfoBar
-        countdownTime={countdownTime}
-        distance={location.metersTravelled}
-        froglins={capturedFroglins}
-        className="absolute top-2 mx-2 z-10"
-      />
+      {view === MAP_VIEWS.PLAYGROUND ? (
+        <InfoBar
+          countdownTime={countdownTime}
+          distance={location.metersTravelled}
+          froglins={capturedFroglins}
+          className="absolute top-2 mx-2 z-10"
+        />
+      ) : view === MAP_VIEWS.EVENT ? (
+        <GameEventInfoBar className="absolute top-2 mx-2 z-10" />
+      ) : null}
 
       <Map
         ref={mapCallback}
