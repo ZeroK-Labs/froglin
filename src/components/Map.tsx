@@ -115,14 +115,31 @@ export default function MapScreen() {
         duration: durationRef.current,
       });
 
+      function centerInView() {
+        map.flyTo({
+          center: [location.current!.longitude, location.current!.latitude],
+          duration: 1_000,
+        });
+
+        if (viewLevelRef.current !== MAP_VIEWS.EVENT) return;
+
+        map.once("rotateend", centerInView);
+        map.once("pitchend", centerInView);
+      }
+
+      map.once("rotateend", centerInView);
+      map.once("pitchend", centerInView);
+
       map.once("idle", () => {
         if (viewLevelRef.current !== MAP_VIEWS.EVENT) return;
 
         map.setMinPitch(10);
         map.setMaxPitch(40);
-        map.setMinZoom(MAP_VIEWS.EVENT);
+        map.setMinZoom(MAP_VIEWS.EVENT - 0.5);
         map.setMaxZoom(MAP_VIEWS.EVENT);
         map.dragRotate.enable();
+        map.scrollZoom.enable();
+        map.touchPitch.enable();
         map.touchZoomRotate.enable();
       });
     }
