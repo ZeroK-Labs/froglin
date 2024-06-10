@@ -11,7 +11,7 @@ export default {
       },
       colors: {
         "main-purple": "rgba(88, 28, 135, 0.5)",
-        "main-hover-purple": "rgba(102, 34, 155, 0.8)",
+        "main-purple-hover": "rgba(102, 34, 155, 0.8)",
       },
       keyframes: {
         "fade-in-out": {

@@ -1,25 +1,9 @@
+import { LineMenuPopupListItem } from "components/LineMenuPopupListItem";
 import { MAP_VIEWS } from "enums";
 
-function MenuButtonElement({
-  text,
-  onClick,
-}: {
-  text: string;
-  onClick: React.MouseEventHandler;
-}) {
-  return (
-    <li>
-      <button
-        className="p-4 text-4xl hover:bg-main-purple"
-        onClick={onClick}
-      >
-        {text}
-      </button>
-    </li>
-  );
-}
+const duration = 300;
 
-export function ButtonsPopup({
+export function LineMenuPopupList({
   open,
   setOpen,
   view,
@@ -32,12 +16,12 @@ export function ButtonsPopup({
 }) {
   function handleButtonEventViewClick() {
     setOpen(false);
-    setView(MAP_VIEWS.EVENT);
+    setTimeout(() => setView(MAP_VIEWS.EVENT), duration);
   }
 
   function handleButtonPlaygroundViewClick() {
     setOpen(false);
-    setView(MAP_VIEWS.PLAYGROUND);
+    setTimeout(() => setView(MAP_VIEWS.PLAYGROUND), duration);
   }
 
   function handleButtonProfileModalClick() {
@@ -46,24 +30,23 @@ export function ButtonsPopup({
 
   return (
     <nav
-      className={`absolute bottom-16 -left-2 p-2 border rounded-md shadow-lg bg-gray-800 transition-opacity duration-300 ${open ? "opacity-90" : "opacity-0 pointer-events-none"}`}
+      className={`absolute bottom-16 -left-2 p-2 border rounded-md shadow-lg shadow-main-purple/80 bg-gray-800 transition-opacity ${open ? "opacity-90" : "opacity-0 pointer-events-none"}`}
+      style={{ transitionDuration: `${duration}ms` }}
     >
       <ul>
         {view === MAP_VIEWS.PLAYGROUND ? (
-          <MenuButtonElement
+          <LineMenuPopupListItem
             text="🗺️"
             onClick={handleButtonEventViewClick}
           />
-        ) : null}
-
-        {view === MAP_VIEWS.EVENT ? (
-          <MenuButtonElement
+        ) : view === MAP_VIEWS.EVENT ? (
+          <LineMenuPopupListItem
             text="🌇"
             onClick={handleButtonPlaygroundViewClick}
           />
         ) : null}
 
-        <MenuButtonElement
+        <LineMenuPopupListItem
           text="👤"
           onClick={handleButtonProfileModalClick}
         />

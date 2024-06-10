@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { Canvas } from "adapters/R3FMabox";
+import { Canvas } from "adapters/R3FMapbox";
 import { MapCoordinates } from "types";
 import { MinusHalfPI } from "utils/math";
 import { useCircleIndicatorProps } from "providers/CircleIndicatorProps";
@@ -34,7 +34,7 @@ export default function CanvasOverlay({
         visible={visible}
         rotation={[MinusHalfPI, 0, 0]}
       >
-        <ringGeometry args={[size - 0.5, size, 64]} />
+        <ringGeometry args={[size - 0.33, size, 64]} />
         <meshStandardMaterial
           transparent
           color={color}

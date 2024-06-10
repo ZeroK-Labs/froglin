@@ -1,16 +1,8 @@
 import { useRef, useEffect } from "react";
 
-function BarElement({ mouseOver, css }: { mouseOver: boolean; css: string }) {
-  return (
-    <div
-      className={`h-2 w-full border border-white transition-all duration-300 ease-out bg-${
-        mouseOver ? "main-purple" : "gray-800"
-      } ${css}`}
-    />
-  );
-}
+import { LineMenuButtonElement } from "components/LineMenuButtonElement";
 
-export function BurgerButton({
+export function LineMenuButton({
   open,
   setOpen,
 }: {
@@ -87,15 +79,15 @@ export function BurgerButton({
       onMouseLeave={handlePointerLeave}
       onPointerLeave={handlePointerLeave}
     >
-      <BarElement
+      <LineMenuButtonElement
         mouseOver={mouseOverRef.current}
         css={open ? "transform rotate-45 translate-y-2" : ""}
       />
-      <BarElement
+      <LineMenuButtonElement
         mouseOver={mouseOverRef.current}
         css={open ? "opacity-0" : ""}
       />
-      <BarElement
+      <LineMenuButtonElement
         mouseOver={mouseOverRef.current}
         css={open ? "transform -rotate-45 -translate-y-2" : ""}
       />

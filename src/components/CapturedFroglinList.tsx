@@ -1,15 +1,15 @@
 import { Froglin } from "types";
-import { CapturedFroglinsListItem } from "components";
+import { CapturedFroglinListItem } from "components";
 
-export default function CapturedFroglinsList({
+export default function CapturedFroglinList({
   froglins = [],
 }: {
   froglins: Froglin[];
 }) {
   return (
-    <div className="absolute top-20 mx-10 flex flex-row gap-1 hide-scrollbar">
+    <div className="absolute top-20 mx-10 flex flex-row gap-2 hide-scrollbar">
       {froglins.map((froglin, index) => (
-        <CapturedFroglinsListItem
+        <CapturedFroglinListItem
           key={index}
           item={froglin}
         />

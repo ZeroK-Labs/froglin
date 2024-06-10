@@ -1,4 +1,3 @@
-export * from "mocks/eventBounds";
-export * from "mocks/froglincoords";
-export * from "mocks/location";
+export * from "mocks/CoordinateBounds";
+export * from "mocks/Coordinates";
 export * from "mocks/GameEvent";

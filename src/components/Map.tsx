@@ -2,21 +2,22 @@ import mapboxgl from "mapbox-gl";
 import { Map, MapRef } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 
+import { CircleIndicatorPropsProvider } from "providers/CircleIndicatorProps";
 import { GameEvent, MapCoordinates, Froglin } from "types";
 import { MAP_VIEWS } from "enums";
-import { CircleIndicatorPropsProvider } from "providers/CircleIndicatorProps";
 import { createGameEvent } from "mocks";
-import { useKeyboardLocation as useLocation } from "hooks";
+import { useKeyboardLocation, useLocation } from "hooks";
 import {
-  BurgerMenu,
+  LineMenu,
   CanvasOverlay,
   FroglinMarker,
   GameEventView,
   PlaygroundViewInfoBar,
-  MyLocationButton,
+  LocationRestoreButton,
   PlayerMarker,
   EventViewInfoBar,
 } from "components";
+import { mobileClient } from "utils/window";
 
 export default function MapScreen() {
   const gameEventRef = useRef<GameEvent>(createGameEvent());
@@ -24,24 +25,26 @@ export default function MapScreen() {
   const durationRef = useRef(7_000);
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
-  const [view, setView] = useState(MAP_VIEWS.PLAYGROUND);
   const [secondsLeftInEpoch, setSecondsLeftInEpoch] = useState(0);
+  const [view, setView] = useState(MAP_VIEWS.PLAYGROUND);
+  const [revealedFroglins, setRevealedFroglins] = useState<Froglin[]>([]);
   const [capturedFroglins, setCapturedFroglins] = useState<Froglin[]>([]);
 
-  const location = useLocation();
+  const location = mobileClient ? useLocation() : useKeyboardLocation();
 
   function updateRevealed(
-    revealedFroglins: Froglin[],
+    newlyRevealedFroglins: Froglin[],
     remainingFroglins: MapCoordinates[],
   ) {
-    gameEventRef.current.revealedFroglins.push(...revealedFroglins);
+    setRevealedFroglins((r) => [...r, ...newlyRevealedFroglins]);
     gameEventRef.current.dormantFroglins = remainingFroglins;
   }
 
-  function updateCaught(index: number) {
+  function updateCaught(froglinId: number) {
     console.log("capture");
 
-    const froglin = gameEventRef.current.revealedFroglins.splice(index, 1)[0];
+    const index = revealedFroglins.findIndex((f) => f.id === froglinId);
+    const froglin = revealedFroglins.splice(index, 1)[0];
     setCapturedFroglins((c) => [...c, froglin]);
   }
 
@@ -82,6 +85,8 @@ export default function MapScreen() {
       });
 
       map.once("idle", () => {
+        if (viewLevelRef.current !== MAP_VIEWS.PLAYGROUND) return;
+
         map.setMinPitch(20);
         map.setMaxPitch(80);
         map.setMinZoom(MAP_VIEWS.PLAYGROUND - 2);
@@ -105,11 +110,12 @@ export default function MapScreen() {
       });
 
       map.once("idle", () => {
+        if (viewLevelRef.current !== MAP_VIEWS.EVENT) return;
+
         map.setMinPitch(10);
         map.setMaxPitch(40);
         map.setMinZoom(MAP_VIEWS.EVENT);
         map.setMaxZoom(MAP_VIEWS.EVENT);
-        map.dragPan.disable();
         map.dragRotate.enable();
       });
     }
@@ -139,7 +145,6 @@ export default function MapScreen() {
           console.log("game ended");
         } //
         else {
-          console.log("epoch ended");
           gameEventRef.current.epochStartTime = Date.now();
           timeLeft = Math.floor(
             gameEventRef.current.epochDuration / 1_000 + 0.5,
@@ -182,7 +187,7 @@ export default function MapScreen() {
                 location={location}
               />
             ))}
-            {gameEventRef.current.revealedFroglins.map((froglin, index) => (
+            {revealedFroglins.map((froglin, index) => (
               <FroglinMarker
                 key={index}
                 location={froglin.coordinates}
@@ -199,13 +204,13 @@ export default function MapScreen() {
             <PlayerMarker
               location={location.current}
               dormantFroglins={gameEventRef.current.dormantFroglins}
-              revealedFroglins={gameEventRef.current.revealedFroglins}
+              revealedFroglins={revealedFroglins}
               updateRevealed={updateRevealed}
               updateCaught={updateCaught}
             />
 
-            <MyLocationButton
-              map={map!}
+            <LocationRestoreButton
+              map={map}
               location={location.current}
             />
           </CircleIndicatorPropsProvider>
@@ -224,7 +229,7 @@ export default function MapScreen() {
         ) : null}
       </div>
 
-      <BurgerMenu
+      <LineMenu
         view={view}
         setView={setView}
       />

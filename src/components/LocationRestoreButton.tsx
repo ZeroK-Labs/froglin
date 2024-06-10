@@ -1,11 +1,11 @@
 import mapboxgl from "mapbox-gl";
 import { useEffect, useState } from "react";
 
-import { AvatarImage } from "components";
+import { PlayerMarkerImage } from "components";
 import { MAP_VIEWS } from "enums";
 import { MapCoordinates } from "types";
 
-export default function MyLocationButton({
+export default function LocationRestoreButton({
   map,
   location,
 }: {
@@ -52,7 +52,7 @@ export default function MyLocationButton({
       className="absolute bottom-6 right-6 z-[9999] rounded-md"
       onClick={handleNavigateToCurrentLocation}
     >
-      <AvatarImage size="40px" />
+      <PlayerMarkerImage size="40px" />
     </button>
   );
 }

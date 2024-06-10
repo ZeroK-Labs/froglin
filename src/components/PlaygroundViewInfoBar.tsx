@@ -1,4 +1,4 @@
-import { CountDownTimer, CapturedFroglinsList } from "components";
+import { CountDownTimer, CapturedFroglinList } from "components";
 import { Froglin } from "types";
 
 export default function PlaygroundViewInfoBar({
@@ -31,7 +31,7 @@ export default function PlaygroundViewInfoBar({
           <MapPinIcon className="h-6 w-6" />
         </div>
       </div>
-      <CapturedFroglinsList froglins={froglins} />
+      <CapturedFroglinList froglins={froglins} />
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ReactElement, useEffect, useRef, useState } from "react";
 import { Marker } from "react-map-gl";
 import { Froglin } from "types";
 
@@ -7,11 +7,15 @@ import MapCoordinates from "types/MapCoordinates";
 type Props = {
   location: MapCoordinates;
   froglin?: Froglin;
-  updateCaught?: (index: number) => void;
+  updateCaught?: (froglinId: number) => void;
 };
 
+const duration = 500;
+
 export default function FroglinMarker(props: Props) {
+  const locationRef = useRef({ ...props.location });
   const [message, setMessage] = useState<string>("");
+  const [opacity, setOpacity] = useState(0);
 
   const revealed = props.froglin != null;
 
@@ -28,17 +32,28 @@ export default function FroglinMarker(props: Props) {
 
   useEffect(() => {
     setMessage("");
-  }, [props.location.latitude, props.location.longitude]);
+
+    setOpacity(0);
+    setTimeout(() => {
+      locationRef.current.longitude = props.location.longitude;
+      locationRef.current.latitude = props.location.latitude;
+      setOpacity(1);
+    }, duration);
+  }, [props.location.longitude, props.location.latitude]);
 
   if (!props.location) return null;
 
   return (
     <Marker
-      longitude={props.location.longitude}
-      latitude={props.location.latitude}
+      longitude={locationRef.current.longitude}
+      latitude={locationRef.current.latitude}
     >
       <div
-        className="rounded-full flex flex-col items-center justify-center"
+        style={{
+          opacity,
+          transition: `opacity ${duration}ms ease-in`,
+        }}
+        className={`rounded-full flex flex-col items-center justify-center ${message ? "z-[9999]" : ""}`}
         onClick={showStats}
       >
         {message ? (

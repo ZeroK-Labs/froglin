@@ -1,10 +1,10 @@
 import { useState } from "react";
 
-import { BurgerButton } from "components/burger-menu/BurgerButton";
-import { ButtonsPopup } from "components/burger-menu/ButtonsPopup";
+import { LineMenuButton } from "components/LineMenuButton";
+import { LineMenuPopupList } from "components/LineMenuPopupList";
 import { MAP_VIEWS } from "enums";
 
-export default function BurgerMenu({
+export default function LineMenu({
   view,
   setView,
 }: {
@@ -15,12 +15,12 @@ export default function BurgerMenu({
 
   return (
     <div className="absolute bottom-6 left-6 z-[9999]">
-      <BurgerButton
+      <LineMenuButton
         open={open}
         setOpen={setOpen}
       />
 
-      <ButtonsPopup
+      <LineMenuPopupList
         open={open}
         setOpen={setOpen}
         view={view}

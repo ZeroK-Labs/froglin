@@ -1,27 +1,23 @@
 import { GameEvent, MapCoordinates } from "types";
 
 import {
-  generateCloseFroglinsCoordinates,
-  generateEvenCloserFroglinsCoordinates,
-  generateEventBounds,
-  generateSpreadOutFroglinsCoordinates,
+  generateCoordinateBounds,
+  generateFarCoordinates,
+  generateImmediateCoordinates,
+  generateNearCoordinates,
 } from "mocks";
 
 export function createGameEvent(): GameEvent {
   const gameEvent: GameEvent = {
     location: { latitude: 0, longitude: 0 },
     bounds: [],
-    epochCount: 10,
-    epochDuration: 6_000,
+    epochCount: 21,
+    epochDuration: 4_000,
     epochStartTime: 0,
-    dormantFroglins: new Array<MapCoordinates>(100).fill({
-      latitude: 0,
-      longitude: 0,
-    }),
-    revealedFroglins: [],
+    dormantFroglins: [],
     initialize: (location: MapCoordinates) => {
       gameEvent.location = location;
-      gameEvent.bounds = generateEventBounds(gameEvent.location);
+      gameEvent.bounds = generateCoordinateBounds(gameEvent.location);
       gameEvent.dormantFroglins = new Array<MapCoordinates>(100).fill({
         latitude: 0,
         longitude: 0,
@@ -30,17 +26,14 @@ export function createGameEvent(): GameEvent {
     },
     createFroglins: () => {
       const nearCount = Math.floor(Math.random() * 12) + 3;
-      const veryNearCount = 5;
+      const immediateCount = 3;
       gameEvent.dormantFroglins = [
-        ...generateSpreadOutFroglinsCoordinates(
+        ...generateFarCoordinates(
           gameEvent.location,
-          gameEvent.dormantFroglins.length - nearCount - veryNearCount,
+          gameEvent.dormantFroglins.length - nearCount - immediateCount,
         ),
-        ...generateCloseFroglinsCoordinates(gameEvent.location, nearCount),
-        ...generateEvenCloserFroglinsCoordinates(
-          gameEvent.location,
-          veryNearCount,
-        ),
+        ...generateNearCoordinates(gameEvent.location, nearCount),
+        ...generateImmediateCoordinates(gameEvent.location, immediateCount),
       ];
     },
     getBounds: () => {

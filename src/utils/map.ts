@@ -4,8 +4,10 @@ import { MercatorCoordinate } from "mapbox-gl";
 import MapCoordinates from "types/MapCoordinates";
 import { AngleToRadian, HalfPI } from "utils/math";
 
-// Radius of earth in kilometers; 3956 for miles
-const EARTH_RADIUS_KM = 6371;
+// radius of Earth in kilometers; 3956 for miles
+export const METERS_IN_EARTH_RADIUS = 6_371_000;
+
+export const METERS_PER_LATITUDE_DEGREE = 111_139;
 
 export function getDistance(
   lat1: number,
@@ -28,7 +30,7 @@ export function getDistance(
   let c = 2 * Math.asin(Math.sqrt(a));
 
   // calculate the result in meters
-  return c * EARTH_RADIUS_KM * 1000;
+  return c * METERS_IN_EARTH_RADIUS;
 }
 
 export function inRange(

@@ -6,7 +6,7 @@ import { getDistance } from "utils/map";
 const options = {
   enableHighAccuracy: false,
   maximumAge: 0,
-  timeout: 10_000,
+  timeout: 3_000,
 };
 
 export default function useLocation() {

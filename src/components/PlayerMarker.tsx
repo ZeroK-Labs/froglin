@@ -1,8 +1,8 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { Marker } from "react-map-gl";
 
-import { AvatarImage } from "components";
 import { Froglin, MapCoordinates } from "types";
+import { PlayerMarkerImage } from "components";
 import { inRange } from "utils/map";
 import { useCircleIndicatorProps } from "providers/CircleIndicatorProps";
 
@@ -14,7 +14,7 @@ type Props = {
     revealedFroglins: Froglin[],
     remainingFroglins: MapCoordinates[],
   ) => void;
-  updateCaught: (index: number) => void;
+  updateCaught: (froglinId: number) => void;
 };
 
 const REVEAL_RADIUS = 40;
@@ -27,19 +27,14 @@ function getRandomInRange(a: number, b: number): number {
 }
 
 export default function PlayerMarker(props: Props) {
-  const [open, setOpen] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const revealingRef = useRef(false);
+  const [open, setOpen] = useState<boolean>(false);
   const { setVisible, setSize, setColor } = useCircleIndicatorProps();
   const cssMenuButton = `${open ? "" : "opacity-0"} menu-item`;
 
   function handleMenuStateChange(ev: ChangeEvent<HTMLInputElement>) {
     setOpen(ev.target.checked);
-  }
-
-  function handleDocumentClick(event: MouseEvent) {
-    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-      setOpen(false);
-    }
   }
 
   function doReveal() {
@@ -50,16 +45,19 @@ export default function PlayerMarker(props: Props) {
       const coords = props.dormantFroglins[i];
       if (inRange(coords, props.location, REVEAL_RADIUS)) {
         // send some goblins to the void
-        if (Math.random() < 0.7) continue;
+        const coeff = Math.random();
+        if (coeff < 0.3 || coeff > 0.75) continue;
         else
           revealedFroglins.push({
-            id: revealedFroglins.length,
+            id: Date.now() + revealedFroglins.length,
             coordinates: coords,
             type: getRandomInRange(2, 7),
           });
       } //
       else remainingFroglins.push(coords);
     }
+
+    revealingRef.current = false;
 
     if (revealedFroglins.length === 0) return;
 
@@ -68,6 +66,9 @@ export default function PlayerMarker(props: Props) {
 
   function handleFluteButtonClick() {
     setOpen(false);
+
+    if (revealingRef.current) return;
+    revealingRef.current = true;
 
     const duration = 1_000;
     const increment = 8;
@@ -97,16 +98,36 @@ export default function PlayerMarker(props: Props) {
 
   useEffect(() => {
     for (let i = 0; i !== props.revealedFroglins.length; ++i) {
-      const coords = props.revealedFroglins[i].coordinates;
-      if (!inRange(coords, props.location, CAPTURE_RADIUS)) continue;
+      const froglin = props.revealedFroglins[i];
+      if (!inRange(froglin.coordinates, props.location, CAPTURE_RADIUS))
+        continue;
 
-      props.updateCaught(i);
+      props.updateCaught(froglin.id);
       break;
     }
   }, [props.location.latitude, props.location.longitude]);
 
   useEffect(() => {
+    function handleKeyPress(ev: KeyboardEvent) {
+      if (ev.key === "f") handleFluteButtonClick();
+    }
+
+    document.addEventListener("keypress", handleKeyPress);
+
+    return () => {
+      document.removeEventListener("keypress", handleKeyPress);
+    };
+  }, [props.dormantFroglins]);
+
+  useEffect(() => {
+    function handleDocumentClick(ev: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(ev.target as Node)) {
+        setOpen(false);
+      }
+    }
+
     document.addEventListener("click", handleDocumentClick);
+
     return () => {
       document.removeEventListener("click", handleDocumentClick);
     };
@@ -118,53 +139,51 @@ export default function PlayerMarker(props: Props) {
     <Marker
       longitude={props.location.longitude}
       latitude={props.location.latitude}
+      style={{ zIndex: 9999 }}
     >
-      <div
+      <nav
         ref={menuRef}
-        className="h-[40px] -translate-y-3 rounded-full flex justify-center z-[9999]"
+        className="menu -translate-y-8 translate-x-[14px] z-[9999]"
       >
-        <nav className="menu">
-          <input
-            id="menu-options"
-            type="checkbox"
-            checked={open}
-            className="menu-options hidden"
-            onChange={handleMenuStateChange}
-            // @ts-ignore
-            href="#"
-          />
-          <label
-            className="flex justify-center"
-            htmlFor="menu-options"
-          >
-            <div
-              className={`absolute -top-4 px-2 text-xs leading-5 whitespace-nowrap bg-main-purple text-white transition-opacity duration-500 ${open ? "opacity-0" : ""}`}
-            >
-              Jules Verne
-            </div>
-            <AvatarImage size="60px" />
-          </label>
-
-          <div className={`${cssMenuButton} blue`}>
-            <p className="fa-solid fa-hat-wizard text-[36px]" />
-          </div>
+        <input
+          id="menu-options"
+          type="checkbox"
+          checked={open}
+          className="menu-options hidden"
+          onChange={handleMenuStateChange}
+          // @ts-ignore
+          href="#"
+        />
+        <label htmlFor="menu-options">
           <div
-            className={`${cssMenuButton} green`}
-            onClick={handleFluteButtonClick}
+            className={`absolute -top-4 px-2 text-xs leading-5 whitespace-nowrap bg-main-purple text-white transition-opacity duration-500 ${open ? "opacity-0" : ""}`}
           >
-            <p className="fa-brands fa-pied-piper-alt text-[46px] rotate-[50deg]" />
+            Jules Verne
           </div>
-          <div className={`${cssMenuButton} gray pointer-events-none`}>
-            <p className="fa-solid fa-hand-sparkles text-[34px] rotate-[15deg] " />
-          </div>
-          <div className={`${cssMenuButton} gray pointer-events-none`}>
-            <p className=" fa-solid fa-mosquito-net text-[42px] rotate-[-15deg]e" />
-          </div>
-          <div className={`${cssMenuButton} gray pointer-events-none`}>
-            <p className="fa-solid fa-shoe-prints text-[28px] rotate-[290deg]" />
-          </div>
-        </nav>
-      </div>
+          <PlayerMarkerImage size="60px" />
+        </label>
+
+        <div
+          className={`${cssMenuButton} blue ${open ? "" : "pointer-events-none"}`}
+        >
+          <p className="fa-solid fa-hat-wizard text-[36px]" />
+        </div>
+        <div
+          className={`${cssMenuButton} green ${open ? "" : "pointer-events-none"}`}
+          onClick={handleFluteButtonClick}
+        >
+          <p className="fa-brands fa-pied-piper-alt text-[46px] rotate-[50deg]" />
+        </div>
+        <div className={`${cssMenuButton} menu-disabled`}>
+          <p className="fa-solid fa-hand-sparkles text-[34px] rotate-[15deg]" />
+        </div>
+        <div className={`${cssMenuButton} menu-disabled`}>
+          <p className=" fa-solid fa-mosquito-net text-[42px] rotate-[-15deg]" />
+        </div>
+        <div className={`${cssMenuButton} menu-disabled`}>
+          <p className="fa-solid fa-shoe-prints text-[28px] rotate-[290deg]" />
+        </div>
+      </nav>
     </Marker>
   );
 }

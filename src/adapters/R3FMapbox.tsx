@@ -1,7 +1,7 @@
-import { Layer, useMap } from "react-map-gl";
 import * as R3F from "@react-three/fiber";
 import * as THREE from "three";
-import React, { PropsWithChildren, useEffect, useRef, useState } from "react";
+import { Layer, useMap } from "react-map-gl";
+import { PropsWithChildren, useEffect, useRef, useState } from "react";
 
 import MapCoordinates from "types/MapCoordinates";
 import { coordsToMatrix } from "utils/map";
@@ -44,9 +44,8 @@ const CanvasEvents: Events = (store) => {
     disconnect: () => {
       const { set, events } = store.getState();
       if (!events.connected) return;
-      if (!events.handlers) return;
 
-      for (const [name, handler] of Object.entries(events.handlers)) {
+      for (const [name, handler] of Object.entries(events.handlers!)) {
         events.connected.removeEventListener(
           DOM_EVENTS[name as DOMEventNames],
           handler,
@@ -59,7 +58,7 @@ const CanvasEvents: Events = (store) => {
     connect: (target: HTMLElement) => {
       const { set, events } = store.getState();
 
-      events.disconnect?.();
+      events.disconnect!();
 
       set((state) => ({
         events: { ...state.events, connected: target.parentNode },
