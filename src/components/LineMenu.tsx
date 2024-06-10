@@ -7,9 +7,11 @@ import { MAP_VIEWS } from "enums";
 export default function LineMenu({
   view,
   setView,
+  setTutorial,
 }: {
   view: MAP_VIEWS;
   setView: React.Dispatch<React.SetStateAction<MAP_VIEWS>>;
+  setTutorial: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -25,6 +27,7 @@ export default function LineMenu({
         setOpen={setOpen}
         view={view}
         setView={setView}
+        setTutorial={setTutorial}
       />
     </div>
   );

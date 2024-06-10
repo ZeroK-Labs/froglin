@@ -207,7 +207,7 @@ export default function PlayerMarker(props: Props) {
       <Marker
         longitude={props.location.longitude}
         latitude={props.location.latitude}
-        style={{ zIndex: 9999 }}
+        style={{ zIndex: 9998 }}
       >
         <nav
           ref={menuRef}

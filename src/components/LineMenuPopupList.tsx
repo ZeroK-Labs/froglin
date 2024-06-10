@@ -8,11 +8,13 @@ export function LineMenuPopupList({
   setOpen,
   view,
   setView,
+  setTutorial,
 }: {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   view: MAP_VIEWS;
   setView: React.Dispatch<React.SetStateAction<MAP_VIEWS>>;
+  setTutorial: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   function handleButtonEventViewClick() {
     setOpen(false);
@@ -26,6 +28,7 @@ export function LineMenuPopupList({
 
   function handleButtonProfileModalClick() {
     setOpen(false);
+    setTutorial(true);
   }
 
   return (
@@ -47,7 +50,7 @@ export function LineMenuPopupList({
         ) : null}
 
         <LineMenuPopupListItem
-          text="👤"
+          text="📖"
           onClick={handleButtonProfileModalClick}
         />
       </ul>

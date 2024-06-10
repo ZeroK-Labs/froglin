@@ -27,6 +27,7 @@ export default function MapScreen() {
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const [secondsLeftInEpoch, setSecondsLeftInEpoch] = useState(0);
   const [view, setView] = useState(MAP_VIEWS.PLAYGROUND);
+  const [tutorial, setTutorial] = useState<boolean>(false);
   const [revealedFroglins, setRevealedFroglins] = useState<Froglin[]>([]);
   const [capturedFroglins, setCapturedFroglins] = useState<Froglin[]>([]);
 
@@ -265,10 +266,51 @@ export default function MapScreen() {
           />
         ) : null}
       </div>
+      {tutorial ? (
+        <div
+          className="absolute left-0 top-28 right-0 p-2 flex"
+          style={{ zIndex: 9999 }}
+        >
+          <div
+            className="absolute top-2 p-2 border-4 bg-[#6c5ce7] text-white border-purple-950"
+            style={{ width: "calc(100% - 1rem)" }}
+          >
+            <div
+              className="flex flex-row justify-end px-2"
+              onClick={() => setTutorial(false)}
+            >
+              <p className="text-lg fa-solid fa-xmark" />
+            </div>
+            <div className="flex justify-center font-bold">
+              Welcome to Froglins!
+            </div>
+            <br />
+            <div className="flex flex-col w-full text-left px-3 font-semibold">
+              <p className="text-base">🗺️ Event View / 🌇 Playground</p>
+              <br />
+              <p className="text-base">
+                Click your Avatar to open the menu! Play the 🪈 to reveal
+                Froglins around you.
+              </p>
+              <br />
+              <p className="text-base">Capture 🐸 in 3 ways:</p>
+              <p>- Click on the Froglins popup</p>
+              <p>
+                - Be close enough{" "}
+                <span className="font-normal">
+                  (use keyboard arrows or wasd on desktop)
+                </span>
+              </p>
+              <p>- Place 3 traps around a Froglin</p>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <LineMenu
         view={view}
         setView={setView}
+        setTutorial={setTutorial}
       />
     </div>
   );
