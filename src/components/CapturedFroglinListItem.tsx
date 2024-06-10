@@ -3,7 +3,7 @@ import { Froglin } from "types";
 export default function CapturedFroglinListItem({ item }: { item: Froglin }) {
   return (
     <div
-      className="p-1 border-[2px] bg-main-purple border-dashed"
+      className="p-1 border-[2px] bg-main-purple border-dashed hover:scale-125"
       style={{ borderColor: "rgba(102, 34, 155, 0.8)" }}
     >
       <img
