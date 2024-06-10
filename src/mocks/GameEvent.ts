@@ -26,7 +26,7 @@ export function createGameEvent(): GameEvent {
     },
     createFroglins: () => {
       const nearCount = Math.floor(Math.random() * 12) + 3;
-      const immediateCount = 3;
+      const immediateCount = 5;
       gameEvent.dormantFroglins = [
         ...generateFarCoordinates(
           gameEvent.location,
