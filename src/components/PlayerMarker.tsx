@@ -243,10 +243,10 @@ export default function PlayerMarker(props: Props) {
             className={`${cssMenuButton} purple ${open ? "" : "pointer-events-none"}`}
             onClick={handleTrapButtonClick}
           >
-            <p className=" fa-solid fa-mosquito-net text-[42px] rotate-[-15deg]" />
+            <p className=" fa-solid fa-circle-nodes text-[42px] rotate-[-15deg] -translate-x-[1px] translate-y-[7px]" />
           </div>
           <div className={`${cssMenuButton} menu-disabled`}>
-            <p className="fa-solid fa-shoe-prints text-[28px] rotate-[290deg]" />
+            <p className="fa-solid fa-shoe-prints text-[28px] rotate-[290deg] -translate-x-[1px]" />
           </div>
         </nav>
       </Marker>
