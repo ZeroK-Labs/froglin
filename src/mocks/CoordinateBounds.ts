@@ -34,13 +34,6 @@ export function generateCoordinateBounds(
     },
   };
 
-  console.log(
-    [box.northwest.longitude, box.northwest.latitude],
-    [box.northeast.longitude, box.northeast.latitude],
-    [box.southeast.longitude, box.southeast.latitude],
-    [box.southwest.longitude, box.southwest.latitude],
-  );
-
   return [
     [
       [box.northwest.longitude, box.northwest.latitude],
