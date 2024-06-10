@@ -18,7 +18,7 @@ export default function Tutorial({
   // }, []);
 
   return (
-    <div className="fixed left-2 top-[20vh] right-2 p-2 flex z-[10000]">
+    <div className="fixed left-2 top-[5vh] right-2 p-2 flex z-[10000]">
       <div
         className="absolute top-2 p-2 mb-8 border-4 bg-[#6c5ce7] text-gray-800 drop-shadow-md shadow-gray-400 border-purple-950"
         style={{ width: "calc(100% - 1rem)" }}
@@ -34,10 +34,10 @@ export default function Tutorial({
         </div>
         <br />
         <div className="flex flex-col w-full text-left px-3 font-semibold">
-          <p className="text-base">🗺️ Event View {"<=>"} Playground View 🌇</p>
+          <p className="text-base">🗺️ Event View / Playground View 🌇</p>
           <br />
           <p className="text-base">
-            Tap your Avatar to open a ring menu with actions you can perform.
+            Tap your Avatar to open the menu with actions.
             <br />
             <br />
             Play the Flute{" "}

@@ -253,20 +253,22 @@ export default function MapScreen() {
         ) : null}
       </Map>
 
-      <div className="absolute left-0 top-2 right-0 p-2 flex">
-        {view === MAP_VIEWS.PLAYGROUND ? (
-          <PlaygroundViewInfoBar
-            secondsLeft={secondsLeftInEpoch}
-            distance={location.metersTravelled}
-            froglins={capturedFroglins}
-          />
-        ) : view === MAP_VIEWS.EVENT ? (
-          <EventViewInfoBar
-            gameEvent={gameEventRef.current}
-            capturedCount={capturedFroglins.length}
-          />
-        ) : null}
-      </div>
+      {!tutorial ? (
+        <div className="absolute left-0 top-2 right-0 p-2 flex">
+          {view === MAP_VIEWS.PLAYGROUND ? (
+            <PlaygroundViewInfoBar
+              secondsLeft={secondsLeftInEpoch}
+              distance={location.metersTravelled}
+              froglins={capturedFroglins}
+            />
+          ) : view === MAP_VIEWS.EVENT ? (
+            <EventViewInfoBar
+              gameEvent={gameEventRef.current}
+              capturedCount={capturedFroglins.length}
+            />
+          ) : null}
+        </div>
+      ) : null}
 
       {tutorial ? <Tutorial setTutorial={setTutorial} /> : null}
 
