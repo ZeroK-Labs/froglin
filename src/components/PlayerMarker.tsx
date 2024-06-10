@@ -173,6 +173,7 @@ export default function PlayerMarker(props: Props) {
   useEffect(() => {
     function handleKeyPress(ev: KeyboardEvent) {
       if (ev.key === "f") handleFluteButtonClick();
+      else if (ev.key === " ") handleTrapButtonClick();
     }
 
     document.addEventListener("keypress", handleKeyPress);
