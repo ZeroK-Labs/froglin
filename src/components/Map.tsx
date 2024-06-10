@@ -240,6 +240,7 @@ export default function MapScreen() {
               revealedFroglins={revealedFroglins}
               updateRevealed={updateRevealed}
               updateCaught={updateCaught}
+              view={view}
             />
 
             <LocationRestoreButton

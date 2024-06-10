@@ -5,6 +5,7 @@ import { Froglin, MapCoordinates } from "types";
 import { PlayerMarkerImage } from "components";
 import { inRange } from "utils/map";
 import { useCircleIndicatorProps } from "providers/CircleIndicatorProps";
+import { MAP_VIEWS } from "enums";
 
 type Props = {
   location: MapCoordinates;
@@ -15,6 +16,7 @@ type Props = {
     remainingFroglins: MapCoordinates[],
   ) => void;
   updateCaught: (froglinId: number) => void;
+  view: MAP_VIEWS;
 };
 
 const REVEAL_RADIUS = 40;
@@ -224,28 +226,31 @@ export default function PlayerMarker(props: Props) {
             </div>
             <PlayerMarkerImage size="60px" />
           </label>
-
-          <div className={`${cssMenuButton} menu-disabled`}>
-            <p className="fa-solid fa-hat-wizard text-[36px]" />
-          </div>
-          <div
-            className={`${cssMenuButton} green ${open ? "" : "pointer-events-none"}`}
-            onClick={handleFluteButtonClick}
-          >
-            <p className="fa-brands fa-pied-piper-alt text-[46px] rotate-[50deg]" />
-          </div>
-          <div className={`${cssMenuButton} menu-disabled`}>
-            <p className="fa-solid fa-hand-sparkles text-[34px] rotate-[15deg]" />
-          </div>
-          <div
-            className={`${cssMenuButton} purple ${open ? "" : "pointer-events-none"}`}
-            onClick={handleTrapButtonClick}
-          >
-            <p className=" fa-solid fa-circle-nodes text-[42px] rotate-[-15deg] -translate-x-[1px] translate-y-[7px]" />
-          </div>
-          <div className={`${cssMenuButton} menu-disabled`}>
-            <p className="fa-solid fa-shoe-prints text-[28px] rotate-[290deg] -translate-x-[1px]" />
-          </div>
+          {props.view === MAP_VIEWS.PLAYGROUND ? (
+            <>
+              <div className={`${cssMenuButton} menu-disabled`}>
+                <p className="fa-solid fa-hat-wizard text-[36px]" />
+              </div>
+              <div
+                className={`${cssMenuButton} green ${open ? "" : "pointer-events-none"}`}
+                onClick={handleFluteButtonClick}
+              >
+                <p className="fa-brands fa-pied-piper-alt text-[46px] rotate-[50deg]" />
+              </div>
+              <div className={`${cssMenuButton} menu-disabled`}>
+                <p className="fa-solid fa-hand-sparkles text-[34px] rotate-[15deg]" />
+              </div>
+              <div
+                className={`${cssMenuButton} purple ${open ? "" : "pointer-events-none"}`}
+                onClick={handleTrapButtonClick}
+              >
+                <p className=" fa-solid fa-circle-nodes text-[42px] rotate-[-15deg] -translate-x-[1px] translate-y-[7px]" />
+              </div>
+              <div className={`${cssMenuButton} menu-disabled`}>
+                <p className="fa-solid fa-shoe-prints text-[28px] rotate-[290deg] -translate-x-[1px]" />
+              </div>
+            </>
+          ) : null}
         </nav>
       </Marker>
 
