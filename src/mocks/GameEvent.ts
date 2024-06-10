@@ -12,7 +12,7 @@ export function createGameEvent(): GameEvent {
     location: { latitude: 0, longitude: 0 },
     bounds: [],
     epochCount: 21,
-    epochDuration: 4_000,
+    epochDuration: 30_000,
     epochStartTime: 0,
     dormantFroglins: [],
     initialize: (location: MapCoordinates) => {
