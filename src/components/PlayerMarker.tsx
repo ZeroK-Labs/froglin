@@ -19,7 +19,7 @@ type Props = {
   updateCaught: (froglinId: number) => void;
 };
 
-const REVEAL_RADIUS = 40;
+export const REVEAL_RADIUS = 32;
 const CAPTURE_RADIUS = 5;
 
 function getRandomInRange(a: number, b: number): number {
@@ -102,15 +102,15 @@ export default function PlayerMarker(props: Props) {
     revealingRef.current = true;
 
     const duration = 1_000;
-    const increment = 8;
-    const loops = 5;
-    let radius = 0;
+    const loops = 8;
+    const increment = REVEAL_RADIUS / loops;
+    let radius = increment;
 
-    setSize(radius);
+    setSize(0);
     setVisible(true);
     setColor("green");
 
-    let i = 0;
+    let i = 1;
     const id = setInterval(
       () => {
         radius += increment;
@@ -207,7 +207,7 @@ export default function PlayerMarker(props: Props) {
       <Marker
         longitude={props.location.longitude}
         latitude={props.location.latitude}
-        style={{ zIndex: 9998 }}
+        style={{ zIndex: 9999 }}
       >
         <nav
           ref={menuRef}
@@ -250,7 +250,7 @@ export default function PlayerMarker(props: Props) {
                 className={`${cssMenuButton} purple ${open ? "" : "pointer-events-none"}`}
                 onClick={handleTrapButtonClick}
               >
-                <p className=" fa-solid fa-circle-nodes text-[42px] rotate-[-15deg] -translate-x-[1px] translate-y-[7px]" />
+                <p className=" fa-solid fa-circle-nodes text-[42px] -translate-x-[1px] translate-y-[7px]" />
               </div>
               <div className={`${cssMenuButton} menu-disabled`}>
                 <p className="fa-solid fa-shoe-prints text-[28px] rotate-[290deg] -translate-x-[1px]" />
