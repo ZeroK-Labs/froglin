@@ -26,7 +26,7 @@ export function LineMenuPopupList({
     setTimeout(() => setView(MAP_VIEWS.PLAYGROUND), duration);
   }
 
-  function handleButtonProfileModalClick() {
+  function handleTutorialButtonClick() {
     setOpen(false);
     setTutorial(true);
   }
@@ -51,7 +51,7 @@ export function LineMenuPopupList({
 
         <LineMenuPopupListItem
           text="📖"
-          onClick={handleButtonProfileModalClick}
+          onClick={handleTutorialButtonClick}
         />
       </ul>
     </nav>

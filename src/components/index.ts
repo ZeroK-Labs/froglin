@@ -12,3 +12,4 @@ export { default as PXEConnectionTracker } from "components/PXEConnectionTracker
 export { default as PlayerMarker } from "components/PlayerMarker";
 export { default as PlayerMarkerImage } from "components/PlayerMarkerImage";
 export { default as PlaygroundViewInfoBar } from "components/PlaygroundViewInfoBar";
+export { default as Tutorial } from "components/Tutorial";

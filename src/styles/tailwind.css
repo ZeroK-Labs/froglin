@@ -185,13 +185,13 @@ body::-webkit-scrollbar {
 }
 
 .purple {
-  background-color: #c49cde;
+  background-color: #9056b7;
   box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14);
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.12);
 }
 
 .purple:hover {
-  color: #c49cde;
+  color: #9056b7;
   text-shadow: none;
 }
 

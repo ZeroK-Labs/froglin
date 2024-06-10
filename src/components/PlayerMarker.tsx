@@ -211,7 +211,7 @@ export default function PlayerMarker(props: Props) {
       >
         <nav
           ref={menuRef}
-          className={`menu -translate-y-10 translate-x-[14px] z-[9999] `}
+          className="menu -translate-y-10 translate-x-[14px] z-[9999]"
         >
           <input
             id="menu-options"
