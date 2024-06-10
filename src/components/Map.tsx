@@ -195,10 +195,7 @@ export default function MapScreen() {
       >
         {location.current ? (
           <CircleIndicatorPropsProvider>
-            <CanvasOverlay
-              coordinates={location.initial!}
-              current={location.current}
-            />
+            <CanvasOverlay coordinates={location.current} />
 
             {gameEventRef.current.dormantFroglins.map((location, index) => (
               <FroglinMarker
