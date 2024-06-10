@@ -7,6 +7,10 @@ type Keys = {
   s: boolean;
   a: boolean;
   d: boolean;
+  ArrowUp: boolean;
+  ArrowLeft: boolean;
+  ArrowDown: boolean;
+  ArrowRight: boolean;
 };
 
 const options = {
@@ -21,12 +25,23 @@ export default function useKeyboardLocation() {
   const [current, setCurrent] = useState<MapCoordinates | null>(null);
   const initialRef = useRef<MapCoordinates | null>(null);
   const currentRef = useRef<MapCoordinates | null>(null);
-  const keysRef = useRef<Keys>({ w: false, s: false, a: false, d: false });
+  const keysRef = useRef<Keys>({
+    w: false,
+    s: false,
+    a: false,
+    d: false,
+    ArrowUp: false,
+    ArrowLeft: false,
+    ArrowDown: false,
+    ArrowRight: false,
+  });
 
   useEffect(() => {
     function handleKeydown(ev: KeyboardEvent) {
       // @ts-ignore
       keysRef.current[ev.key] = true;
+
+      if (ev.key.includes("Arrow")) ev.stopPropagation();
     }
 
     function handleKeyup(ev: KeyboardEvent) {
@@ -35,10 +50,33 @@ export default function useKeyboardLocation() {
     }
 
     function poll() {
-      if (keysRef.current.w === true) currentRef.current!.latitude += offset;
-      if (keysRef.current.a === true) currentRef.current!.longitude -= offset;
-      if (keysRef.current.s === true) currentRef.current!.latitude -= offset;
-      if (keysRef.current.d === true) currentRef.current!.longitude += offset;
+      if (keysRef.current.w === true) {
+        currentRef.current!.latitude += offset;
+      } else if (keysRef.current.ArrowUp === true) {
+        currentRef.current!.latitude += offset;
+        console.log(1);
+      }
+
+      if (keysRef.current.a === true) {
+        currentRef.current!.longitude -= offset;
+      } else if (keysRef.current.ArrowLeft === true) {
+        currentRef.current!.longitude -= offset;
+        console.log(1);
+      }
+
+      if (keysRef.current.s === true) {
+        currentRef.current!.latitude -= offset;
+      } else if (keysRef.current.ArrowDown === true) {
+        currentRef.current!.latitude -= offset;
+        console.log(1);
+      }
+
+      if (keysRef.current.d === true) {
+        currentRef.current!.longitude += offset;
+      } else if (keysRef.current.ArrowRight === true) {
+        currentRef.current!.longitude += offset;
+        console.log(1);
+      }
 
       setCurrent({ ...currentRef.current! });
     }

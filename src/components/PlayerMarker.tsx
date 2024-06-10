@@ -174,6 +174,9 @@ export default function PlayerMarker(props: Props) {
     function handleKeyPress(ev: KeyboardEvent) {
       if (ev.key === "f") handleFluteButtonClick();
       else if (ev.key === " ") handleTrapButtonClick();
+      else return;
+
+      ev.stopPropagation();
     }
 
     document.addEventListener("keypress", handleKeyPress);
