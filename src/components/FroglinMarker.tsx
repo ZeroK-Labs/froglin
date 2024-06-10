@@ -21,7 +21,7 @@ export default function FroglinMarker(props: Props) {
 
   function showStats() {
     if (revealed) {
-      setMessage("Catch me if you can, mr Hanks!");
+      setMessage("Click to catch!");
     } else {
       setMessage("A froglin?! My flute will reveal it!");
     }

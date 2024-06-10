@@ -35,15 +35,15 @@ function generateCoordinates(
 }
 
 export function generateFarCoordinates(coords: MapCoordinates, count: number) {
-  return generateCoordinates(coords, count, 500, 100);
+  return generateCoordinates(coords, count, 500, 50);
 }
 
 export function generateNearCoordinates(coords: MapCoordinates, count: number) {
-  return generateCoordinates(coords, count, 100, 20);
+  return generateCoordinates(coords, count, 50, 15);
 }
 export function generateImmediateCoordinates(
   coords: MapCoordinates,
   count: number,
 ) {
-  return generateCoordinates(coords, count, 20, 5);
+  return generateCoordinates(coords, count, 15, 2);
 }
