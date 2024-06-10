@@ -13,7 +13,7 @@ fi
 IFS=$'\n' read -r -d '' -a outdatedPackages <<< "$outdatedOutput"
 
 # read package.json
-packageJson=$(cat package.json) > /dev/null
+packageJson=$(cat package.json) >/dev/null
 
 # transform dependency to replace / with \/
 for dependency in "${outdatedPackages[@]}"; do
@@ -40,3 +40,5 @@ for dependency in "${outdatedPackages[@]}"; do
 done
 
 echo "$packageJson" > package.json
+
+bun i
