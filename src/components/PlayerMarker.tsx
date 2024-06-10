@@ -225,9 +225,7 @@ export default function PlayerMarker(props: Props) {
             <PlayerMarkerImage size="60px" />
           </label>
 
-          <div
-            className={`${cssMenuButton} blue ${open ? "" : "pointer-events-none"}`}
-          >
+          <div className={`${cssMenuButton} menu-disabled`}>
             <p className="fa-solid fa-hat-wizard text-[36px]" />
           </div>
           <div
