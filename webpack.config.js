@@ -65,8 +65,9 @@ export default (_, argv) => {
       },
     },
     experiments: {
-      // asyncWebAssembly: true,
-      // lazyCompilation: true,
+      asyncWebAssembly: true,
+      lazyCompilation: true,
+      css: true,
     },
     optimization: {
       nodeEnv: process.env.NODE_ENV,

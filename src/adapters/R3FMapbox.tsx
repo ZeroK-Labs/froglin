@@ -131,10 +131,7 @@ export function Canvas({ id = "3d", center, ...props }: CanvasProps) {
       events: CanvasEvents,
       ...props,
       gl: {
-        context:
-          canvasRef.current.getContext("webgl2") ??
-          canvasRef.current.getContext("webgl") ??
-          undefined,
+        context: canvasRef.current.getContext("webgl") ?? undefined,
         canvas: canvasRef.current,
         ...props?.gl,
         autoClear: false,
@@ -182,7 +179,7 @@ export function Canvas({ id = "3d", center, ...props }: CanvasProps) {
   // camera origin changes
   useEffect(() => {
     coordsToMatrix(center, originMx);
-  }, [center]);
+  }, [center.longitude, center.latitude]);
 
   // R3F update on children changed
   useEffect(

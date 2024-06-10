@@ -14,7 +14,7 @@ export default function LineMenu({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="absolute bottom-6 left-6 z-[9999]">
+    <div className="fixed bottom-6 left-6 z-[9999]">
       <LineMenuButton
         open={open}
         setOpen={setOpen}

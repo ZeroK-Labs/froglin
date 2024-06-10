@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Marker } from "react-map-gl";
 import { Froglin } from "types";
 

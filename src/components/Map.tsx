@@ -41,11 +41,17 @@ export default function MapScreen() {
   }
 
   function updateCaught(froglinId: number) {
-    console.log("capture");
-
-    const index = revealedFroglins.findIndex((f) => f.id === froglinId);
-    const froglin = revealedFroglins.splice(index, 1)[0];
-    setCapturedFroglins((c) => [...c, froglin]);
+    setRevealedFroglins((revealedFroglins) => {
+      const newRevealedFroglins: Froglin[] = [];
+      for (const f of revealedFroglins) {
+        if (f.id === froglinId) {
+          setCapturedFroglins((c) => [...c, { ...f }]);
+          f.coordinates.longitude = f.coordinates.latitude = 0;
+        }
+        newRevealedFroglins.push(f);
+      }
+      return newRevealedFroglins;
+    });
   }
 
   function mapCallback(node: MapRef) {
@@ -117,6 +123,7 @@ export default function MapScreen() {
         map.setMinZoom(MAP_VIEWS.EVENT);
         map.setMaxZoom(MAP_VIEWS.EVENT);
         map.dragRotate.enable();
+        map.touchZoomRotate.enable();
       });
     }
   }
@@ -162,8 +169,17 @@ export default function MapScreen() {
     };
   }, [location.initial]);
 
+  useEffect(() => {
+    if (!(map && location.current)) return;
+
+    map.flyTo({
+      center: [location.current.longitude, location.current.latitude],
+      duration: 1_000,
+    });
+  }, [location.current?.longitude, location.current?.latitude]);
+
   return (
-    <div className="absolute inset-0 h-full w-full">
+    <div className="fixed inset-0 h-full w-full">
       <Map
         ref={mapCallback}
         mapboxAccessToken={process.env.MAPBOX_ACCESS_TOKEN}
@@ -179,7 +195,10 @@ export default function MapScreen() {
       >
         {location.current ? (
           <CircleIndicatorPropsProvider>
-            <CanvasOverlay coordinates={location.initial!} />
+            <CanvasOverlay
+              coordinates={location.initial!}
+              current={location.current}
+            />
 
             {gameEventRef.current.dormantFroglins.map((location, index) => (
               <FroglinMarker

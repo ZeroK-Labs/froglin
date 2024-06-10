@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { MercatorCoordinate } from "mapbox-gl";
 
 import MapCoordinates from "types/MapCoordinates";
-import { AngleToRadian, HalfPI } from "utils/math";
+import { AngleToRadian, MinusHalfPI } from "utils/math";
 
 // radius of Earth in kilometers; 3956 for miles
 export const METERS_IN_EARTH_RADIUS = 6_371_000;
@@ -58,7 +58,7 @@ export function coordsToMatrix(
     longitude,
     latitude,
     altitude = 0,
-    rotation = [-HalfPI, 0, 0],
+    rotation = [MinusHalfPI, 0, 0],
     scale = [1, 1, 1],
   }: MapCoordinates & {
     rotation?: [number, number, number];

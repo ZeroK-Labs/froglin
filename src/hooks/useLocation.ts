@@ -6,7 +6,7 @@ import { getDistance } from "utils/map";
 const options = {
   enableHighAccuracy: false,
   maximumAge: 0,
-  timeout: 3_000,
+  timeout: 5_000,
 };
 
 export default function useLocation() {
@@ -34,7 +34,7 @@ export default function useLocation() {
       if (traveled > 15) {
         glitchCountRef.current += 1;
 
-        if (glitchCountRef.current < 4) return;
+        if (glitchCountRef.current < 6) return;
       } //
       else if (traveled < 3) return;
 
