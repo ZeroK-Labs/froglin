@@ -9,13 +9,13 @@ export default function Tutorial({
     setTutorial(false);
   }
 
-  useEffect(() => {
-    document.addEventListener("click", handleClick);
+  // useEffect(() => {
+  //   document.addEventListener("click", handleClick);
 
-    return () => {
-      document.removeEventListener("click", handleClick);
-    };
-  }, []);
+  //   return () => {
+  //     document.removeEventListener("click", handleClick);
+  //   };
+  // }, []);
 
   return (
     <div className={`fixed left-10 top-[20vh] right-10 p-2 flex z-[10000]`}>
@@ -27,7 +27,7 @@ export default function Tutorial({
           className="flex justify-end px-2"
           onClick={handleClick}
         >
-          <p className="text-lg fa-solid fa-xmark" />
+          <p className="text-2xl cursor-pointer fa-solid fa-xmark" />
         </div>
         <div className="mb-2 text-2xl font-bold justify-center">
           👋 Welcome to Froglin!
