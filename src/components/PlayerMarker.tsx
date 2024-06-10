@@ -2,6 +2,7 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { Marker } from "react-map-gl";
 
 import { Froglin, MapCoordinates } from "types";
+import { MAP_VIEWS } from "enums";
 import { PlayerMarkerImage } from "components";
 import { inRange } from "utils/map";
 import { useCircleIndicatorProps } from "providers/CircleIndicatorProps";
@@ -11,6 +12,7 @@ type Props = {
   location: MapCoordinates;
   dormantFroglins: MapCoordinates[];
   revealedFroglins: Froglin[];
+  view: MAP_VIEWS;
   updateRevealed: (
     revealedFroglins: Froglin[],
     remainingFroglins: MapCoordinates[],
@@ -207,7 +209,7 @@ export default function PlayerMarker(props: Props) {
       >
         <nav
           ref={menuRef}
-          className="menu -translate-y-10 translate-x-[14px] z-[9999]"
+          className={`menu -translate-y-10 translate-x-[14px] z-[9999] `}
         >
           <input
             id="menu-options"
@@ -215,10 +217,12 @@ export default function PlayerMarker(props: Props) {
             checked={open}
             className="menu-options hidden"
             onChange={handleMenuStateChange}
-            // @ts-ignore
-            href="#"
           />
-          <label htmlFor="menu-options">
+          <label
+            {...(props.view === MAP_VIEWS.PLAYGROUND
+              ? { htmlFor: "menu-options" }
+              : null)}
+          >
             <div
               className={`absolute -top-4 px-2 text-xs leading-5 whitespace-nowrap bg-main-purple text-white transition-opacity duration-500 ${open ? "opacity-0" : ""}`}
             >
