@@ -259,7 +259,10 @@ export default function MapScreen() {
             froglins={capturedFroglins}
           />
         ) : view === MAP_VIEWS.EVENT ? (
-          <EventViewInfoBar />
+          <EventViewInfoBar
+            gameEvent={gameEventRef.current}
+            capturedCount={capturedFroglins.length}
+          />
         ) : null}
       </div>
 
