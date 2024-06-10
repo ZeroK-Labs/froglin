@@ -18,7 +18,7 @@ export default function Tutorial({
   // }, []);
 
   return (
-    <div className={`fixed left-10 top-[20vh] right-10 p-2 flex z-[10000]`}>
+    <div className="fixed left-2 top-[20vh] right-2 p-2 flex z-[10000]">
       <div
         className="absolute top-2 p-2 mb-8 border-4 bg-[#6c5ce7] text-gray-800 drop-shadow-md shadow-gray-400 border-purple-950"
         style={{ width: "calc(100% - 1rem)" }}
