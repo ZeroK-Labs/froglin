@@ -6,7 +6,6 @@ import { MAP_VIEWS } from "enums";
 import { PlayerMarkerImage } from "components";
 import { inRange } from "utils/map";
 import { useCircleIndicatorProps } from "providers/CircleIndicatorProps";
-import { MAP_VIEWS } from "enums";
 
 type Props = {
   location: MapCoordinates;
@@ -18,7 +17,6 @@ type Props = {
     remainingFroglins: MapCoordinates[],
   ) => void;
   updateCaught: (froglinId: number) => void;
-  view: MAP_VIEWS;
 };
 
 const REVEAL_RADIUS = 40;
