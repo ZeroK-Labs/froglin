@@ -64,11 +64,11 @@ export default (_, argv) => {
         util: require.resolve("util"),
       },
     },
-    experiments: {
-      asyncWebAssembly: true,
-      lazyCompilation: true,
-      // css: true,
-    },
+    // experiments: {
+    //   asyncWebAssembly: true,
+    //   lazyCompilation: true,
+    //   // css: true,
+    // },
     optimization: {
       nodeEnv: process.env.NODE_ENV,
       runtimeChunk: true,
