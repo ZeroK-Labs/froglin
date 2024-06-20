@@ -42,11 +42,8 @@ let r3fRoot: R3F.ReconcilerRoot<HTMLCanvasElement>;
 R3F.extend(THREE);
 
 function getR3FRoot({ ...props }: BaseCanvasProps = {}) {
-  if (r3fRoot) {
-    if (R3F._roots.get(canvas)) return r3fRoot;
-
-    r3fRoot.unmount();
-  }
+  R3F._roots.delete(canvas);
+  if (r3fRoot) r3fRoot.unmount();
 
   r3fRoot = R3F.createRoot(canvas);
 
