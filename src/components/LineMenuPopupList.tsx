@@ -1,58 +1,101 @@
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+
 import { LineMenuPopupListItem } from "components/LineMenuPopupListItem";
 import { MAP_VIEWS } from "enums";
-
-const duration = 300;
+import { VIEW } from "settings";
+import { useTutorialState, useViewState } from "stores";
 
 export function LineMenuPopupList({
   open,
   setOpen,
-  view,
-  setView,
-  setTutorial,
 }: {
   open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  view: MAP_VIEWS;
-  setView: React.Dispatch<React.SetStateAction<MAP_VIEWS>>;
-  setTutorial: React.Dispatch<React.SetStateAction<boolean>>;
+  setOpen: Dispatch<SetStateAction<boolean>>;
 }) {
-  function handleButtonEventViewClick() {
+  const navRef = useRef<HTMLDivElement>(null);
+
+  const [ViewButton, setViewButton] = useState(() => EventViewButton);
+
+  const { setTutorial } = useTutorialState();
+  const { setView } = useViewState();
+
+  function handleClick() {
     setOpen(false);
-    setTimeout(() => setView(MAP_VIEWS.EVENT), duration);
   }
 
-  function handleButtonPlaygroundViewClick() {
-    setOpen(false);
-    setTimeout(() => setView(MAP_VIEWS.PLAYGROUND), duration);
+  function PlaygroundViewButton() {
+    return (
+      <LineMenuPopupListItem
+        text="🌇"
+        onClick={() => {
+          setView(MAP_VIEWS.PLAYGROUND);
+          setTimeout(
+            setViewButton,
+            VIEW.LINE_MENU_ANIMATION_DURATION,
+            () => EventViewButton,
+          );
+        }}
+      />
+    );
   }
 
-  function handleTutorialButtonClick() {
-    setOpen(false);
-    setTutorial(true);
+  function EventViewButton() {
+    return (
+      <LineMenuPopupListItem
+        text="🗺️"
+        onClick={() => {
+          setView(MAP_VIEWS.EVENT);
+          setTimeout(
+            setViewButton,
+            VIEW.LINE_MENU_ANIMATION_DURATION,
+            () => PlaygroundViewButton,
+          );
+        }}
+      />
+    );
   }
+
+  function TutorialButton() {
+    return (
+      <LineMenuPopupListItem
+        text="📖"
+        onClick={(ev: MouseEvent | React.BaseSyntheticEvent) => {
+          setOpen(false);
+          setTutorial(true);
+
+          ev.stopPropagation();
+        }}
+      />
+    );
+  }
+
+  useEffect(
+    () => {
+      if (!open) return;
+
+      function handleKeypress() {
+        setOpen(false);
+      }
+
+      document.addEventListener("keypress", handleKeypress);
+
+      return () => {
+        document.removeEventListener("keypress", handleKeypress);
+      };
+    }, //
+    [open],
+  );
 
   return (
     <nav
-      className={`absolute bottom-16 -left-2 p-2 border rounded-md shadow-lg shadow-main-purple/80 bg-gray-800 transition-opacity ${open ? "opacity-90" : "opacity-0 pointer-events-none"}`}
-      style={{ transitionDuration: `${duration}ms` }}
+      ref={navRef}
+      className={`absolute bottom-14 -left-2 p-2 border rounded-md shadow-lg shadow-main-purple/80 bg-gray-800 transition-opacity ${open ? "opacity-90" : "opacity-0 pointer-events-none"}`}
+      style={{ transitionDuration: `${VIEW.LINE_MENU_ANIMATION_DURATION}ms` }}
+      onClick={handleClick}
     >
       <ul>
-        {view === MAP_VIEWS.PLAYGROUND ? (
-          <LineMenuPopupListItem
-            text="🗺️"
-            onClick={handleButtonEventViewClick}
-          />
-        ) : view === MAP_VIEWS.EVENT ? (
-          <LineMenuPopupListItem
-            text="🌇"
-            onClick={handleButtonPlaygroundViewClick}
-          />
-        ) : null}
-
-        <LineMenuPopupListItem
-          text="📖"
-          onClick={handleTutorialButtonClick}
-        />
+        <ViewButton />
+        <TutorialButton />
       </ul>
     </nav>
   );

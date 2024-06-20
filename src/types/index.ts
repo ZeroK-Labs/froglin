@@ -1,3 +1,10 @@
-export type { default as GameEvent } from "types/GameEvent";
-export type { default as MapCoordinates } from "types/MapCoordinates";
-export type { default as Froglin } from "types/Froglin";
+export type { default as CircleIndicatorState } from "./CircleIndicatorState";
+export type { default as Froglin } from "./Froglin";
+export type { default as GameEventState } from "./GameEventState";
+export type { default as InterestPoint } from "./InterestPoint";
+export type { default as Keyboard, KeyboardSymbol } from "./Keyboard";
+export type { default as LocationInfo } from "./LocationInfo";
+export type { default as MapCoordinates } from "./MapCoordinates";
+export type { default as TimeoutId } from "./TimeoutId";
+export type { default as TutorialState } from "./TutorialState";
+export type { default as ViewState } from "./ViewState";

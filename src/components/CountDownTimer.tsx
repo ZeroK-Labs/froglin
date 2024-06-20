@@ -1,7 +1,4 @@
-export default function CountdownTimer(
-  secondsLeft: number,
-  showSeconds = true,
-) {
+export default function CountdownTimer(secondsLeft: number, showSeconds = true) {
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
 

@@ -11,24 +11,24 @@ contract Froglin {
     #[aztec(private)]
     #[aztec(initializer)]
     // name of initializer can be anything, as long as it's marked with `aztec(initializer)`
-    fn constructor(owner: AztecAddress) {
+    fn constructor(owner: AztecAddress, outgoing_viewer: AztecAddress) {
         dep::aztec::oracle::debug_log::debug_log_format("constructor - owner {0}", [owner.to_field()]);
     }
 
     #[aztec(private)]
-    fn increment(owner: AztecAddress) {
+    fn increment(owner: AztecAddress, outgoing_viewer: AztecAddress) {
         dep::aztec::oracle::debug_log::debug_log_format("increment - owner {0}", [owner.to_field()]);
 
         let counters = storage.counters;
-        counters.at(owner).add(1, owner);
+        counters.at(owner).add(1, owner, outgoing_viewer);
     }
 
     #[aztec(private)]
-    fn decrement(owner: AztecAddress) {
+    fn decrement(owner: AztecAddress, outgoing_viewer: AztecAddress) {
         dep::aztec::oracle::debug_log::debug_log_format("decrement - owner {0}", [owner.to_field()]);
 
         let counters = storage.counters;
-        counters.at(owner).sub(1, owner);
+        counters.at(owner).sub(1, owner, outgoing_viewer);
     }
 
     unconstrained fn get_counter(owner: AztecAddress) -> pub Field {

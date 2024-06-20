@@ -1,33 +1,26 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { LineMenuButton } from "components/LineMenuButton";
 import { LineMenuPopupList } from "components/LineMenuPopupList";
-import { MAP_VIEWS } from "enums";
 
-export default function LineMenu({
-  view,
-  setView,
-  setTutorial,
-}: {
-  view: MAP_VIEWS;
-  setView: React.Dispatch<React.SetStateAction<MAP_VIEWS>>;
-  setTutorial: React.Dispatch<React.SetStateAction<boolean>>;
-}) {
+export default function LineMenu() {
+  const divRef = useRef(null);
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-6 left-6 z-[9999]">
+    <div
+      ref={divRef}
+      className="fixed bottom-6 left-6"
+    >
       <LineMenuButton
         open={open}
+        container={divRef}
         setOpen={setOpen}
       />
 
       <LineMenuPopupList
         open={open}
         setOpen={setOpen}
-        view={view}
-        setView={setView}
-        setTutorial={setTutorial}
       />
     </div>
   );

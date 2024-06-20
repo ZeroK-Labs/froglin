@@ -1,17 +1,54 @@
-import { Froglin } from "types";
-import { CapturedFroglinListItem } from "components";
+import { Dispatch, MutableRefObject, SetStateAction, useEffect, useRef } from "react";
 
-export default function CapturedFroglinList({
-  froglins = [],
-}: {
-  froglins: Froglin[];
-}) {
+import { CapturedFroglinListItem } from "components";
+import { useGameEventState } from "stores";
+
+type Dispacher = Dispatch<SetStateAction<boolean>>;
+
+export default function CapturedFroglinList() {
+  const divRef = useRef<HTMLDivElement>(null);
+  const itemSetActiveDispatcher = useRef<Dispacher>();
+
+  const { capturedFroglins } = useGameEventState();
+
+  function updateItemSetActiveDispatcher(dispatch: Dispacher) {
+    if (dispatch === itemSetActiveDispatcher.current) return;
+
+    if (itemSetActiveDispatcher.current) itemSetActiveDispatcher.current(false);
+
+    (itemSetActiveDispatcher as MutableRefObject<Dispacher>).current = dispatch;
+  }
+
+  useEffect(
+    () => {
+      function handleDocumentClick(ev: MouseEvent) {
+        if (divRef.current!.contains(ev.target as Node)) return;
+
+        if (itemSetActiveDispatcher.current) itemSetActiveDispatcher.current(false);
+      }
+
+      document.addEventListener("click", handleDocumentClick);
+
+      return () => {
+        document.removeEventListener("click", handleDocumentClick);
+      };
+    }, //
+    [],
+  );
+
   return (
-    <div className="absolute top-20 mx-4 flex flex-row gap-2 flex-wrap">
-      {froglins.map((froglin, index) => (
+    <div
+      ref={divRef}
+      className="absolute top-16 mx-4 flex flex-row gap-2 flex-wrap"
+      style={{
+        pointerEvents: "all",
+      }}
+    >
+      {capturedFroglins.map((froglin) => (
         <CapturedFroglinListItem
-          key={index}
+          key={froglin.id}
           item={froglin}
+          updateSetActiveDispatcher={updateItemSetActiveDispatcher}
         />
       ))}
     </div>

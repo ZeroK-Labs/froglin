@@ -1,6 +1,5 @@
 #!/bin/bash
 
 rm -rf            \
-dist              \
-.tsbuildinfo      \
+build             \
 codegenCache.json

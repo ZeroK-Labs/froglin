@@ -12,7 +12,7 @@ console.log("\x1b[2A\x1b[0J\x1b[1A");
 if (existsSync("contracts/artifacts/Froglin.ts")) exit(0);
 
 // generate contracts and ABIs
-const result = spawnSync("sh", ["scripts/aztec/prep.sh"], {
+const result = spawnSync("bun", ["aztec:build"], {
   stdio: "inherit",
 });
 

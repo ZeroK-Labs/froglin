@@ -1,4 +1,4 @@
-type CircleIndicatorPropsType = {
+type CircleIndicatorState = {
   color: string;
   setColor: React.Dispatch<React.SetStateAction<string>>;
 
@@ -12,4 +12,4 @@ type CircleIndicatorPropsType = {
   setVisible: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export default CircleIndicatorPropsType;
+export default CircleIndicatorState;

@@ -1,26 +1,17 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { Marker } from "react-map-gl";
 
-import { Froglin, MapCoordinates } from "types";
+import { FROGLIN, PLAYER } from "settings";
+import { Froglin, InterestPoint, MapCoordinates } from "types";
 import { MAP_VIEWS } from "enums";
-import { PlayerMarkerImage } from "components";
-import { inRange } from "utils/map";
-import { useCircleIndicatorProps } from "providers/CircleIndicatorProps";
-
-type Props = {
-  location: MapCoordinates;
-  dormantFroglins: MapCoordinates[];
-  revealedFroglins: Froglin[];
-  view: MAP_VIEWS;
-  updateRevealed: (
-    revealedFroglins: Froglin[],
-    remainingFroglins: MapCoordinates[],
-  ) => void;
-  updateCaught: (froglinId: number) => void;
-};
-
-export const REVEAL_RADIUS = 32;
-const CAPTURE_RADIUS = 5;
+import { PlayerMarkerImage, TrapMarkerList } from "components";
+import { inRange, inTriangle } from "utils/map";
+import {
+  useGameEventState,
+  useCircleIndicatorState,
+  useLocation,
+  useViewState,
+} from "stores";
 
 function getRandomInRange(a: number, b: number): number {
   const min = Math.min(a, b);
@@ -28,39 +19,24 @@ function getRandomInRange(a: number, b: number): number {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-function sign(p1: MapCoordinates, p2: MapCoordinates, p3: MapCoordinates) {
-  return (
-    (p1.longitude - p3.longitude) * (p2.latitude - p3.latitude) -
-    (p2.longitude - p3.longitude) * (p1.latitude - p3.latitude)
-  );
-}
-
-function pointInTriangle(
-  pt: MapCoordinates,
-  v1: MapCoordinates,
-  v2: MapCoordinates,
-  v3: MapCoordinates,
-) {
-  let d1, d2, d3;
-  let has_neg, has_pos;
-
-  d1 = sign(pt, v1, v2);
-  d2 = sign(pt, v2, v3);
-  d3 = sign(pt, v3, v1);
-
-  has_neg = d1 < 0 || d2 < 0 || d3 < 0;
-  has_pos = d1 > 0 || d2 > 0 || d3 > 0;
-
-  return !(has_neg && has_pos);
-}
-
-export default function PlayerMarker(props: Props) {
-  const menuRef = useRef<HTMLDivElement>(null);
+export default function PlayerMarker() {
+  const navRef = useRef<HTMLDivElement>(null);
   const revealingRef = useRef(false);
+
   const [trapPoints, setTrapPoints] = useState<MapCoordinates[]>([]);
+  const [duplicateTrapIndex, setDuplicateTrapIndex] = useState<number | null>(null);
   const [open, setOpen] = useState<boolean>(false);
 
-  const { setVisible, setSize, setColor } = useCircleIndicatorProps();
+  const { coordinates } = useLocation();
+  const { view } = useViewState();
+  const { setVisible, setSize, setColor } = useCircleIndicatorState();
+  const {
+    interestPoints,
+    revealedFroglins,
+    setInterestPoints,
+    revealFroglins,
+    captureFroglins,
+  } = useGameEventState();
 
   const cssMenuButton = `${open ? "" : "opacity-0"} menu-item`;
 
@@ -68,42 +44,52 @@ export default function PlayerMarker(props: Props) {
     setOpen(ev.target.checked);
   }
 
-  function doReveal() {
-    const remainingFroglins: MapCoordinates[] = [];
+  function doReveal(radius: number = PLAYER.REVEAL_RADIUS) {
+    // update the state
+    const interestPointsHidden: InterestPoint[] = [];
     const revealedFroglins: Froglin[] = [];
 
-    for (let i = 0; i !== props.dormantFroglins.length; ++i) {
-      const coords = props.dormantFroglins[i];
-      if (inRange(coords, props.location, REVEAL_RADIUS)) {
-        // send some goblins to the void
-        const coeff = Math.random();
-        if (coeff < 0.3 || coeff > 0.75) continue;
-        else
-          revealedFroglins.push({
-            id: Date.now() + revealedFroglins.length,
-            coordinates: coords,
-            type: getRandomInRange(2, 7),
-          });
-      } //
-      else remainingFroglins.push(coords);
+    for (let i = 0; i !== interestPoints.length; ++i) {
+      const point = interestPoints[i];
+
+      if (!point.visible || !inRange(point.coordinates, coordinates, radius)) {
+        interestPointsHidden.push(point);
+
+        continue;
+      }
+
+      // hide the point to start fade out animation
+      point.visible = false;
+      interestPointsHidden.push(point);
+
+      // send some goblins to the void
+      const gone = Math.random();
+      if (gone < 0.25 || gone > 0.75) continue;
+
+      revealedFroglins.push({
+        id: "R" + point.id,
+        coordinates: point.coordinates,
+        type: getRandomInRange(2, 7),
+      });
     }
 
-    revealingRef.current = false;
+    // hide interest points
+    setInterestPoints(interestPointsHidden);
 
     if (revealedFroglins.length === 0) return;
 
-    props.updateRevealed(revealedFroglins, remainingFroglins);
+    // delay setting the state for fadeout animation to complete
+    setTimeout(revealFroglins, FROGLIN.MARKER.TRANSITION_DURATION, revealedFroglins);
   }
 
   function handleFluteButtonClick() {
-    setOpen(false);
-
     if (revealingRef.current) return;
     revealingRef.current = true;
 
+    // create animation for circle
     const duration = 1_000;
     const loops = 8;
-    const increment = REVEAL_RADIUS / loops;
+    const increment = PLAYER.REVEAL_RADIUS / loops;
     let radius = increment;
 
     setSize(0);
@@ -115,103 +101,123 @@ export default function PlayerMarker(props: Props) {
       () => {
         radius += increment;
         setSize(radius);
+
+        doReveal(radius);
+
         if (++i === loops) clearInterval(id);
       },
       Math.floor(duration / loops),
     );
 
     setTimeout(() => {
+      revealingRef.current = false;
       setVisible(false);
     }, duration + 100);
-
-    setTimeout(doReveal, duration);
   }
 
   function handleTrapButtonClick() {
-    setOpen(false);
-
     if (trapPoints.length === 3) return;
 
-    setTrapPoints((oldTrapPoints) => {
-      const newTrapPoints = [...oldTrapPoints, { ...props.location }];
-      if (newTrapPoints.length !== 3) return newTrapPoints;
+    setDuplicateTrapIndex(null);
 
-      for (let i = 0; i !== props.revealedFroglins.length; ++i) {
-        const froglin = props.revealedFroglins[i];
-        if (
-          pointInTriangle(
-            froglin.coordinates,
-            newTrapPoints[0],
-            newTrapPoints[1],
-            newTrapPoints[2],
-          )
-        ) {
-          setTimeout(() => {
-            props.updateCaught(froglin.id);
-          }, 0);
+    for (let i = 0; i !== trapPoints.length; ++i) {
+      const point = trapPoints[i];
+
+      if (
+        point.latitude === coordinates.latitude &&
+        point.longitude === coordinates.longitude
+      ) {
+        // allow repeated shows when the same trap is duplicated by
+        // changing the state twice: initially to null, then (again) to the (same) index
+        setTimeout(setDuplicateTrapIndex, 0, i);
+
+        return;
+      }
+    }
+
+    setTrapPoints((old) => [...old, { ...coordinates }]);
+  }
+
+  useEffect(
+    () => {
+      for (let i = 0; i !== revealedFroglins.length; ++i) {
+        const froglin = revealedFroglins[i];
+        if (inRange(froglin.coordinates, coordinates, PLAYER.CAPTURE_RADIUS)) {
+          captureFroglins([froglin.id]);
+        }
+      }
+    }, //
+    [coordinates.latitude, coordinates.longitude],
+  );
+
+  useEffect(
+    () => {
+      if (trapPoints.length !== 3) return;
+
+      const triangle = trapPoints as [MapCoordinates, MapCoordinates, MapCoordinates];
+
+      const capturedIds: [Froglin["id"]?] = [];
+      for (let i = 0; i !== revealedFroglins.length; ++i) {
+        const froglin = revealedFroglins[i];
+        if (inTriangle(froglin.coordinates, triangle)) {
+          capturedIds.push(froglin.id);
         }
       }
 
-      setTimeout(() => {
-        setTrapPoints([]);
-      }, 500);
+      captureFroglins(capturedIds);
 
-      return newTrapPoints;
-    });
-  }
+      setTimeout(setTrapPoints, FROGLIN.MARKER.TRANSITION_DURATION, []);
+    }, //
+    [trapPoints],
+  );
 
-  useEffect(() => {
-    for (let i = 0; i !== props.revealedFroglins.length; ++i) {
-      const froglin = props.revealedFroglins[i];
-      if (inRange(froglin.coordinates, props.location, CAPTURE_RADIUS)) {
-        props.updateCaught(froglin.id);
-        break;
-      }
-    }
-  }, [props.location.latitude, props.location.longitude]);
+  useEffect(
+    () => {
+      function handleKeyPress(ev: KeyboardEvent) {
+        if (ev.key === "f") handleFluteButtonClick();
+        else if (ev.key === " ") handleTrapButtonClick();
 
-  useEffect(() => {
-    function handleKeyPress(ev: KeyboardEvent) {
-      if (ev.key === "f") handleFluteButtonClick();
-      else if (ev.key === " ") handleTrapButtonClick();
-      else return;
-
-      ev.stopPropagation();
-    }
-
-    document.addEventListener("keypress", handleKeyPress);
-
-    return () => {
-      document.removeEventListener("keypress", handleKeyPress);
-    };
-  }, [props.dormantFroglins]);
-
-  useEffect(() => {
-    function handleDocumentClick(ev: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(ev.target as Node)) {
         setOpen(false);
       }
-    }
 
-    document.addEventListener("click", handleDocumentClick);
+      document.addEventListener("keypress", handleKeyPress);
 
-    return () => {
-      document.removeEventListener("click", handleDocumentClick);
-    };
-  }, []);
+      return () => {
+        document.removeEventListener("keypress", handleKeyPress);
+      };
+    }, //
+    [interestPoints, trapPoints, coordinates.latitude, coordinates.longitude],
+  );
 
-  if (!props.location) return null;
+  useEffect(
+    () => {
+      function handleDocumentClick(ev: MouseEvent) {
+        if (navRef.current && navRef.current.contains(ev.target as Node)) return;
+
+        setOpen(false);
+      }
+
+      document.addEventListener("click", handleDocumentClick);
+
+      return () => {
+        document.removeEventListener("click", handleDocumentClick);
+      };
+    }, //
+    [],
+  );
+
+  if (!location) return null;
 
   return (
     <>
       <Marker
-        longitude={props.location.longitude}
-        latitude={props.location.latitude}
+        longitude={coordinates.longitude}
+        latitude={coordinates.latitude}
         style={{ zIndex: 9999 }}
       >
         <nav
-          ref={menuRef}
-          className="menu -translate-y-10 translate-x-[14px] z-[9999]"
+          ref={navRef}
+          className="menu -translate-y-10 translate-x-[14px]"
         >
           <input
             id="menu-options"
@@ -221,9 +227,7 @@ export default function PlayerMarker(props: Props) {
             onChange={handleMenuStateChange}
           />
           <label
-            {...(props.view === MAP_VIEWS.PLAYGROUND
-              ? { htmlFor: "menu-options" }
-              : null)}
+            {...(view === MAP_VIEWS.PLAYGROUND ? { htmlFor: "menu-options" } : null)}
           >
             <div
               className={`absolute -top-4 px-2 text-xs leading-5 whitespace-nowrap bg-main-purple text-white transition-opacity duration-500 ${open ? "opacity-0" : ""}`}
@@ -232,48 +236,35 @@ export default function PlayerMarker(props: Props) {
             </div>
             <PlayerMarkerImage size="60px" />
           </label>
-          {props.view === MAP_VIEWS.PLAYGROUND ? (
-            <>
-              <div className={`${cssMenuButton} menu-disabled`}>
-                <p className="fa-solid fa-hat-wizard text-[36px]" />
-              </div>
-              <div
-                className={`${cssMenuButton} green ${open ? "" : "pointer-events-none"}`}
-                onClick={handleFluteButtonClick}
-              >
-                <p className="fa-brands fa-pied-piper-alt text-[46px] rotate-[50deg]" />
-              </div>
-              <div className={`${cssMenuButton} menu-disabled`}>
-                <p className="fa-solid fa-hand-sparkles text-[34px] rotate-[15deg]" />
-              </div>
-              <div
-                className={`${cssMenuButton} purple ${open ? "" : "pointer-events-none"}`}
-                onClick={handleTrapButtonClick}
-              >
-                <p className=" fa-solid fa-circle-nodes text-[42px] -translate-x-[1px] translate-y-[7px]" />
-              </div>
-              <div className={`${cssMenuButton} menu-disabled`}>
-                <p className="fa-solid fa-shoe-prints text-[28px] rotate-[290deg] -translate-x-[1px]" />
-              </div>
-            </>
-          ) : null}
+
+          <div className={`${cssMenuButton} menu-disabled`}>
+            <p className="fa-solid fa-hat-wizard text-[36px] translate-y-[2px]" />
+          </div>
+          <div
+            className={`${cssMenuButton} green ${open ? "" : "pointer-events-none"}`}
+            onClick={handleFluteButtonClick}
+          >
+            <p className="fa-brands fa-pied-piper-alt text-[42px] rotate-[50deg]" />
+          </div>
+          <div className={`${cssMenuButton} menu-disabled`}>
+            <p className="fa-solid fa-hand-sparkles text-[30px] rotate-[15deg]" />
+          </div>
+          <div
+            className={`${cssMenuButton} purple ${open ? "" : "pointer-events-none"}`}
+            onClick={handleTrapButtonClick}
+          >
+            <p className=" fa-solid fa-circle-nodes text-[36px] -translate-x-[1px] translate-y-[6px]" />
+          </div>
+          <div className={`${cssMenuButton} menu-disabled`}>
+            <p className="fa-solid fa-shoe-prints text-[24px] rotate-[290deg] -translate-x-[1px]" />
+          </div>
         </nav>
       </Marker>
 
-      {trapPoints.map((location, index) => (
-        <Marker
-          key={index}
-          longitude={location.longitude}
-          latitude={location.latitude}
-          style={{ zIndex: 9999 }}
-        >
-          <div
-            className={`text-lg px-3 py-1 whitespace-nowrap rounded-lg bg-main-purple text-white`}
-          >
-            X
-          </div>
-        </Marker>
-      ))}
+      <TrapMarkerList
+        traps={trapPoints}
+        duplicateIndex={duplicateTrapIndex}
+      />
     </>
   );
 }

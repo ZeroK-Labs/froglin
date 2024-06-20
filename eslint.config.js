@@ -26,7 +26,7 @@ const config = [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
-      "require-await": 2,
+      "require-await": "error",
     },
   },
   {
@@ -40,19 +40,30 @@ const config = [
       "no-constant-condition": ["error", { checkLoops: "allExceptWhileTrue" }],
       "import/no-unresolved": "error",
       "import/no-extraneous-dependencies": "error",
-      "prettier/prettier": "error",
-      "require-await": 2,
-      camelcase: 2,
+      "prettier/prettier": "warn",
+      "require-await": "error",
+      camelcase: "off",
     },
     settings: {
       "import/resolver": {
         typescript: true,
         node: true,
+        webpack: {
+          config: "webpack.config.js",
+        },
       },
     },
+    overrides: [
+      {
+        files: ["webpack.config.js"],
+        rules: {
+          "import/no-extraneous-dependencies": ["error", { devDependencies: true }],
+        },
+      },
+    ],
   },
   {
-    ignores: ["dist/", "**/node_modules/", "**/webpack.config.js"],
+    ignores: ["**/node_modules", "build"],
   },
 ];
 

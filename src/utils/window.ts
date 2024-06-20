@@ -11,9 +11,9 @@ const mobileDevices = [
   /windows phone/i,
 ];
 
-export const mobileClient = mobileDevices.some((mobileDevice) =>
-  navigator.userAgent.match(mobileDevice),
-);
+export const mobileClient =
+  clientEnabled &&
+  mobileDevices.some((mobileDevice) => navigator.userAgent.match(mobileDevice));
 
 export const iOSClient =
   clientEnabled ||

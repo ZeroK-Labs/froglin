@@ -40,9 +40,9 @@ certificates
 # typescript
 *.tsbuildinfo
 
-# webpack
-dist
 # build-related output
+build
+dist
 src/contracts/artifacts
 src/contracts/target
 codegenCache.json

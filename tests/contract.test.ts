@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-unresolved
 import { beforeAll, describe, expect, it } from "bun:test";
 import { AccountManager } from "@aztec/aztec.js/account";
 import { SingleKeyAccountContract } from "@aztec/accounts/single_key";
@@ -33,8 +34,7 @@ describe("Contract Tests", () => {
     pxe = createPXEClient(process.env.PXE_URL!);
 
     const secretKey = Fr.random();
-    const encryptionPrivateKey =
-      deriveMasterIncomingViewingSecretKey(secretKey);
+    const encryptionPrivateKey = deriveMasterIncomingViewingSecretKey(secretKey);
     const accountContract = new SingleKeyAccountContract(encryptionPrivateKey);
     account = new AccountManager(pxe, secretKey, accountContract);
 
@@ -42,6 +42,7 @@ describe("Contract Tests", () => {
 
     contract = await FroglinContract.deploy(
       wallet as any as Wallet,
+      wallet.getCompleteAddress().address,
       wallet.getCompleteAddress().address,
     )
       .send({ contractAddressSalt: Fr.random() })
@@ -65,7 +66,7 @@ describe("Contract Tests", () => {
     "get_counter returns expected value after increment",
     async () => {
       await contract.methods
-        .increment(wallet.getCompleteAddress())
+        .increment(wallet.getCompleteAddress(), wallet.getCompleteAddress())
         .send()
         .wait();
 
@@ -79,7 +80,7 @@ describe("Contract Tests", () => {
     "get_counter returns expected value after decrement",
     async () => {
       await contract.methods
-        .decrement(wallet.getCompleteAddress())
+        .decrement(wallet.getCompleteAddress(), wallet.getCompleteAddress())
         .send()
         .wait();
 

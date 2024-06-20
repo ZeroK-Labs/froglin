@@ -2,281 +2,206 @@ import mapboxgl from "mapbox-gl";
 import { Map, MapRef } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 
-import { CircleIndicatorPropsProvider } from "providers/CircleIndicatorProps";
-import { GameEvent, MapCoordinates, Froglin } from "types";
+import { VIEW } from "settings";
 import { MAP_VIEWS } from "enums";
-import { createGameEvent } from "mocks";
-import { useKeyboardLocation, useLocation } from "hooks";
+import { mobileClient } from "utils/window";
 import {
-  LineMenu,
   CanvasOverlay,
   FroglinMarker,
   GameEventView,
-  PlaygroundViewInfoBar,
+  InterestPointMarker,
   LocationRestoreButton,
   PlayerMarker,
-  EventViewInfoBar,
-  Tutorial,
 } from "components";
-import { mobileClient } from "utils/window";
+import {
+  CircleIndicatorStateProvider,
+  useGameEventState,
+  useLocation,
+  useViewState,
+} from "stores";
+
+function disableMapActions(map: mapboxgl.Map) {
+  map.setMinPitch(0);
+  map.setMaxPitch(85);
+  map.setMinZoom(1);
+  map.setMaxZoom(22);
+  map.dragPan.disable();
+  map.dragRotate.disable();
+  map.scrollZoom.disable();
+  map.touchPitch.disable();
+  map.touchZoomRotate.disable();
+  map.doubleClickZoom.disable();
+}
+
+function enableMapActionsPlayground(map: mapboxgl.Map, view: MAP_VIEWS) {
+  if (view !== MAP_VIEWS.PLAYGROUND) return;
+
+  map.setMinPitch(20);
+  map.setMaxPitch(80);
+  map.setMinZoom(VIEW.PLAYGROUND.ZOOM - 2);
+  map.setMaxZoom(VIEW.PLAYGROUND.ZOOM);
+  map.dragPan.enable();
+  map.dragRotate.enable();
+  map.scrollZoom.enable();
+  map.touchPitch.enable();
+  map.touchZoomRotate.enable();
+  if (mobileClient) map.doubleClickZoom.enable();
+}
+
+function enableMapActionsEvent(map: mapboxgl.Map, view: MAP_VIEWS) {
+  if (view !== MAP_VIEWS.EVENT) return;
+
+  map.setMinPitch(10);
+  map.setMaxPitch(45);
+  map.setMinZoom(VIEW.EVENT.ZOOM - 1);
+  map.setMaxZoom(VIEW.EVENT.ZOOM);
+  map.dragRotate.enable();
+  map.scrollZoom.enable();
+  map.touchPitch.enable();
+  map.touchZoomRotate.enable();
+  if (mobileClient) map.doubleClickZoom.enable();
+}
 
 export default function MapScreen() {
-  const gameEventRef = useRef<GameEvent>(createGameEvent());
-  const epochTickerRef = useRef<ReturnType<typeof setInterval>>();
-  const durationRef = useRef(7_000);
+  const divRef = useRef<HTMLDivElement>(null);
+  const idleCallbackRef = useRef<() => void>(() => {});
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
-  const [map, setMap] = useState<mapboxgl.Map | null>(null);
-  const [secondsLeftInEpoch, setSecondsLeftInEpoch] = useState(0);
-  const [view, setView] = useState(MAP_VIEWS.PLAYGROUND);
-  const [tutorial, setTutorial] = useState<boolean>(false);
-  const [revealedFroglins, setRevealedFroglins] = useState<Froglin[]>([]);
-  const [capturedFroglins, setCapturedFroglins] = useState<Froglin[]>([]);
+  const durationRef = useRef(VIEW.FLY_ANIMATION_DURATION);
 
-  const location = mobileClient ? useLocation() : useKeyboardLocation();
+  const mapRef = useRef<mapboxgl.Map>();
 
-  function updateRevealed(
-    newlyRevealedFroglins: Froglin[],
-    remainingFroglins: MapCoordinates[],
-  ) {
-    setRevealedFroglins((r) => [...r, ...newlyRevealedFroglins]);
-    gameEventRef.current.dormantFroglins = remainingFroglins;
-  }
-
-  function updateCaught(froglinId: number) {
-    setRevealedFroglins((revealedFroglins) => {
-      const newRevealedFroglins: Froglin[] = [];
-      for (const f of revealedFroglins) {
-        if (f.id === froglinId) {
-          setCapturedFroglins((c) => [...c, { ...f }]);
-          f.coordinates.longitude = f.coordinates.latitude = 0;
-        }
-        newRevealedFroglins.push(f);
-      }
-      return newRevealedFroglins;
-    });
-  }
+  const location = useLocation();
+  const { view } = useViewState();
+  const { getEventBounds, interestPoints, revealedFroglins } = useGameEventState();
 
   function mapCallback(node: MapRef) {
-    if (!node) return;
+    if (!node || location.disabled) return;
+    if (viewLevelRef.current === view) return;
 
-    if (!location.current) {
-      viewLevelRef.current = MAP_VIEWS.WORLD;
+    if (!mapRef.current) {
+      mapRef.current = node.getMap();
+
+      // work-around to counteract the sky being black after loading
+      mapRef.current.once("styledata", () => {
+        mapRef.current!.setFog({
+          // range: [1, 20],
+          color: "rgba(16, 6, 16, 0.9)", // Lower atmosphere
+          "high-color": "rgb(0, 12, 14)", // Upper atmosphere
+          "horizon-blend": 0.08, // Atmosphere thickness (default 0.2 at low zooms)
+          "space-color": "rgb(19, 12, 21)", // Background color
+          "star-intensity": 0.45, // Background star brightness (default 0.35 at low zoooms )
+        });
+
+        mapRef.current!.once("idle", () => {
+          mapCallback(node);
+        });
+      });
+
       return;
     }
 
-    if (gameEventRef.current.bounds.length === 0) return;
-
-    if (viewLevelRef.current === view) return;
-
     viewLevelRef.current = view;
+    disableMapActions(mapRef.current);
 
-    const map = node.getMap();
-    setMap(map);
-
-    map.setMinPitch(0);
-    map.setMaxPitch(85);
-    map.setMinZoom(MAP_VIEWS.WORLD);
-    map.setMaxZoom(MAP_VIEWS.PLAYGROUND);
-    map.dragPan.disable();
-    map.dragRotate.disable();
-    map.scrollZoom.disable();
-    map.touchPitch.disable();
-    map.touchZoomRotate.disable();
-
+    let enableMapActions: (map: mapboxgl.Map, view: MAP_VIEWS) => void;
     if (view === MAP_VIEWS.PLAYGROUND) {
-      node.flyTo({
-        center: [location.current.longitude, location.current.latitude],
-        zoom: MAP_VIEWS.PLAYGROUND,
-        pitch: 30,
-        bearing: -30,
+      mapRef.current.flyTo({
+        center: [location.coordinates.longitude, location.coordinates.latitude],
+        zoom: VIEW.PLAYGROUND.ZOOM,
+        pitch: VIEW.PLAYGROUND.PITCH,
+        bearing: VIEW.PLAYGROUND.BEARING,
         duration: durationRef.current,
+        // https://easings.net/#easeInOutSine
+        // easing: (x: number): number => {
+        //   return -(Math.cos(Math.PI * x) - 1) / 2;
+        // },
       });
-
-      map.once("idle", () => {
-        if (viewLevelRef.current !== MAP_VIEWS.PLAYGROUND) return;
-
-        map.setMinPitch(20);
-        map.setMaxPitch(80);
-        map.setMinZoom(MAP_VIEWS.PLAYGROUND - 2);
-        map.setMaxZoom(MAP_VIEWS.PLAYGROUND);
-        map.dragPan.enable();
-        map.dragRotate.enable();
-        map.scrollZoom.enable();
-        map.touchPitch.enable();
-        map.touchZoomRotate.enable();
-      });
-
-      durationRef.current = 3_000;
+      enableMapActions = enableMapActionsPlayground;
+      durationRef.current = VIEW.VIEW_ANIMATION_DURATION;
     } //
     else if (view === MAP_VIEWS.EVENT) {
-      node.fitBounds(gameEventRef.current.getBounds(), {
-        animate: true,
-        zoom: MAP_VIEWS.EVENT,
-        pitch: 30,
-        bearing: 30,
-        duration: durationRef.current,
+      mapRef.current.fitBounds(getEventBounds(), {
+        zoom: VIEW.EVENT.ZOOM - 0.5,
+        pitch: VIEW.EVENT.PITCH,
+        bearing: VIEW.EVENT.BEARING,
+        duration: VIEW.VIEW_ANIMATION_DURATION,
       });
-
-      function centerInView() {
-        map.flyTo({
-          center: [location.current!.longitude, location.current!.latitude],
-          duration: 1_000,
-        });
-
-        if (viewLevelRef.current !== MAP_VIEWS.EVENT) return;
-
-        map.once("rotateend", centerInView);
-        map.once("pitchend", centerInView);
-      }
-
-      map.once("rotateend", centerInView);
-      map.once("pitchend", centerInView);
-
-      map.once("idle", () => {
-        if (viewLevelRef.current !== MAP_VIEWS.EVENT) return;
-
-        map.setMinPitch(10);
-        map.setMaxPitch(40);
-        map.setMinZoom(MAP_VIEWS.EVENT - 0.5);
-        map.setMaxZoom(MAP_VIEWS.EVENT);
-        map.dragRotate.enable();
-        map.scrollZoom.enable();
-        map.touchPitch.enable();
-        map.touchZoomRotate.enable();
-      });
+      enableMapActions = enableMapActionsEvent;
     }
+
+    // ensure only one idle handle is subscribed
+    mapRef.current.off("moveend", idleCallbackRef.current);
+    idleCallbackRef.current = () => {
+      enableMapActions(mapRef.current!, viewLevelRef.current);
+    };
+    mapRef.current.once("moveend", idleCallbackRef.current);
   }
 
-  useEffect(() => {
-    clearInterval(epochTickerRef.current);
+  // map camera follows player
+  useEffect(
+    () => {
+      console.log("map - location change", location);
 
-    if (!location.initial) return;
+      if (!mapRef.current || location.disabled) return;
 
-    gameEventRef.current.initialize(location.initial);
-
-    gameEventRef.current.epochStartTime = Date.now();
-    epochTickerRef.current = setInterval(() => {
-      let timeLeft =
-        gameEventRef.current.epochStartTime +
-        gameEventRef.current.epochDuration -
-        Date.now();
-
-      if (timeLeft < 1) {
-        gameEventRef.current.epochCount -= 1;
-
-        if (gameEventRef.current.epochCount === 0) {
-          timeLeft = 0;
-          clearInterval(epochTickerRef.current);
-
-          console.log("game ended");
-        } //
-        else {
-          gameEventRef.current.epochStartTime = Date.now();
-          timeLeft = Math.floor(
-            gameEventRef.current.epochDuration / 1_000 + 0.5,
-          );
-
-          gameEventRef.current.createFroglins();
-        }
-      } //
-
-      setSecondsLeftInEpoch(Math.floor(timeLeft / 1_000 + 0.5));
-    }, 1_000);
-
-    return () => {
-      clearInterval(epochTickerRef.current);
-    };
-  }, [location.initial]);
-
-  useEffect(() => {
-    if (!(map && location.current)) return;
-
-    map.flyTo({
-      center: [location.current.longitude, location.current.latitude],
-      duration: 1_000,
-    });
-  }, [location.current?.longitude, location.current?.latitude]);
+      mapRef.current.flyTo({
+        center: [location.coordinates.longitude, location.coordinates.latitude],
+        duration: 1_000,
+      });
+    }, //
+    [location.coordinates.longitude, location.coordinates.latitude],
+  );
 
   return (
     <div className="fixed inset-0 h-full w-full">
       <Map
+        reuseMaps
         ref={mapCallback}
-        mapboxAccessToken={process.env.MAPBOX_ACCESS_TOKEN}
         mapStyle="mapbox://styles/mapbox/dark-v11"
         // disable right-bottom information
         attributionControl={false}
-        // @ts-ignore make all animations essential
+        // @ts-expect-error - make all animations essential
         respectPrefersReducedMotion={false}
         projection={{ name: "globe" }}
-        // fit the globe vertically in view
-        initialViewState={{ zoom: 2.62 }}
-        doubleClickZoom={false}
+        // initialViewState={
+        //   {
+        //     // zoom: 2.77, // fit the globe vertically in view (without any padding/margin)
+        //     // zoom: 1,
+        //     // pitch: 0,
+        //     // bearing: 50,
+        //   }
+        // }
       >
-        {location.current ? (
-          <CircleIndicatorPropsProvider>
-            <CanvasOverlay coordinates={location.current} />
-
-            {gameEventRef.current.dormantFroglins.map((location, index) => (
+        <>
+          {interestPoints.map((point) => (
+            <InterestPointMarker
+              key={point.id}
+              point={point}
+            />
+          ))}
+          {revealedFroglins.map((froglin) =>
+            isNaN(froglin.coordinates.longitude) ? null : (
               <FroglinMarker
-                key={index}
-                location={location}
-              />
-            ))}
-            {revealedFroglins.map((froglin, index) => (
-              <FroglinMarker
-                key={index}
-                location={froglin.coordinates}
+                key={froglin.id}
                 froglin={froglin}
-                updateCaught={updateCaught}
               />
-            ))}
+            ),
+          )}
 
-            <GameEventView
-              visible={view === MAP_VIEWS.EVENT}
-              game={gameEventRef.current}
-            />
+          <GameEventView visible={view === MAP_VIEWS.EVENT} />
 
-            <PlayerMarker
-              location={location.current}
-              dormantFroglins={gameEventRef.current.dormantFroglins}
-              revealedFroglins={revealedFroglins}
-              updateRevealed={updateRevealed}
-              updateCaught={updateCaught}
-              view={view}
-            />
+          {!mapRef.current || location.disabled ? null : (
+            <>
+              <CircleIndicatorStateProvider>
+                <CanvasOverlay />
+                <PlayerMarker />
+              </CircleIndicatorStateProvider>
 
-            <LocationRestoreButton
-              map={map}
-              location={location.current}
-            />
-          </CircleIndicatorPropsProvider>
-        ) : null}
+              <LocationRestoreButton map={mapRef.current} />
+            </>
+          )}
+        </>
       </Map>
-
-      {!tutorial ? (
-        <div className="absolute left-0 top-2 right-0 p-2 flex">
-          {view === MAP_VIEWS.PLAYGROUND ? (
-            <PlaygroundViewInfoBar
-              secondsLeft={secondsLeftInEpoch}
-              distance={location.metersTravelled}
-              froglins={capturedFroglins}
-            />
-          ) : view === MAP_VIEWS.EVENT ? (
-            <EventViewInfoBar
-              gameEvent={gameEventRef.current}
-              capturedCount={capturedFroglins.length}
-            />
-          ) : null}
-        </div>
-      ) : null}
-
-      {tutorial ? <Tutorial setTutorial={setTutorial} /> : null}
-
-      <LineMenu
-        view={view}
-        setView={setView}
-        setTutorial={setTutorial}
-      />
     </div>
   );
 }

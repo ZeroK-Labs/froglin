@@ -26,8 +26,8 @@ export function Home() {
           </h1>
 
           <p className="text-center">
-            Your profile, game data, and assets are encrypted and stored
-            privately in Aztec’s L2 sandbox blockchain.
+            Your profile, game data, and assets are encrypted and stored privately in
+            Aztec’s L2 sandbox blockchain.
           </p>
           <p className="text-center">
             They can be decrypted only by you, using a private key.

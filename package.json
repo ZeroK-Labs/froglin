@@ -6,7 +6,9 @@
   "license": "MIT",
   "type": "module",
   "private": false,
-  "sideEffects": true,
+  "sideEffects": [
+    "src/styles/global.css"
+  ],
   "files": [
     "src/contracts/artifacts/*",
     "src/contracts/target/*",
@@ -16,30 +18,34 @@
     "!*.test.*"
   ],
   "dependencies": {
-    "@aztec/accounts": "0.41.0",
-    "@aztec/aztec.js": "0.41.0",
-    "@react-three/drei": "9.106.0",
+    "@aztec/accounts": "0.43.0",
+    "@aztec/aztec.js": "0.43.0",
+    "@react-three/drei": "9.107.0",
     "@react-three/fiber": "8.16.8",
-    "@tanstack/react-query": "5.40.1",
     "mapbox-gl": "3.4.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-map-gl": "7.1.7",
-    "three": "0.165.0"
+    "three": "0.165.0",
+    "ws": "8.17.1"
   },
   "devDependencies": {
-    "@aztec/builder": "0.41.0",
-    "@types/bun": "1.1.3",
-    "@types/node": "20.14.2",
+    "@aztec/builder": "0.43.0",
+    "@swc/core": "1.6.3",
+    "@types/bun": "1.1.4",
+    "@types/geojson": "7946.0.14",
+    "@types/node": "20.14.5",
     "@types/react": "18.3.3",
-    "@types/react-dom": "18.3.0",
-    "@typescript-eslint/eslint-plugin": "7.12.0",
-    "@typescript-eslint/parser": "7.12.0",
+    "@types/ws": "8.5.10",
+    "@typescript-eslint/eslint-plugin": "7.13.1",
+    "@typescript-eslint/parser": "7.13.1",
+    "ajv": "3.1.0",
+    "ajv-keywords": "5.1.0",
     "autoprefixer": "10.4.19",
-    "concurrently": "8.2.2",
-    "css-loader": "7.1.2",
+    "compression-webpack-plugin": "11.1.0",
+    "css-minimizer-webpack-plugin": "7.0.0",
     "dotenv": "16.4.5",
-    "eslint": "9.4.0",
+    "eslint": "9.5.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-import-resolver-typescript": "3.6.1",
     "eslint-plugin-import": "2.29.1",
@@ -47,18 +53,18 @@
     "eslint-plugin-react-hooks": "4.6.2",
     "eslint-plugin-react-refresh": "0.4.7",
     "html-webpack-plugin": "5.6.0",
+    "mini-css-extract-plugin": "2.9.0",
     "postcss-loader": "8.1.1",
-    "prettier": "3.3.1",
-    "style-loader": "4.0.0",
+    "prettier": "3.3.2",
     "tailwindcss": "3.4.4",
+    "terser-webpack-plugin": "5.3.10",
     "ts-loader": "9.5.1",
     "typescript": "5.4.5",
     "util": "0.12.5",
-    "webpack": "5.91.0",
+    "webpack": "5.92.0",
+    "webpack-bundle-analyzer": "4.10.2",
     "webpack-cli": "5.1.4",
-    "webpack-dev-middleware": "7.2.1",
-    "webpack-dev-server": "5.0.4",
-    "webpack-hot-middleware": "2.26.1"
+    "webpack-dev-server": "5.0.4"
   },
   "scripts": {
     "packages:report": "scripts/packages/report.sh",
@@ -68,9 +74,26 @@
     "aztec:start": "scripts/aztec/start.sh",
     "typescript:compile": "tsc --noEmit --pretty",
     "webpack:clean": "scripts/webpack/clean.sh",
+    "webpack:build": "scripts/webpack/build.sh",
     "webpack:start": "scripts/webpack/start.sh",
     "clean": "scripts/clean.sh",
-    "lint": "eslint --no-ignore -- ",
+    "lint": "eslint",
     "dev": "scripts/dev.sh"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all",
+      "not safari < 10",
+      "not chrome < 51",
+      "not android < 5",
+      "not ie < 12"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

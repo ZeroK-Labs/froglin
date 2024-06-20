@@ -1,18 +1,17 @@
-import * as R3F from "@react-three/fiber";
 import * as THREE from "three";
+import * as R3F from "@react-three/fiber";
 import { Layer, useMap } from "react-map-gl";
-import { PropsWithChildren, useEffect, useRef, useState } from "react";
+import { PropsWithChildren, useEffect, useState } from "react";
 
 import MapCoordinates from "types/MapCoordinates";
-import { coordsToMatrix } from "utils/map";
+import { getMatrixTransformForCoordinate } from "utils/map";
 
-R3F.extend(THREE);
+interface BaseCanvasProps
+  extends Omit<R3F.RenderProps<HTMLCanvasElement>, "dpr">,
+    Omit<R3F.RenderProps<HTMLCanvasElement>, "frameloop">,
+    PropsWithChildren {}
 
-type Events = Parameters<typeof R3F.Canvas>[0]["events"];
-
-interface CanvasProps
-  extends Omit<R3F.RenderProps<HTMLCanvasElement>, "frameloop">,
-    PropsWithChildren {
+export interface CanvasProps extends BaseCanvasProps {
   id?: string;
   center: MapCoordinates;
 }
@@ -37,59 +36,105 @@ const projViewMx = new THREE.Matrix4();
 const projViewInvMx = new THREE.Matrix4();
 const forwardV = new THREE.Vector3(0, 0, 1);
 
-const CanvasEvents: Events = (store) => {
-  return {
-    ...R3F.events(store),
+let canvas: HTMLCanvasElement;
+let r3fRoot: R3F.ReconcilerRoot<HTMLCanvasElement>;
 
-    disconnect: () => {
-      const { set, events } = store.getState();
-      if (!events.connected) return;
+R3F.extend(THREE);
 
-      for (const [name, handler] of Object.entries(events.handlers!)) {
-        events.connected.removeEventListener(
-          DOM_EVENTS[name as DOMEventNames],
-          handler,
-        );
-      }
+function getR3FRoot({ ...props }: BaseCanvasProps = {}) {
+  if (r3fRoot) {
+    if (R3F._roots.get(canvas)) return r3fRoot;
 
-      set((state) => ({ events: { ...state.events, connected: null } }));
+    r3fRoot.unmount();
+  }
+
+  r3fRoot = R3F.createRoot(canvas);
+
+  r3fRoot.configure({
+    events: (store) => ({
+      ...R3F.events(store),
+
+      disconnect: () => {
+        const { set, events } = store.getState();
+        if (!events.connected) return;
+
+        for (const [name, handler] of Object.entries(events.handlers!)) {
+          events.connected.removeEventListener(
+            DOM_EVENTS[name as DOMEventNames],
+            handler,
+          );
+        }
+
+        set((state) => ({ events: { ...state.events, connected: null } }));
+      },
+
+      connect: (target: HTMLElement) => {
+        const { set, events } = store.getState();
+
+        set((state) => ({
+          events: { ...state.events, connected: target.parentNode },
+        }));
+
+        for (const [name, handler] of Object.entries(events.handlers!)) {
+          target.addEventListener(DOM_EVENTS[name as DOMEventNames], handler);
+        }
+      },
+
+      compute: (event, state) => {
+        if (!state.camera.userData.projViewInvMx) return;
+
+        state.pointer.x = (event.offsetX / state.size.width) * 2 - 1;
+        state.pointer.y = 1 - (event.offsetY / state.size.height) * 2;
+
+        state.raycaster.camera = state.camera;
+        state.raycaster.ray.origin
+          .setScalar(0)
+          .applyMatrix4(state.camera.userData.projViewInvMx);
+
+        state.raycaster.ray.direction
+          .set(state.pointer.x, state.pointer.y, 1)
+          .applyMatrix4(state.camera.userData.projViewInvMx)
+          .sub(state.raycaster.ray.origin)
+          .normalize();
+      },
+    }),
+    ...props,
+    dpr: window.devicePixelRatio,
+    frameloop: "never",
+    gl: {
+      canvas,
+      context: canvas.getContext("webgl2") ?? undefined,
+      autoClear: false,
     },
-
-    connect: (target: HTMLElement) => {
-      const { set, events } = store.getState();
-
-      events.disconnect!();
-
-      set((state) => ({
-        events: { ...state.events, connected: target.parentNode },
-      }));
-
-      if (!events.handlers) return;
-
-      for (const [name, handler] of Object.entries(events.handlers)) {
-        target.addEventListener(DOM_EVENTS[name as DOMEventNames], handler);
-      }
+    camera: {
+      matrixAutoUpdate: false,
+      matrixWorldAutoUpdate: false,
+      near: 1,
+      far: 2_000,
+      aspect: canvas.clientWidth / canvas.clientHeight,
     },
-
-    compute: (event, state) => {
-      if (!state.camera.userData.projViewInvMx) return;
-
-      state.pointer.x = (event.offsetX / state.size.width) * 2 - 1;
-      state.pointer.y = 1 - (event.offsetY / state.size.height) * 2;
-
-      state.raycaster.camera = state.camera;
-      state.raycaster.ray.origin
-        .setScalar(0)
-        .applyMatrix4(state.camera.userData.projViewInvMx);
-
-      state.raycaster.ray.direction
-        .set(state.pointer.x, state.pointer.y, 1)
-        .applyMatrix4(state.camera.userData.projViewInvMx)
-        .sub(state.raycaster.ray.origin)
-        .normalize();
+    size: {
+      width: canvas.clientWidth,
+      height: canvas.clientHeight,
+      updateStyle: false,
+      top: canvas.offsetWidth,
+      left: canvas.offsetHeight,
     },
-  };
-};
+  });
+
+  return r3fRoot;
+}
+
+function getCanvas() {
+  canvas = document.querySelector("canvas")!;
+  if (canvas) return canvas;
+
+  console.error("Failed to adapt R3F Canvas to MapboxGL: missing canvas element");
+}
+
+function getTHREE() {
+  return R3F._roots.get(canvas)!.store.getState();
+}
 
 function syncCamera(
   camera: THREE.PerspectiveCamera,
@@ -117,112 +162,71 @@ function syncCamera(
   camera.userData.projViewInvMx = projViewInvMx;
 }
 
-export function Canvas({ id = "3d", center, ...props }: CanvasProps) {
-  const map = useMap().current!.getMap();
-  const canvasRef = useRef(map.getCanvas());
-  const paused = useRef(false);
+export function Canvas({ id = "3d", center, children, ...props }: CanvasProps) {
+  const [canvas] = useState(getCanvas);
+  const [root] = useState(() => getR3FRoot(props));
+  const [state] = useState(getTHREE);
+  const [map] = useState(useMap().current!.getMap);
 
-  const [root] = useState(() => {
-    const root = R3F.createRoot(canvasRef.current);
-
-    root.configure({
-      dpr: window.devicePixelRatio,
-      frameloop: "never",
-      events: CanvasEvents,
-      ...props,
-      gl: {
-        context: canvasRef.current.getContext("webgl") ?? undefined,
-        canvas: canvasRef.current,
-        ...props?.gl,
-        autoClear: false,
-      },
-      camera: {
-        matrixAutoUpdate: false,
-        matrixWorldAutoUpdate: false,
-        near: 1,
-        far: 2000,
-        aspect: canvasRef.current.clientWidth / canvasRef.current.clientHeight,
-      },
-      size: {
-        width: canvasRef.current.clientWidth,
-        height: canvasRef.current.clientHeight,
-        updateStyle: false,
-        top: canvasRef.current.offsetWidth,
-        left: canvasRef.current.offsetHeight,
-        ...props?.size,
-      },
-    });
-
-    return root;
-  });
-
-  const [useThree] = useState(() => R3F._roots.get(canvasRef.current!)!.store);
-
-  paused.current = false;
-
-  function render(_gl: WebGL2RenderingContext, projViewMx: THREE.Matrix4Tuple) {
-    if (paused.current) return;
-
-    const state = useThree.getState();
+  function render(_: never, projViewMx: THREE.Matrix4Tuple) {
     syncCamera(state.camera as THREE.PerspectiveCamera, projViewMx);
-
     state.gl.resetState();
     state.advance(Date.now() * 0.001, false);
-
-    map.triggerRepaint();
-  }
-
-  function onRemove() {
-    root.unmount();
   }
 
   // camera origin changes
-  useEffect(() => {
-    coordsToMatrix(center, originMx);
-  }, [center.longitude, center.latitude]);
+  useEffect(
+    () => {
+      getMatrixTransformForCoordinate(center, originMx);
+    }, //
+    [center.longitude, center.latitude],
+  );
 
   // R3F update on children changed
   useEffect(
     () => {
-      root.render(props.children);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [props.children],
+      console.log("\x1b[30mR3FMapbox - repaint\x1b[0m");
+
+      root.render(children);
+      map.triggerRepaint();
+    }, //
+    [children],
   );
 
   // mount / unmount
-  useEffect(() => {
-    function handleResize() {
-      const { setDpr, setSize } = useThree.getState();
+  useEffect(
+    () => {
+      function handleResize() {
+        const { setDpr, setSize } = state;
 
-      setDpr(window.devicePixelRatio);
-      setSize(
-        canvasRef.current.clientWidth,
-        canvasRef.current.clientHeight,
-        false,
-        canvasRef.current.offsetWidth,
-        canvasRef.current.offsetHeight,
-      );
-    }
+        setDpr(window.devicePixelRatio);
+        setSize(
+          canvas!.clientWidth,
+          canvas!.clientHeight,
+          false,
+          canvas!.offsetWidth,
+          canvas!.offsetHeight,
+        );
+      }
 
-    map.on("resize", handleResize);
+      map.on("resize", handleResize);
 
-    return () => {
-      map.off("resize", handleResize);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useThree]);
+      return () => {
+        map.off("resize", handleResize);
+      };
+    }, //
+    [],
+  );
 
   return (
     <Layer
-      id={id}
-      onRemove={onRemove}
-      render={render}
-      // see https://docs.mapbox.com/mapbox-gl-js/api/properties/#customlayerinterface
+      // @ts-expect-error - see https://docs.mapbox.com/mapbox-gl-js/api/properties/#customlayerinterface
       // 'custom' is required when a layer has a user-defined render callback
-      // @ts-ignore
       type="custom"
-      renderingMode="3d"
+      // performing depth-testing in R3F, so disable mapbox's depth-testing
+      renderingMode="2d"
+      id={id}
+      render={render}
     />
   );
 }

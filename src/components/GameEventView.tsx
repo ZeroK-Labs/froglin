@@ -1,66 +1,28 @@
-import { Position } from "geojson";
-import { GeoJSONSource, Layer, Source, useMap } from "react-map-gl";
-import { useEffect, useRef } from "react";
+import { Layer, Source } from "react-map-gl";
 
-import { GameEvent } from "types";
-
-const showDuration = 3_000;
-const hideDuration = 1_000;
+import { useGameEventState } from "stores";
 
 type Props = {
-  game: GameEvent;
   visible: boolean;
 };
 
-function setBoundsData(
-  map: mapboxgl.Map,
-  coordinates: Position[][],
-  visible: boolean,
-) {
-  (map.getSource("eventBounds") as GeoJSONSource).setData({
-    type: "Feature",
-    properties: {},
-    geometry: { type: "Polygon", coordinates },
-  });
+const DURATION_SHOW = 3_000;
+const DURATION_HIDE = 1_000;
 
-  if (!visible) return;
+export default function GameEventView(props: Props) {
+  const { bounds } = useGameEventState();
 
-  map.setPaintProperty("area", "fill-opacity", 0.5);
-  map.setPaintProperty("outline", "line-blur", 3);
-}
-
-function updateBounds(
-  map: mapboxgl.Map,
-  coordinates: Position[][],
-  visible: boolean,
-) {
-  if (!map || !map.getLayer("area")) {
-    setTimeout(updateBounds, 500);
-
-    return;
-  }
-
-  map.setPaintProperty("area", "fill-opacity", 0);
-  map.setPaintProperty("outline", "line-blur", 15);
-
-  if (visible) {
-    setBoundsData(map, coordinates, visible);
-
-    return;
-  }
-
-  // delay data deletion from source to allow fadeout animation to complete
-  setTimeout(() => setBoundsData(map, [], visible), hideDuration);
-}
-
-export default function GameEventView({ game, visible }: Props) {
-  const map = useMap().current?.getMap();
-  const durationRef = useRef(showDuration);
-
-  useEffect(() => {
-    durationRef.current = visible ? hideDuration : showDuration;
-    updateBounds(map!, game.bounds, visible);
-  }, [visible]);
+  const options = props.visible
+    ? {
+        areaOpacity: 0.5,
+        outlineOpacity: 1,
+        duration: DURATION_SHOW,
+      }
+    : {
+        areaOpacity: 0,
+        outlineOpacity: 0,
+        duration: DURATION_HIDE,
+      };
 
   return (
     <>
@@ -70,8 +32,8 @@ export default function GameEventView({ game, visible }: Props) {
         type="geojson"
         data={{
           type: "Feature",
-          properties: {},
-          geometry: { type: "Polygon", coordinates: [[[]]] },
+          properties: null,
+          geometry: { type: "Polygon", coordinates: bounds },
         }}
       />
 
@@ -82,8 +44,8 @@ export default function GameEventView({ game, visible }: Props) {
         source="eventBounds"
         paint={{
           "fill-color": "#581C87",
-          "fill-opacity": 0,
-          "fill-opacity-transition": { duration: durationRef.current },
+          "fill-opacity": options.areaOpacity,
+          "fill-opacity-transition": { duration: options.duration },
         }}
       />
       {/* outline */}
@@ -94,8 +56,9 @@ export default function GameEventView({ game, visible }: Props) {
         paint={{
           "line-color": "green",
           "line-width": 5,
-          "line-blur": 15,
-          "line-blur-transition": { duration: durationRef.current },
+          "line-blur": 3,
+          "line-opacity": options.outlineOpacity,
+          "line-blur-transition": { duration: options.duration },
         }}
       />
     </>

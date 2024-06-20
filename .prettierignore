@@ -1,6 +1,16 @@
-node_modules
-dist
-build
+# ignore all files and folders
+/*
 
-src/contracts/**/*.json
-src/contracts/**/*.ts
+# keep src folder
+!src/
+
+# ignore all files in src/contracts
+src/contracts/*
+
+# keep .json and .ts files in src/contracts and its sub-folders
+!src/contracts/**/*.json
+!src/contracts/**/*.ts
+
+# keep root .js(on) files
+!*.js
+!*.json

@@ -8,14 +8,14 @@ get_version_node() {
   fi
 
   # read the Node.js version from .nvmrc
-  local PROJECT_NODE_VERSION=$(cat .nvmrc)
+  local PROJECT_VERSION=$(cat .nvmrc)
 
   # try and execute node, if present, to get the version
-  local INSTALLED_NODE_VERSION=$(node --version 2>/dev/null)
-  if [ $? -ne 0 ]; then INSTALLED_NODE_VERSION=""; fi
+  local INSTALLED_VERSION=$(node --version 2>/dev/null)
+  if [ $? -ne 0 ]; then INSTALLED_VERSION=""; fi
 
-  if [[ "$PROJECT_NODE_VERSION" == "$INSTALLED_NODE_VERSION" ]]; then
-    echo $PROJECT_NODE_VERSION
+  if [[ "$PROJECT_VERSION" == "$INSTALLED_VERSION" ]]; then
+    echo $PROJECT_VERSION
   else
     return 1
   fi

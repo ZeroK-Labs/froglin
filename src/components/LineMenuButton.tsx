@@ -1,73 +1,74 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, RefObject } from "react";
 
 import { LineMenuButtonElement } from "components/LineMenuButtonElement";
 
 export function LineMenuButton({
+  container,
   open,
   setOpen,
 }: {
+  container: RefObject<HTMLDivElement>;
   open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setOpen: (a: boolean) => void;
 }) {
   const divRef = useRef<HTMLDivElement>(null);
-  const barElementsRef = useRef(document.getElementsByClassName("h-2"));
+  const lineElementsRef = useRef<HTMLCollectionOf<Element>>();
   const mouseOverRef = useRef(false);
 
-  function handleDocumentClick(ev: MouseEvent) {
-    const target = document.getElementsByTagName("nav")[0] as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    const buttonRect = divRef.current!.getBoundingClientRect();
-
-    const withinBounds =
-      (ev.clientX >= rect.left &&
-        ev.clientX <= rect.right &&
-        ev.clientY >= rect.top &&
-        ev.clientY <= rect.bottom) ||
-      (ev.clientX >= buttonRect.left &&
-        ev.clientX <= buttonRect.right &&
-        ev.clientY >= buttonRect.top &&
-        ev.clientY <= buttonRect.bottom);
-
-    if (withinBounds) return;
-
-    setOpen(false);
+  let css1, css2, css3;
+  css1 = css2 = css3 = "";
+  if (open) {
+    css1 = "transform rotate-45 translate-y-2";
+    css2 = "opacity-0";
+    css3 = "transform -rotate-45 -translate-y-2";
   }
 
-  useEffect(() => {
-    if (open) {
-      divRef.current!.removeEventListener("click", handleButtonClick);
-      document.addEventListener("click", handleDocumentClick);
-    }
-
-    return () => {
-      document.removeEventListener("click", handleDocumentClick);
-    };
-  }, [open]);
-
-  function handleButtonClick(ev: MouseEvent | React.MouseEvent) {
+  function handleButtonClick() {
     setOpen(!open);
   }
 
   function handlePointerMove() {
     mouseOverRef.current = true;
+    if (!lineElementsRef.current) return;
 
-    for (let i = 0; i !== barElementsRef.current.length; ++i) {
-      if (barElementsRef.current[i].classList.contains("bg-main-purple")) {
-        continue;
-      }
+    for (let i = 0; i !== lineElementsRef.current.length; ++i) {
+      const lineElement = lineElementsRef.current[i];
 
-      barElementsRef.current[i].classList.add("bg-main-purple");
+      if (lineElement.classList.contains("bg-main-purple")) continue;
+
+      lineElement.classList.add("bg-main-purple");
     }
   }
 
   function handlePointerLeave() {
     mouseOverRef.current = false;
+    if (!lineElementsRef.current) return;
 
-    for (let i = 0; i !== barElementsRef.current.length; ++i) {
-      barElementsRef.current[i].classList.remove("bg-main-purple");
-      barElementsRef.current[i].classList.add("bg-gray-800");
+    for (let i = 0; i !== lineElementsRef.current.length; ++i) {
+      const barElement = lineElementsRef.current[i];
+
+      barElement.classList.remove("bg-main-purple");
+      barElement.classList.add("bg-gray-800");
     }
   }
+
+  useEffect(
+    () => {
+      function handleDocumentClick(ev: MouseEvent) {
+        if (container.current!.contains(ev.target as Node)) return;
+
+        setOpen(false);
+      }
+
+      lineElementsRef.current = document.getElementsByClassName("h-2");
+      document.addEventListener("click", handleDocumentClick);
+
+      return () => {
+        document.removeEventListener("click", handleDocumentClick);
+      };
+    }, //
+    [],
+  );
 
   return (
     <div
@@ -78,19 +79,11 @@ export function LineMenuButton({
       onPointerMove={handlePointerMove}
       onMouseLeave={handlePointerLeave}
       onPointerLeave={handlePointerLeave}
+      onTouchMove={handlePointerMove}
     >
-      <LineMenuButtonElement
-        mouseOver={mouseOverRef.current}
-        css={open ? "transform rotate-45 translate-y-2" : ""}
-      />
-      <LineMenuButtonElement
-        mouseOver={mouseOverRef.current}
-        css={open ? "opacity-0" : ""}
-      />
-      <LineMenuButtonElement
-        mouseOver={mouseOverRef.current}
-        css={open ? "transform -rotate-45 -translate-y-2" : ""}
-      />
+      <LineMenuButtonElement css={css1} />
+      <LineMenuButtonElement css={css2} />
+      <LineMenuButtonElement css={css3} />
     </div>
   );
 }

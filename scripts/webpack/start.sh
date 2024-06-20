@@ -10,35 +10,38 @@ arg=$(
 
 # check if arg is in the expected values
 if [[ "$arg" == "" ]] || [[ "$arg" == "dev" ]] || [[ "$arg" == "development" ]]; then
-  arg=development
+  arg=dev
 elif [[ "$arg" == "prod" ]] || [[ "$arg" == "production" ]]; then
-  arg=production
+  arg=prod
 else
   arg=0
 fi
 
 if [[ "$arg" == "0" ]]; then
   echo Unknown argument "\"$arg\""
-  return 1
+  exit 1
 fi
 
 # create ssl certificates
-if ! scripts/webpack/create_keys.sh; then return $?; fi
+if ! scripts/webpack/create_keys.sh; then exit $?; fi
 
 # compile contracts
-if ! scripts/aztec/prep.sh; then return $?; fi
+if ! scripts/aztec/prep.sh; then exit $?; fi
 
-echo -e "\n\033[32m$arg\033[0m mode\n"
+cleanup() {
+  # kill tailwind watcher
+  pkill -f "tailwind"
 
-# run tailwind watcher concurrently
-concurrently -k "scripts/tailwind/start.sh" "webpack serve --env $arg"
+  local xvg=$(pgrep -f "scripts/webpack/start.sh")
+  IFS=$'\n' read -r -d '' -a PIDS <<< "$xvg"
+  exec bash -c "kill -2 ${PIDS[0]}"
 
-# kill tailwind watcher
-pkill -f "tailwind"
+  exit 0
+}
 
-# kill webpack instances
-while true; do
-  count=$(pgrep -f "webpack" | wc -l)
-  if (( count == 0 )); then break; fi
-  pkill -f "webpack" > /dev/null 2>&1
-done
+# trap ctrl+c to call cleanup function
+trap 'cleanup' INT
+
+# run tailwind watcher (in 'dev' mode) and start webpack concurrently
+if [[ "$arg" == "dev" ]]; then scripts/tailwind/start.sh; fi &
+webpack serve --env mode=$arg

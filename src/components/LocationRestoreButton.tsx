@@ -1,56 +1,54 @@
 import mapboxgl from "mapbox-gl";
 import { useEffect, useState } from "react";
 
+import { VIEW } from "settings";
 import { PlayerMarkerImage } from "components";
-import { MAP_VIEWS } from "enums";
-import { MapCoordinates } from "types";
+import { useLocation } from "stores";
 
-export default function LocationRestoreButton({
-  map,
-  location,
-}: {
-  map: mapboxgl.Map | null;
-  location: MapCoordinates;
-}) {
+export default function LocationRestoreButton({ map }: { map: mapboxgl.Map }) {
   const [contained, setContained] = useState(true);
 
-  function handleNavigateToCurrentLocation() {
-    if (!map) return;
+  const { coordinates } = useLocation();
 
+  function handleClick() {
     setContained(true);
+
     map.flyTo({
-      center: [location.longitude, location.latitude],
-      zoom: MAP_VIEWS.PLAYGROUND,
-      pitch: 60,
-      bearing: -30,
-      duration: 3_000,
+      center: [coordinates.longitude, coordinates.latitude],
+      zoom: VIEW.PLAYGROUND.ZOOM,
+      pitch: VIEW.PLAYGROUND.PITCH,
+      bearing: VIEW.PLAYGROUND.BEARING,
+      duration: VIEW.VIEW_ANIMATION_DURATION,
     });
   }
 
-  useEffect(() => {
-    if (!map) return;
+  useEffect(
+    () => {
+      function checkBounds() {
+        const container = map.getContainer();
+        const width = container.clientWidth;
+        const height = container.clientHeight;
 
-    function checkBounds() {
-      setContained(
-        map!.getBounds().contains([location.longitude, location.latitude]),
-      );
-    }
+        const point = map.project([coordinates.longitude, coordinates.latitude]);
 
-    map.on("drag", checkBounds);
-    map.on("dragend", checkBounds);
-    map.on("idle", checkBounds);
+        setContained(
+          point.x >= 0 && point.x <= width && point.y >= 0 && point.y <= height,
+        );
+      }
 
-    return () => {
-      map.off("drag", checkBounds);
-      map.off("dragend", checkBounds);
-      map.off("idle", checkBounds);
-    };
-  }, [map]);
+      map.on("move", checkBounds);
+
+      return () => {
+        map.off("move", checkBounds);
+      };
+    }, //
+    [],
+  );
 
   return contained ? null : (
     <button
       className="absolute bottom-6 right-6 z-[9999] rounded-md"
-      onClick={handleNavigateToCurrentLocation}
+      onClick={handleClick}
     >
       <PlayerMarkerImage size="40px" />
     </button>
