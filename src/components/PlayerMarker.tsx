@@ -83,6 +83,8 @@ export default function PlayerMarker() {
   }
 
   function handleFluteButtonClick() {
+    setOpen(false);
+
     if (revealingRef.current) return;
     revealingRef.current = true;
 
@@ -116,6 +118,8 @@ export default function PlayerMarker() {
   }
 
   function handleTrapButtonClick() {
+    setOpen(false);
+
     if (trapPoints.length === 3) return;
 
     setDuplicateTrapIndex(null);
