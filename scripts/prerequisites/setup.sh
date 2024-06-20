@@ -42,8 +42,12 @@ sudo -v
 # enable execution of all shell files under the folder 'scripts'
 find scripts -type f -name "*.sh" -exec sudo chmod +x {} \;
 
-# enable execution of commit hooks
-sudo chmod +x .git/hooks/pre-commit
+# enable git commit hook
+GIT_COMMIT_HOOK_FILE=.git/hooks/pre-commit
+if [ ! -f "$GIT_COMMIT_HOOK_FILE" ]; then
+  cp scripts/git/pre-commit.sh $GIT_COMMIT_HOOK_FILE
+  sudo chmod +x $GIT_COMMIT_HOOK_FILE
+fi
 
 # clear screen
 echo -e "\033[H\033[2J\033[3J"
