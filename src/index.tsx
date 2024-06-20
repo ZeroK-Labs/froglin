@@ -8,7 +8,6 @@ if ((module as any).hot) (module as any).hot.accept();
 // hydrateRoot(document, <App />);
 
 // Attach the root to the window object to persist across module reloads
-
 const rootElement = document.getElementById("root")!;
 let root: Root = (window as any).__root || null;
 if (!root) {
