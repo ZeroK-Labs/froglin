@@ -39,7 +39,7 @@
     "@types/ws": "8.5.10",
     "@typescript-eslint/eslint-plugin": "7.13.1",
     "@typescript-eslint/parser": "7.13.1",
-    "ajv": "3.1.0",
+    "ajv": "8.16.0",
     "ajv-keywords": "5.1.0",
     "autoprefixer": "10.4.19",
     "compression-webpack-plugin": "11.1.0",
