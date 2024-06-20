@@ -4,6 +4,13 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 import typescriptESLintPlugin from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 
+const commonRules = {
+  camelcase: "off",
+  "jsx-quotes": ["error", "prefer-double"],
+  "require-await": "error",
+  "no-constant-condition": ["error", { checkLoops: "allExceptWhileTrue" }],
+};
+
 const config = [
   {
     files: ["**/*.ts", "**/*.tsx"],
@@ -15,6 +22,7 @@ const config = [
     },
     plugins: {
       "@typescript-eslint": typescriptESLintPlugin,
+      import: importPlugin,
     },
     rules: {
       ...typescriptESLintPlugin.configs.recommended.rules,
@@ -26,23 +34,21 @@ const config = [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
-      "require-await": "error",
+      ...commonRules,
     },
   },
   {
-    files: ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
+    files: ["**/*.cjs", "**/*.js", "**/*.jsx", "**/*.mjs"],
     plugins: {
       "react-refresh": reactHooksPlugin,
       import: importPlugin,
       prettier: prettierPlugin,
     },
     rules: {
-      "no-constant-condition": ["error", { checkLoops: "allExceptWhileTrue" }],
+      "prettier/prettier": "warn",
       "import/no-unresolved": "error",
       "import/no-extraneous-dependencies": "error",
-      "prettier/prettier": "warn",
-      "require-await": "error",
-      camelcase: "off",
+      ...commonRules,
     },
     settings: {
       "import/resolver": {
@@ -53,14 +59,12 @@ const config = [
         },
       },
     },
-    overrides: [
-      {
-        files: ["webpack.config.js"],
-        rules: {
-          "import/no-extraneous-dependencies": ["error", { devDependencies: true }],
-        },
-      },
-    ],
+  },
+  {
+    files: ["webpack.config.js"],
+    rules: {
+      "import/no-extraneous-dependencies": ["error", { devDependencies: true }],
+    },
   },
   {
     ignores: ["**/node_modules", "build"],

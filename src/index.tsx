@@ -1,4 +1,4 @@
-import { Root, createRoot, hydrateRoot } from "react-dom/client";
+import { Root, createRoot } from "react-dom/client";
 
 import "styles/global.css";
 import App from "pages/app";

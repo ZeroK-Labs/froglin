@@ -1,6 +1,6 @@
 import mapboxgl from "mapbox-gl";
 import { Map, MapRef } from "react-map-gl";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { VIEW } from "settings";
 import { MAP_VIEWS } from "enums";
@@ -63,7 +63,6 @@ function enableMapActionsEvent(map: mapboxgl.Map, view: MAP_VIEWS) {
 }
 
 export default function MapScreen() {
-  const divRef = useRef<HTMLDivElement>(null);
   const idleCallbackRef = useRef<() => void>(() => {});
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
   const durationRef = useRef(VIEW.FLY_ANIMATION_DURATION);

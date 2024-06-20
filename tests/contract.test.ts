@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-unresolved
 import { beforeAll, describe, expect, it } from "bun:test";
 import { AccountManager } from "@aztec/aztec.js/account";
 import { SingleKeyAccountContract } from "@aztec/accounts/single_key";
