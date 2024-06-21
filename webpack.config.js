@@ -17,7 +17,7 @@ export default (_, argv) => {
 
   loadenv(mode);
 
-  console.log(`\n\x1b[32m${process.env.NODE_ENV}\x1b[0m mode\n`);
+  console.log(`\n\x1b[32m${process.env.NODE_ENV}\x1b[0m mode`);
 
   // https://webpack.js.org/configuration
   const development = mode === "dev";
