@@ -22,26 +22,29 @@ if [[ "$arg" == "0" ]]; then
   exit 1
 fi
 
+cleanup() {
+  pkill -f 'tailwind|webpack'
+}
+
+# trap ctrl+c to call cleanup function
+trap 'cleanup' INT
+
 # create ssl certificates
 if ! scripts/webpack/create_keys.sh; then exit $?; fi
 
 # compile contracts
 if ! scripts/aztec/prep.sh; then exit $?; fi
 
-cleanup() {
-  # kill tailwind watcher
-  pkill -f "tailwind"
+# kill previous webpack instances
+xvg=$(pgrep -f webpack)
+IFS=$'\n' read -r -d '' -a PIDS <<< "$xvg"
+for ((i = 0; i <= ${#PIDS[@]}-3; ++i)); do
+  echo "Killing PID: ${PIDS[i]}"
+  kill -2 ${PIDS[i]}
+done
 
-  local xvg=$(pgrep -f "scripts/webpack/start.sh")
-  IFS=$'\n' read -r -d '' -a PIDS <<< "$xvg"
-  exec bash -c "kill -2 ${PIDS[0]}"
+# start webpack concurrently and run tailwind watcher (only in "dev" mode)
+webpack serve --env mode=$arg &
+if [[ "$arg" == "dev" ]]; then scripts/tailwind/start.sh; fi
 
-  exit 0
-}
-
-# trap ctrl+c to call cleanup function
-trap 'cleanup' INT
-
-# run tailwind watcher (in 'dev' mode) and start webpack concurrently
-if [[ "$arg" == "dev" ]]; then scripts/tailwind/start.sh; fi &
-webpack serve --env mode=$arg
+cleanup
