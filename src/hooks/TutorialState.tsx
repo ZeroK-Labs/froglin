@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 
-import { StoreFactory } from "stores";
 import { TutorialState } from "types";
 
-function createState(): TutorialState {
-  console.log("TutorialState createState");
+export default function useTutorialState(): TutorialState {
+  console.log("useTutorialState");
 
   const [tutorial, setTutorial] = useState(false);
 
@@ -14,7 +13,7 @@ function createState(): TutorialState {
       const sessionKeyId = "Froglin:tutorial";
       if (sessionStorage.getItem(sessionKeyId) !== "1") {
         sessionStorage.setItem(sessionKeyId, "1");
-        setTutorial(true);
+        setTimeout(setTutorial, 2_000, true);
       }
     }, //
     [],
@@ -41,6 +40,3 @@ function createState(): TutorialState {
 
   return { tutorial, setTutorial };
 }
-
-export const { Provider: TutorialStateProvider, useProvider: useTutorialState } =
-  StoreFactory<TutorialState>(createState);

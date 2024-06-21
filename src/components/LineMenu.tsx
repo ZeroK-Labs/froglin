@@ -1,9 +1,13 @@
-import { useRef, useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
 
 import { LineMenuButton } from "components/LineMenuButton";
 import { LineMenuPopupList } from "components/LineMenuPopupList";
 
-export default function LineMenu() {
+type Props = {
+  setTutorial: Dispatch<SetStateAction<boolean>>;
+};
+
+export default function LineMenu({ setTutorial }: Props) {
   const divRef = useRef(null);
   const [open, setOpen] = useState(false);
 
@@ -21,6 +25,7 @@ export default function LineMenu() {
       <LineMenuPopupList
         open={open}
         setOpen={setOpen}
+        setTutorial={setTutorial}
       />
     </div>
   );

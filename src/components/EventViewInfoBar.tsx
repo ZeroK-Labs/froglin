@@ -9,7 +9,7 @@ export default function EventViewInfoBar({ visible }: { visible: boolean }) {
   return (
     <>
       <div
-        className="absolute top-2 p-2 border-4 flex items-center justify-between bg-[#6c5ce7] text-white border-purple-950 transition-all duration-1000"
+        className="absolute top-2 p-2 border-4 flex items-center justify-between bg-[#6c5ce7] text-white border-purple-950 transition-opacity duration-1000"
         style={{
           width: "calc(100% - 1rem)",
           opacity: visible ? 1 : 0,

@@ -1,18 +1,25 @@
 import { EventViewInfoBar, PlaygroundViewInfoBar } from "components";
 import { MAP_VIEWS } from "enums";
-import { useTutorialState, useViewState } from "stores";
+import { useViewState } from "stores";
 
-export default function InfoBarsContainer({ distance = 0 }: { distance?: number }) {
+type Props = {
+  distance?: number;
+  visible: boolean;
+};
+
+export default function InfoBarsContainer({ distance = 0, visible }: Props) {
   const { view } = useViewState();
-  const { tutorial } = useTutorialState();
 
   return (
-    <div className="absolute left-0 top-2 right-0 p-2 flex pointer-events-none">
+    <div
+      className="absolute left-0 top-2 right-0 p-2 flex pointer-events-none transition-opacity duration-1000"
+      style={{ opacity: visible ? 1 : 0 }}
+    >
       <PlaygroundViewInfoBar
-        visible={!tutorial && view === MAP_VIEWS.PLAYGROUND}
+        visible={view === MAP_VIEWS.PLAYGROUND}
         distance={distance}
       />
-      <EventViewInfoBar visible={!tutorial && view === MAP_VIEWS.EVENT} />
+      <EventViewInfoBar visible={view === MAP_VIEWS.EVENT} />
     </div>
   );
 }

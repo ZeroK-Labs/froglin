@@ -1,11 +1,10 @@
 import { useEffect, useRef } from "react";
 import { VIEW } from "settings";
 
-import { useTutorialState } from "stores";
+import { TutorialState } from "types";
 
-export default function Tutorial() {
+export default function Tutorial({ tutorial, setTutorial }: TutorialState) {
   const divRef = useRef<HTMLDivElement>(null);
-  const { tutorial, setTutorial } = useTutorialState();
 
   function handleClose(ev: MouseEvent | React.BaseSyntheticEvent) {
     if (
