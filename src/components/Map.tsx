@@ -2,8 +2,9 @@ import mapboxgl from "mapbox-gl";
 import { Map, MapRef } from "react-map-gl";
 import { useEffect, useRef } from "react";
 
-import { VIEW } from "settings";
 import { MAP_VIEWS } from "enums";
+import { RevealingCircleStateProvider, useGameEventState, useLocation } from "stores";
+import { VIEW } from "settings";
 import { mobileClient } from "utils/window";
 import {
   CanvasOverlay,
@@ -13,12 +14,6 @@ import {
   LocationRestoreButton,
   PlayerMarker,
 } from "components";
-import {
-  RevealingCircleStateProvider,
-  useGameEventState,
-  useLocation,
-  useViewState,
-} from "stores";
 
 function disableMapActions(map: mapboxgl.Map) {
   map.setMinPitch(0);
@@ -62,7 +57,7 @@ function enableMapActionsEvent(map: mapboxgl.Map, view: MAP_VIEWS) {
   if (mobileClient) map.doubleClickZoom.enable();
 }
 
-export default function MapScreen() {
+export default function MapScreen({ view }: { view: MAP_VIEWS }) {
   const idleCallbackRef = useRef<() => void>(() => {});
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
   const durationRef = useRef(VIEW.FLY_ANIMATION_DURATION);
@@ -70,7 +65,6 @@ export default function MapScreen() {
   const mapRef = useRef<mapboxgl.Map>();
 
   const location = useLocation();
-  const { view } = useViewState();
   const { getEventBounds, interestPoints, revealedFroglins } = useGameEventState();
 
   function mapCallback(node: MapRef) {
@@ -194,7 +188,7 @@ export default function MapScreen() {
             <>
               <RevealingCircleStateProvider>
                 <CanvasOverlay />
-                <PlayerMarker />
+                <PlayerMarker view={view} />
               </RevealingCircleStateProvider>
 
               <LocationRestoreButton map={mapRef.current} />

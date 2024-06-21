@@ -3,20 +3,18 @@ import React, { Dispatch, SetStateAction, useEffect } from "react";
 import { LineMenuPopupListItem } from "components/LineMenuPopupListItem";
 import { MAP_VIEWS } from "enums";
 import { VIEW } from "settings";
-import { useViewState } from "stores";
 
 type Props = {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
   setTutorial: Dispatch<SetStateAction<boolean>>;
+  setView: Dispatch<SetStateAction<MAP_VIEWS>>;
 };
 
-export function LineMenuPopupList({ open, setOpen, setTutorial }: Props) {
+export function LineMenuPopupList({ open, setOpen, setTutorial, setView }: Props) {
   const navRef = useRef<HTMLDivElement>(null);
 
   const [ViewButton, setViewButton] = useState(() => EventViewButton);
-
-  const { setView } = useViewState();
 
   function handleNavClick() {
     setOpen(false);

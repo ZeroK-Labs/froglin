@@ -2,13 +2,16 @@ import { Dispatch, SetStateAction, useRef, useState } from "react";
 
 import { LineMenuButton } from "components/LineMenuButton";
 import { LineMenuPopupList } from "components/LineMenuPopupList";
+import { MAP_VIEWS } from "enums";
 
 type Props = {
   setTutorial: Dispatch<SetStateAction<boolean>>;
+  setView: Dispatch<SetStateAction<MAP_VIEWS>>;
 };
 
-export default function LineMenu({ setTutorial }: Props) {
+export default function LineMenu({ setTutorial, setView }: Props) {
   const divRef = useRef(null);
+
   const [open, setOpen] = useState(false);
 
   return (
@@ -26,6 +29,7 @@ export default function LineMenu({ setTutorial }: Props) {
         open={open}
         setOpen={setOpen}
         setTutorial={setTutorial}
+        setView={setView}
       />
     </div>
   );

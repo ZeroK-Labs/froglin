@@ -1,25 +1,30 @@
 import { InfoBarsContainer, LineMenu, Map, Tutorial } from "components";
-import { useTutorialState } from "hooks";
+import { useTutorialState, useViewState } from "hooks";
 
-import { GameEventStateProvider, LocationProvider, ViewStateProvider } from "stores";
+import { GameEventStateProvider, LocationProvider } from "stores";
 
 export default function App() {
   const { tutorial, setTutorial } = useTutorialState();
+  const { view, setView } = useViewState();
 
   return (
     <LocationProvider>
-      <ViewStateProvider>
-        <GameEventStateProvider>
-          <Map />
+      <GameEventStateProvider>
+        <Map view={view} />
 
-          <InfoBarsContainer visible={!tutorial} />
-          <Tutorial
-            tutorial={tutorial}
-            setTutorial={setTutorial}
-          />
-          <LineMenu setTutorial={setTutorial} />
-        </GameEventStateProvider>
-      </ViewStateProvider>
+        <InfoBarsContainer
+          view={view}
+          visible={!tutorial}
+        />
+        <Tutorial
+          tutorial={tutorial}
+          setTutorial={setTutorial}
+        />
+        <LineMenu
+          setTutorial={setTutorial}
+          setView={setView}
+        />
+      </GameEventStateProvider>
     </LocationProvider>
   );
 }

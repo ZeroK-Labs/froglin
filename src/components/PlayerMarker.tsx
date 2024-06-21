@@ -6,12 +6,11 @@ import { Froglin, InterestPoint, MapCoordinates } from "types";
 import { MAP_VIEWS } from "enums";
 import { PlayerMarkerImage, TrapMarkerList } from "components";
 import { inRange, inTriangle } from "utils/map";
-import {
-  useGameEventState,
-  useRevealingCircleState,
-  useLocation,
-  useViewState,
-} from "stores";
+import { useGameEventState, useRevealingCircleState, useLocation } from "stores";
+
+type Props = {
+  view: MAP_VIEWS;
+};
 
 function getRandomInRange(a: number, b: number): number {
   const min = Math.min(a, b);
@@ -19,7 +18,7 @@ function getRandomInRange(a: number, b: number): number {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-export default function PlayerMarker() {
+export default function PlayerMarker({ view }: Props) {
   const navRef = useRef<HTMLDivElement>(null);
   const revealingRef = useRef(false);
 
@@ -28,7 +27,6 @@ export default function PlayerMarker() {
   const [open, setOpen] = useState<boolean>(false);
 
   const { coordinates } = useLocation();
-  const { view } = useViewState();
   const { setVisible, setSize } = useRevealingCircleState();
   const {
     interestPoints,
