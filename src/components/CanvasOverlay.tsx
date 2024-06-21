@@ -1,13 +1,13 @@
-import { BackSide, FrontSide } from "three";
+import { useMap } from "react-map-gl";
 
+import RevealingCircle from "assets/R3F/RevealingCircle";
 import { Canvas } from "adapters/R3FMapbox";
-import { PLAYER } from "settings";
-import { MinusHalfPI } from "utils/math";
-import { useCircleIndicatorState, useLocation } from "stores";
+import { useLocation } from "stores";
+import { useRevealingCircleState } from "stores";
 
 export default function CanvasOverlay() {
   const { coordinates } = useLocation();
-  const { visible, size, color, opacity } = useCircleIndicatorState();
+  const map = useMap().current!.getMap();
 
   return (
     <Canvas
@@ -26,31 +26,10 @@ export default function CanvasOverlay() {
         intensity={4}
       />
 
-      <mesh
-        visible={visible}
-        rotation={[MinusHalfPI, 0, 0]}
-      >
-        <ringGeometry args={[PLAYER.REVEAL_RADIUS - 0.33, size, 64]} />
-        <meshStandardMaterial
-          transparent
-          color="rgb(122, 30, 185)"
-          opacity={0.25}
-          side={BackSide}
-        />
-      </mesh>
-
-      <mesh
-        visible={visible}
-        rotation={[MinusHalfPI, 0, 0]}
-      >
-        <ringGeometry args={[size - 0.25, size, 64]} />
-        <meshStandardMaterial
-          transparent
-          color={color}
-          opacity={opacity}
-          side={FrontSide}
-        />
-      </mesh>
+      <RevealingCircle
+        {...useRevealingCircleState()}
+        map={map}
+      />
     </Canvas>
   );
 }

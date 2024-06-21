@@ -1,9 +1,9 @@
 import { useState } from "react";
 
 import { StoreFactory } from "stores";
-import { CircleIndicatorState } from "types";
+import { RevealingCircleState } from "types";
 
-function createState(): CircleIndicatorState {
+function createState(): RevealingCircleState {
   const [color, setColor] = useState("white");
   const [opacity, setOpacity] = useState(1);
   const [size, setSize] = useState(0);
@@ -22,6 +22,6 @@ function createState(): CircleIndicatorState {
 }
 
 export const {
-  Provider: CircleIndicatorStateProvider,
-  useProvider: useCircleIndicatorState,
-} = StoreFactory<CircleIndicatorState>(createState);
+  Provider: RevealingCircleStateProvider,
+  useProvider: useRevealingCircleState,
+} = StoreFactory<RevealingCircleState>(createState);

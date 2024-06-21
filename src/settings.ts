@@ -51,7 +51,11 @@ export const EVENT: EventSettings = {
 } as const;
 
 export const PLAYER: PlayerSettings = {
-  REVEAL_RADIUS: 32,
+  REVEAL: {
+    RADIUS: 32,
+    FILL: "rgb(122, 30, 185)",
+    OUTLINE: "green",
+  },
   CAPTURE_RADIUS: 5,
   TRAP: {
     DUPLICATE_TEXT: "Already set a trap here",

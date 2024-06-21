@@ -8,7 +8,7 @@ import { PlayerMarkerImage, TrapMarkerList } from "components";
 import { inRange, inTriangle } from "utils/map";
 import {
   useGameEventState,
-  useCircleIndicatorState,
+  useRevealingCircleState,
   useLocation,
   useViewState,
 } from "stores";
@@ -29,7 +29,7 @@ export default function PlayerMarker() {
 
   const { coordinates } = useLocation();
   const { view } = useViewState();
-  const { setVisible, setSize, setColor } = useCircleIndicatorState();
+  const { setVisible, setSize } = useRevealingCircleState();
   const {
     interestPoints,
     revealedFroglins,
@@ -44,7 +44,7 @@ export default function PlayerMarker() {
     setOpen(ev.target.checked);
   }
 
-  function doReveal(radius: number = PLAYER.REVEAL_RADIUS) {
+  function doReveal(radius: number = PLAYER.REVEAL.RADIUS) {
     // update the state
     const interestPointsHidden: InterestPoint[] = [];
     const revealedFroglins: Froglin[] = [];
@@ -91,12 +91,11 @@ export default function PlayerMarker() {
     // create animation for circle
     const duration = 1_000;
     const loops = 8;
-    const increment = PLAYER.REVEAL_RADIUS / loops;
+    const increment = PLAYER.REVEAL.RADIUS / loops;
     let radius = increment;
 
     setSize(0);
     setVisible(true);
-    setColor("green");
 
     let i = 1;
     const id = setInterval(
@@ -114,7 +113,7 @@ export default function PlayerMarker() {
     setTimeout(() => {
       revealingRef.current = false;
       setVisible(false);
-    }, duration + 100);
+    }, duration + 50);
   }
 
   function handleTrapButtonClick() {

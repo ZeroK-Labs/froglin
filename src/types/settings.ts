@@ -92,11 +92,26 @@ type TrapMarkerSettings = {
   readonly DUPLICATE_TEXT_TIMEOUT: number;
 };
 
-export type PlayerSettings = {
+export type RevealSettings = {
   /**
    * Flute reveal radius (meters)
    */
-  readonly REVEAL_RADIUS: number;
+  readonly RADIUS: number;
+  /**
+   * Color of revelealing circle's inner fill
+   */
+  readonly FILL: string;
+  /**
+   * Color of revelealing circle's outline
+   */
+  readonly OUTLINE: string;
+};
+
+export type PlayerSettings = {
+  /**
+   * Settings associated to reveal mechanics and visuals
+   */
+  readonly REVEAL: RevealSettings;
   /**
    * Movement capture radius (meters)
    */

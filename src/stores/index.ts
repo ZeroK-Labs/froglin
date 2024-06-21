@@ -4,6 +4,6 @@ export { LocationProvider, useLocation } from "./Location";
 export { TutorialStateProvider, useTutorialState } from "./TutorialState";
 export { ViewStateProvider, useViewState } from "./ViewState";
 export {
-  CircleIndicatorStateProvider,
-  useCircleIndicatorState,
-} from "./CircleIndicatorState";
+  RevealingCircleStateProvider,
+  useRevealingCircleState,
+} from "./RevealingCircleState";

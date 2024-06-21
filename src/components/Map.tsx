@@ -14,7 +14,7 @@ import {
   PlayerMarker,
 } from "components";
 import {
-  CircleIndicatorStateProvider,
+  RevealingCircleStateProvider,
   useGameEventState,
   useLocation,
   useViewState,
@@ -141,7 +141,7 @@ export default function MapScreen() {
     () => {
       console.log("map - location change", location);
 
-      if (!mapRef.current || location.disabled) return;
+      if (!mapRef.current || mapRef.current.isMoving() || location.disabled) return;
 
       mapRef.current.flyTo({
         center: [location.coordinates.longitude, location.coordinates.latitude],
@@ -178,6 +178,7 @@ export default function MapScreen() {
               point={point}
             />
           ))}
+
           {revealedFroglins.map((froglin) =>
             isNaN(froglin.coordinates.longitude) ? null : (
               <FroglinMarker
@@ -191,10 +192,10 @@ export default function MapScreen() {
 
           {!mapRef.current || location.disabled ? null : (
             <>
-              <CircleIndicatorStateProvider>
+              <RevealingCircleStateProvider>
                 <CanvasOverlay />
                 <PlayerMarker />
-              </CircleIndicatorStateProvider>
+              </RevealingCircleStateProvider>
 
               <LocationRestoreButton map={mapRef.current} />
             </>
