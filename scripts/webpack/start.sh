@@ -43,8 +43,8 @@ for ((i = 0; i <= ${#PIDS[@]}-3; ++i)); do
   kill -2 ${PIDS[i]}
 done
 
-# start webpack concurrently and run tailwind watcher (only in "dev" mode)
+# start webpack concurrently and run tailwind watcher
 webpack serve --env mode=$arg &
-if [[ "$arg" == "dev" ]]; then scripts/tailwind/start.sh; fi
+scripts/tailwind/start.sh
 
 cleanup

@@ -1,11 +1,12 @@
-import { Suspense, useRef } from "react";
+import { Suspense, lazy, useRef } from "react";
 import { Root, createRoot } from "react-dom/client";
 
 import "styles/global.css";
-import App from "pages/app";
 import { VIEW } from "settings";
 import { TimeoutId } from "types";
 import { LoadingFallback } from "components";
+
+const App = lazy(() => import("./pages/app"));
 
 const rootElement = document.getElementById("root")!;
 

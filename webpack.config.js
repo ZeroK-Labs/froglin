@@ -21,6 +21,7 @@ export default (_, argv) => {
 
   // https://webpack.js.org/configuration
   const development = mode === "dev";
+  const production = !development;
 
   return {
     mode: process.env.NODE_ENV,
@@ -72,14 +73,15 @@ export default (_, argv) => {
           MapboxAccessToken: JSON.stringify(process.env.MAPBOX_ACCESS_TOKEN),
         },
       }),
-      new CompressionPlugin({
-        filename: "[path][base].gz[query]",
-        algorithm: "gzip",
-        test: /\.js$|\.css$|\.html$/,
-        threshold: 0,
-        minRatio: 1,
-      }),
-      new MiniCssExtractPlugin(),
+      production &&
+        new CompressionPlugin({
+          filename: "[path][base].gz[query]",
+          algorithm: "gzip",
+          test: /\.[cjmt]s[x]?$|\.css$|\.htm[l]?$/,
+          threshold: 0,
+          minRatio: 0.8,
+        }),
+      production && new MiniCssExtractPlugin(),
     ],
     //
     // https://webpack.js.org/configuration/module
@@ -149,10 +151,15 @@ export default (_, argv) => {
       providedExports: true,
       sideEffects: true,
       usedExports: true,
-      // runtimeChunk: "single",
       removeEmptyChunks: true,
       removeAvailableModules: true,
-      ...(!development && {
+      //
+      // https://webpack.js.org/plugins/split-chunks-plugin/
+      //
+      splitChunks: {
+        chunks: "all",
+      },
+      ...(production && {
         minimize: true,
         minimizer: [
           //
@@ -208,7 +215,7 @@ export default (_, argv) => {
       allowedHosts: "all",
       historyApiFallback: true,
       hot: development,
-      liveReload: !development,
+      liveReload: production,
       client: {
         logging: development ? "verbose" : "none",
         reconnect: true,
