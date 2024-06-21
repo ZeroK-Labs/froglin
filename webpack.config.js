@@ -19,10 +19,12 @@ export default (_, argv) => {
 
   console.log(`\n\x1b[32m${process.env.NODE_ENV}\x1b[0m mode`);
 
-  // https://webpack.js.org/configuration
   const development = mode === "dev";
   const production = !development;
 
+  //
+  // https://webpack.js.org/configuration
+  //
   return {
     mode: process.env.NODE_ENV,
     target: "browserslist",
