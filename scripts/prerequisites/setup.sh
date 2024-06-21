@@ -6,35 +6,8 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   exit $?
 fi
 
-# set platform-specific variables
-
-# linux
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  # ubuntu
-  if [ -f /etc/lsb-release ]; then
-    source /etc/lsb-release
-
-    if [[ "$DISTRIB_ID" == "Ubuntu" ]]; then
-      OS_NAME="ubuntu"
-    else
-      echo "This script only supports Ubuntu for Linux"
-      return 1
-    fi
-  else
-    echo "This script only supports Ubuntu for Linux"
-    return 1
-  fi
-# macOS
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-  OS_NAME="mac"
-else
-  echo "Unsupported OS "$OSTYPE""
-  echo "This script only supports Linux Ubuntu and macOS"
-  return 1
-fi
-
-# set terminal-specific variables
-ENV_VARS_FILE=~/."${SHELL##/bin/}"rc
+# get environment info
+scripts/.env/get.sh
 
 # ask for access before proceeding
 sudo -v

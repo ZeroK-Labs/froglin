@@ -6,15 +6,15 @@ import loadenv from "../scripts/loadenv";
 
 loadenv();
 
-// hide filename from console output
+// hide this file's name from console output
 console.log("\x1b[2A\x1b[0J\x1b[1A");
 
-if (existsSync("contracts/artifacts/Froglin.ts")) exit(0);
+if (!existsSync("src/contracts/artifacts/Froglin.ts")) {
+  // generate contracts and ABIs
+  const result = spawnSync("scripts/aztec/prep.sh", [], {
+    stdio: "inherit",
+  });
 
-// generate contracts and ABIs
-const result = spawnSync("bun", ["aztec:build"], {
-  stdio: "inherit",
-});
-
-if (result.error) exit(1);
-if (result.status !== 0) exit(result.status);
+  if (result.error) exit(1);
+  if (result.status !== 0) exit(result.status);
+}

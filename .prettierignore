@@ -1,8 +1,9 @@
 # ignore all files and folders
 /*
 
-# keep src folder
+# keep src and tests folders
 !src/
+!tests/
 
 # ignore all files in src/contracts
 src/contracts/*

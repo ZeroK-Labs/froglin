@@ -29,6 +29,9 @@ open_new_terminal_and_run_sandbox() {
   fi
 }
 
+# start docker, as needed
+scripts/docker/start.sh
+
 # stop sandbox
 docker compose -f $HOME/.aztec/docker-compose.yml -p sandbox down > /dev/null 2>&1
 
