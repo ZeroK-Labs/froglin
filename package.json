@@ -79,7 +79,8 @@
     "webpack:start": "scripts/webpack/start.sh",
     "clean": "scripts/clean.sh",
     "lint": "eslint",
-    "dev": "scripts/dev.sh"
+    "dev": "scripts/dev.sh",
+    "test": "scripts/test.sh"
   },
   "browserslist": {
     "production": [
