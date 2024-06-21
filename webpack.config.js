@@ -3,7 +3,6 @@ import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import TerserPlugin from "terser-webpack-plugin";
-
 import fs from "fs";
 import path from "path";
 import webpack from "webpack";
@@ -14,13 +13,12 @@ import loadenv from "./scripts/loadenv.js";
 // @ts-expect-error: arguments can be any object
 export default (_, argv) => {
   const mode = argv.env.mode || "dev";
+  const development = mode === "dev";
+  const production = !development;
 
   loadenv(mode);
 
   console.log(`\n\x1b[32m${process.env.NODE_ENV}\x1b[0m mode`);
-
-  const development = mode === "dev";
-  const production = !development;
 
   //
   // https://webpack.js.org/configuration
@@ -48,7 +46,7 @@ export default (_, argv) => {
     // https://webpack.js.org/configuration/resolve
     //
     resolve: {
-      extensions: [".js", ".tsx", ".ts"],
+      extensions: [".js", ".ts", ".tsx"],
       modules: [path.resolve("src"), path.resolve("node_modules")],
       fallback: {
         crypto: false,
@@ -79,7 +77,7 @@ export default (_, argv) => {
         new CompressionPlugin({
           filename: "[path][base].gz[query]",
           algorithm: "gzip",
-          test: /\.[cjmt]s[x]?$|\.css$|\.htm[l]?$/,
+          test: /\.[cjmt]sx?$|\.css$|\.html?$/,
           threshold: 0,
           minRatio: 0.8,
         }),
@@ -168,7 +166,7 @@ export default (_, argv) => {
           // https://webpack.js.org/plugins/terser-webpack-plugin/#swc
           //
           new TerserPlugin({
-            test: /\.[jt]sx?(\?.*)?$/i,
+            test: /\.[cjmt]sx?(\?.*)?$/i,
             parallel: true,
             minify: TerserPlugin.swcMinify,
             terserOptions: {
@@ -217,7 +215,7 @@ export default (_, argv) => {
       allowedHosts: "all",
       historyApiFallback: true,
       hot: development,
-      liveReload: production,
+      liveReload: !development,
       client: {
         logging: development ? "verbose" : "none",
         reconnect: true,

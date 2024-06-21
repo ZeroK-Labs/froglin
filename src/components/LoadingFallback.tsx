@@ -2,26 +2,11 @@ import { useEffect } from "react";
 
 import { VIEW } from "settings";
 
-type Props = {
-  root: HTMLDivElement;
-};
-
-const loadingStyle = {
-  color: "#f59e0b",
-  animation: "pulse 1000ms linear infinite",
-};
-
-export default function LoadingFallback({ root }: Props) {
+export default function LoadingFallback() {
   useEffect(
     () => {
-      const keyframes = document.createElement("style");
-      keyframes.innerText = `@keyframes pulse {
-        0%, 100% { opacity: 0.2; }
-        50% { opacity: 1; }
-      }`;
-      document.head.appendChild(keyframes);
-
       return () => {
+        const root = document.getElementById("root")! as HTMLDivElement;
         root.style.opacity = "0";
 
         setTimeout(
@@ -30,14 +15,24 @@ export default function LoadingFallback({ root }: Props) {
             root.style.transitionDuration = `${VIEW.MAP_LOAD_ANIMATION_DURATION}ms`;
             root.style.opacity = "1";
 
-            document.head.removeChild(keyframes);
+            setTimeout(
+              () => {
+                const loader = document.getElementById("load");
+                if (loader) loader.parentElement!.remove();
+
+                const style = document.getElementById("load-style");
+                if (style) document.head.removeChild(style);
+              }, //
+              VIEW.MAP_LOAD_ANIMATION_DURATION,
+            );
           }, //
-          100,
+          500,
         );
       };
     }, //
     [],
   );
 
-  return <div style={loadingStyle}>Loading...</div>;
+  return <></>;
+  // return <div style={loadingStyle}>Loading...</div>;
 }
