@@ -160,16 +160,13 @@ export default function PlayerMarker({ view }: Props) {
       const capturedIds: [Froglin["id"]?] = [];
       for (let i = 0; i !== revealedFroglins.length; ++i) {
         const froglin = revealedFroglins[i];
-        if (inTriangle(froglin.coordinates, triangle)) {
-          capturedIds.push(froglin.id);
-        }
+        if (inTriangle(froglin.coordinates, triangle)) capturedIds.push(froglin.id);
       }
 
-      captureFroglins(capturedIds);
-
+      setTimeout(captureFroglins, 0, capturedIds);
       setTimeout(setTrapPoints, FROGLIN.MARKER.TRANSITION_DURATION, []);
     }, //
-    [trapPoints],
+    [trapPoints, revealedFroglins],
   );
 
   useEffect(
