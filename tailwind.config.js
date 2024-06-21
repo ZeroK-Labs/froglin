@@ -5,7 +5,6 @@ export default {
     extend: {
       animation: {
         "fade-in-out": "fade-in-out 2s infinite",
-        "pulse-slow": "pulse 500ms linear infinite",
       },
       colors: {
         "main-purple": "rgba(88, 28, 135, 0.5)",
@@ -15,14 +14,6 @@ export default {
         "fade-in-out": {
           "0%, 100%": { opacity: 0 },
           "50%": { opacity: 1 },
-        },
-        pulse: {
-          "0%, 100%": {
-            opacity: 1,
-          },
-          "50%": {
-            opacity: 0.5,
-          },
         },
       },
     },

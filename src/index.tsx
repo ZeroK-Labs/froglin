@@ -1,40 +1,16 @@
-import { Suspense, lazy, useRef } from "react";
+import { Suspense, lazy } from "react";
 import { Root, createRoot } from "react-dom/client";
 
 import "styles/global.css";
-import { VIEW } from "settings";
-import { TimeoutId } from "types";
 import { LoadingFallback } from "components";
 
 const App = lazy(() => import("./pages/app"));
 
-const rootElement = document.getElementById("root")!;
+const rootElement = document.getElementById("root")! as HTMLDivElement;
 
 function RootComponent() {
-  const timerRef = useRef<TimeoutId>();
-
   return (
-    <Suspense
-      fallback={
-        <LoadingFallback
-          onMount={() => {
-            timerRef.current = setTimeout(() => {
-              rootElement.style.opacity = "1";
-            }, 1_000);
-          }}
-          onUnmount={() => {
-            clearTimeout(timerRef.current);
-
-            rootElement.style.opacity = "0";
-            setTimeout(() => {
-              rootElement.style.transitionProperty = "opacity";
-              rootElement.style.transitionDuration = `${VIEW.MAP_LOAD_ANIMATION_DURATION}ms`;
-              rootElement.style.opacity = "1";
-            }, 0);
-          }}
-        />
-      }
-    >
+    <Suspense fallback={<LoadingFallback root={rootElement} />}>
       <App />
     </Suspense>
   );

@@ -1,46 +1,42 @@
 import { useEffect } from "react";
 
-const loadingStyle = {
-  color: "#f59e0b",
-  animation: "pulse 2000ms linear infinite",
+import { VIEW } from "settings";
+
+type Props = {
+  root: HTMLDivElement;
 };
 
-export default function LoadingFallback({
-  onMount,
-  onUnmount,
-}: {
-  onMount?: any;
-  onUnmount?: any;
-}) {
+const loadingStyle = {
+  color: "#f59e0b",
+  animation: "pulse 1000ms linear infinite",
+};
+
+export default function LoadingFallback({ root }: Props) {
   useEffect(
     () => {
       const keyframes = document.createElement("style");
       keyframes.innerText = `@keyframes pulse {
-        0%, 100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.25;
-        }
+        0%, 100% { opacity: 0.2; }
+        50% { opacity: 1; }
       }`;
       document.head.appendChild(keyframes);
 
-      () => {
-        document.head.removeChild(keyframes);
+      return () => {
+        root.style.opacity = "0";
+
+        setTimeout(
+          () => {
+            root.style.transitionProperty = "opacity";
+            root.style.transitionDuration = `${VIEW.MAP_LOAD_ANIMATION_DURATION}ms`;
+            root.style.opacity = "1";
+
+            document.head.removeChild(keyframes);
+          }, //
+          100,
+        );
       };
     }, //
     [],
-  );
-
-  useEffect(
-    () => {
-      if (onMount) onMount();
-
-      return () => {
-        if (onUnmount) onUnmount();
-      };
-    }, //
-    [onMount, onUnmount],
   );
 
   return <div style={loadingStyle}>Loading...</div>;
