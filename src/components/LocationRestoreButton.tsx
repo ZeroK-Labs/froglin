@@ -1,8 +1,8 @@
-import mapboxgl from "mapbox-gl";
 import { useEffect, useState } from "react";
 
-import { VIEW } from "settings";
 import { PlayerMarkerImage } from "components";
+import { VIEW } from "settings";
+import { disableMapActions, enableMapActionsPlayground } from "utils/mapbox";
 import { useLocation } from "stores";
 
 export default function LocationRestoreButton({ map }: { map: mapboxgl.Map }) {
@@ -12,6 +12,7 @@ export default function LocationRestoreButton({ map }: { map: mapboxgl.Map }) {
 
   function handleClick() {
     setContained(true);
+    disableMapActions(map);
 
     map.flyTo({
       center: [coordinates.longitude, coordinates.latitude],
@@ -20,20 +21,19 @@ export default function LocationRestoreButton({ map }: { map: mapboxgl.Map }) {
       bearing: VIEW.PLAYGROUND.BEARING,
       duration: VIEW.VIEW_ANIMATION_DURATION,
     });
+
+    map.once("moveend", () => {
+      enableMapActionsPlayground(map);
+    });
   }
 
   useEffect(
     () => {
       function checkBounds() {
-        const container = map.getContainer();
-        const width = container.clientWidth;
-        const height = container.clientHeight;
+        const { clientWidth: width, clientHeight: height } = map.getContainer();
+        const { x, y } = map.project([coordinates.longitude, coordinates.latitude]);
 
-        const point = map.project([coordinates.longitude, coordinates.latitude]);
-
-        setContained(
-          point.x >= 0 && point.x <= width && point.y >= 0 && point.y <= height,
-        );
+        setContained(x >= 0 && x <= width && y >= 0 && y <= height);
       }
 
       map.on("move", checkBounds);
@@ -47,7 +47,7 @@ export default function LocationRestoreButton({ map }: { map: mapboxgl.Map }) {
 
   return contained ? null : (
     <button
-      className="absolute bottom-6 right-6 z-[9999] rounded-md"
+      className="fixed bottom-6 right-6 z-[9999] rounded-md"
       onClick={handleClick}
     >
       <PlayerMarkerImage size="40px" />

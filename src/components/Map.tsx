@@ -1,11 +1,9 @@
-import mapboxgl from "mapbox-gl";
 import { Map, MapRef } from "react-map-gl";
 import { useEffect, useRef } from "react";
 
 import { MAP_VIEWS } from "enums";
 import { RevealingCircleStateProvider, useGameEventState, useLocation } from "stores";
 import { VIEW } from "settings";
-import { mobileClient } from "utils/window";
 import {
   CanvasOverlay,
   FroglinMarker,
@@ -14,68 +12,18 @@ import {
   LocationRestoreButton,
   PlayerMarker,
 } from "components";
-
-function disableMapActions(map: mapboxgl.Map) {
-  map.setMinPitch(0);
-  map.setMaxPitch(85);
-  map.setMinZoom(1);
-  map.setMaxZoom(22);
-  map.dragPan.disable();
-  map.dragRotate.disable();
-  map.scrollZoom.disable();
-  map.touchPitch.disable();
-  map.touchZoomRotate.disable();
-  map.doubleClickZoom.disable();
-}
-
-function enableMapActionsPlayground(map: mapboxgl.Map, view: MAP_VIEWS) {
-  if (view !== MAP_VIEWS.PLAYGROUND) return;
-
-  map.setMinPitch(20);
-  map.setMaxPitch(80);
-  map.setMinZoom(VIEW.PLAYGROUND.ZOOM - 2);
-  map.setMaxZoom(VIEW.PLAYGROUND.ZOOM);
-  map.dragPan.enable();
-  map.dragRotate.enable();
-  map.scrollZoom.enable();
-  map.touchPitch.enable();
-  map.touchZoomRotate.enable();
-  if (mobileClient) map.doubleClickZoom.enable();
-}
-
-function enableMapActionsEvent(map: mapboxgl.Map, view: MAP_VIEWS) {
-  if (view !== MAP_VIEWS.EVENT) return;
-
-  map.setMinPitch(10);
-  map.setMaxPitch(45);
-  map.setMinZoom(VIEW.EVENT.ZOOM - 1);
-  map.setMaxZoom(VIEW.EVENT.ZOOM);
-  map.dragRotate.enable();
-  map.scrollZoom.enable();
-  map.touchPitch.enable();
-  map.touchZoomRotate.enable();
-  if (mobileClient) map.doubleClickZoom.enable();
-}
-
-// work-around to counteract the sky being black after loading
-function setMapFog(map: mapboxgl.Map) {
-  map.once("styledata", () => {
-    map.setFog({
-      // range: [1, 20],
-      color: "rgba(16, 6, 16, 0.9)", // Lower atmosphere
-      "high-color": "rgb(0, 12, 14)", // Upper atmosphere
-      "horizon-blend": 0.08, // Atmosphere thickness (default 0.2 at low zooms)
-      "space-color": "rgb(19, 12, 21)", // Background color
-      "star-intensity": 0.45, // Background star brightness (default 0.35 at low zoooms )
-    });
-  });
-}
+import {
+  disableMapActions,
+  enableMapActionsEvent,
+  enableMapActionsPlayground,
+  setMapFog,
+} from "utils/mapbox";
 
 export default function MapScreen({ view }: { view: MAP_VIEWS }) {
-  const idleCallbackRef = useRef<() => void>(() => {});
+  const mapRef = useRef<mapboxgl.Map>();
+  const enableMapActionsRef = useRef<() => void>(() => {});
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
   const durationRef = useRef(VIEW.FLY_ANIMATION_DURATION);
-  const mapRef = useRef<mapboxgl.Map>();
 
   const location = useLocation();
   const { getEventBounds, interestPoints, revealedFroglins } = useGameEventState();
@@ -93,7 +41,7 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
     viewLevelRef.current = view;
     disableMapActions(mapRef.current);
 
-    let enableMapActions: (map: mapboxgl.Map, view: MAP_VIEWS) => void;
+    let enableMapActions: (map: mapboxgl.Map) => void;
     if (view === MAP_VIEWS.PLAYGROUND) {
       mapRef.current.flyTo({
         center: [location.coordinates.longitude, location.coordinates.latitude],
@@ -119,12 +67,12 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
       enableMapActions = enableMapActionsEvent;
     }
 
-    // ensure only one idle handle is subscribed
-    mapRef.current.off("moveend", idleCallbackRef.current);
-    idleCallbackRef.current = () => {
-      enableMapActions(mapRef.current!, viewLevelRef.current);
+    // ensure only one handler is subscribed
+    mapRef.current.off("moveend", enableMapActionsRef.current);
+    enableMapActionsRef.current = () => {
+      enableMapActions(mapRef.current!);
     };
-    mapRef.current.once("moveend", idleCallbackRef.current);
+    mapRef.current.once("moveend", enableMapActionsRef.current);
   }
 
   // map camera follows player
@@ -153,14 +101,6 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
         // @ts-expect-error - make all animations essential
         respectPrefersReducedMotion={false}
         projection={{ name: "globe" }}
-        // fog={{
-        //   // range: [1, 20],
-        //   color: "rgba(16, 6, 16, 0.9)", // Lower atmosphere
-        //   "high-color": "rgb(0, 12, 14)", // Upper atmosphere
-        //   "horizon-blend": 0.08, // Atmosphere thickness (default 0.2 at low zooms)
-        //   "space-color": "rgb(19, 12, 21)", // Background color
-        //   "star-intensity": 0.45, // Background star brightness (default 0.35 at low zoooms )
-        // }}
         // initialViewState={
         //   {
         //     // zoom: 2.77, // fit the globe vertically in view (without any padding/margin)
