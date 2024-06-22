@@ -7,26 +7,35 @@ export default function LoadingFallback() {
     () => {
       return () => {
         const root = document.getElementById("root")! as HTMLDivElement;
-        root.style.opacity = "0";
+        const reloaded = root.style.transitionProperty === "opacity";
 
+        root.style.opacity = "0";
+        root.style.transitionProperty = "";
+
+        function setVisible() {
+          root.style.transitionProperty = "opacity";
+          root.style.transitionDuration = `${VIEW.MAP_LOAD_ANIMATION_DURATION}ms`;
+          root.style.opacity = "1";
+        }
+
+        if (reloaded) {
+          setVisible();
+          return;
+        }
+
+        const duration = 500;
+        setTimeout(setVisible, duration);
+
+        // remove loading code
         setTimeout(
           () => {
-            root.style.transitionProperty = "opacity";
-            root.style.transitionDuration = `${VIEW.MAP_LOAD_ANIMATION_DURATION}ms`;
-            root.style.opacity = "1";
+            const loader = document.getElementById("load");
+            if (loader) loader.parentElement!.remove();
 
-            setTimeout(
-              () => {
-                const loader = document.getElementById("load");
-                if (loader) loader.parentElement!.remove();
-
-                const style = document.getElementById("load-style");
-                if (style) document.head.removeChild(style);
-              }, //
-              VIEW.MAP_LOAD_ANIMATION_DURATION,
-            );
+            const style = document.getElementById("load-style");
+            if (style) document.head.removeChild(style);
           }, //
-          500,
+          VIEW.MAP_LOAD_ANIMATION_DURATION + duration,
         );
       };
     }, //
@@ -34,5 +43,4 @@ export default function LoadingFallback() {
   );
 
   return <></>;
-  // return <div style={loadingStyle}>Loading...</div>;
 }
