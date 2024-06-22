@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect } from "react";
 
 import { LineMenuPopupListItem } from "components/LineMenuPopupListItem";
 import { MAP_VIEWS } from "enums";
@@ -13,39 +13,49 @@ export function LineMenuPopupList({
   setOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const { setTutorial } = useTutorialState();
-  const { setView, view } = useViewState();
+  const { view, setView } = useViewState();
+
+  function handleNavClick() {
+    setOpen(false);
+  }
 
   function toggleView() {
     if (view === MAP_VIEWS.EVENT) {
-      setTimeout(
-        () => setView(MAP_VIEWS.PLAYGROUND),
-        VIEW.LINE_MENU_ANIMATION_DURATION,
-      );
-    } else {
-      setTimeout(() => setView(MAP_VIEWS.EVENT), VIEW.LINE_MENU_ANIMATION_DURATION);
+      setTimeout(setView, VIEW.LINE_MENU_ANIMATION_DURATION, MAP_VIEWS.PLAYGROUND);
+    } //
+    else {
+      setTimeout(setView, VIEW.LINE_MENU_ANIMATION_DURATION, MAP_VIEWS.EVENT);
     }
   }
 
-  const handleTutorialClick = (ev: MouseEvent | React.BaseSyntheticEvent) => {
+  function handleTutorialClick(ev: MouseEvent | React.BaseSyntheticEvent) {
     setOpen(false);
     setTutorial(true);
     ev.stopPropagation();
-  };
+  }
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKeypress = () => setOpen(false);
-    document.addEventListener("keypress", handleKeypress);
-    return () => {
-      document.removeEventListener("keypress", handleKeypress);
-    };
-  }, [open]);
+  useEffect(
+    () => {
+      if (!open) return;
+
+      function handleKeypress() {
+        setOpen(false);
+      }
+
+      document.addEventListener("keypress", handleKeypress);
+
+      return () => {
+        document.removeEventListener("keypress", handleKeypress);
+      };
+    }, //
+    [open],
+  );
 
   return (
     <nav
       className={`absolute bottom-14 -left-2 p-2 border rounded-md shadow-lg shadow-main-purple/80 bg-gray-800 transition-opacity ${open ? "opacity-90" : "opacity-0 pointer-events-none"}`}
       style={{ transitionDuration: `${VIEW.LINE_MENU_ANIMATION_DURATION}ms` }}
-      onClick={() => setOpen(false)}
+      onClick={handleNavClick}
     >
       <ul>
         <LineMenuPopupListItem
