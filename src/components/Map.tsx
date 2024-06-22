@@ -91,7 +91,7 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
   );
 
   return (
-    <div className="fixed inset-0 h-screen w-screen">
+    <div className="fixed inset-0 h-dvh w-dvw">
       <Map
         reuseMaps
         ref={mapCallback}

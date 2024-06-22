@@ -8,8 +8,8 @@
   }
 
   body {
-    min-width: 100vw;
-    min-height: 100vh;
+    min-width: 100dvw;
+    min-height: 100dvh;
 
     opacity: 1;
     background: none;
