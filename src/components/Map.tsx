@@ -110,36 +110,34 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
         //   }
         // }
       >
-        <>
-          {interestPoints.map((point) => (
-            <InterestPointMarker
-              key={point.id}
-              point={point}
+        {interestPoints.map((point) => (
+          <InterestPointMarker
+            key={point.id}
+            point={point}
+          />
+        ))}
+
+        {revealedFroglins.map((froglin) =>
+          isNaN(froglin.coordinates.longitude) ? null : (
+            <FroglinMarker
+              key={froglin.id}
+              froglin={froglin}
             />
-          ))}
+          ),
+        )}
 
-          {revealedFroglins.map((froglin) =>
-            isNaN(froglin.coordinates.longitude) ? null : (
-              <FroglinMarker
-                key={froglin.id}
-                froglin={froglin}
-              />
-            ),
-          )}
+        <GameEventView visible={view === MAP_VIEWS.EVENT} />
 
-          <GameEventView visible={view === MAP_VIEWS.EVENT} />
+        {!mapRef.current || location.disabled ? null : (
+          <>
+            <RevealingCircleStateProvider>
+              <CanvasOverlay />
+              <PlayerMarker view={view} />
+            </RevealingCircleStateProvider>
 
-          {!mapRef.current || location.disabled ? null : (
-            <>
-              <RevealingCircleStateProvider>
-                <CanvasOverlay />
-                <PlayerMarker view={view} />
-              </RevealingCircleStateProvider>
-
-              <LocationRestoreButton map={mapRef.current} />
-            </>
-          )}
-        </>
+            <LocationRestoreButton map={mapRef.current} />
+          </>
+        )}
       </Map>
     </div>
   );
