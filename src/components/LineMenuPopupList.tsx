@@ -13,23 +13,16 @@ export function LineMenuPopupList({
   setOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const { setTutorial } = useTutorialState();
-  const { setView } = useViewState();
-
-  const [currentView, setCurrentView] = useState(MAP_VIEWS.PLAYGROUND);
+  const { setView, view } = useViewState();
 
   function toggleView() {
-    if (currentView === MAP_VIEWS.EVENT) {
-      setView(MAP_VIEWS.PLAYGROUND);
+    if (view === MAP_VIEWS.EVENT) {
       setTimeout(
-        () => setCurrentView(MAP_VIEWS.PLAYGROUND),
+        () => setView(MAP_VIEWS.PLAYGROUND),
         VIEW.LINE_MENU_ANIMATION_DURATION,
       );
     } else {
-      setView(MAP_VIEWS.EVENT);
-      setTimeout(
-        () => setCurrentView(MAP_VIEWS.EVENT),
-        VIEW.LINE_MENU_ANIMATION_DURATION,
-      );
+      setTimeout(() => setView(MAP_VIEWS.EVENT), VIEW.LINE_MENU_ANIMATION_DURATION);
     }
   }
 
@@ -56,7 +49,7 @@ export function LineMenuPopupList({
     >
       <ul>
         <LineMenuPopupListItem
-          text={currentView === MAP_VIEWS.EVENT ? "🗺️" : "🌇"}
+          text={view === MAP_VIEWS.EVENT ? "🗺️" : "🌇"}
           onClick={toggleView}
         />
         <LineMenuPopupListItem
