@@ -13,23 +13,26 @@ export default function App() {
   const { view, setView } = useViewState();
 
   return (
-    <LocationProvider>
-      <GameEventStateProvider>
-        <Map view={view} />
+    <>
+      <LocationProvider>
+        <GameEventStateProvider>
+          <Map view={view} />
 
-        <InfoBarsContainer
-          view={view}
-          visible={!tutorial}
-        />
-        <Tutorial
-          tutorial={tutorial}
-          setTutorial={setTutorial}
-        />
-        <LineMenu
-          setTutorial={setTutorial}
-          setView={setView}
-        />
-      </GameEventStateProvider>
-    </LocationProvider>
+          <InfoBarsContainer
+            view={view}
+            visible={!tutorial}
+          />
+          <Tutorial
+            tutorial={tutorial}
+            setTutorial={setTutorial}
+          />
+          <LineMenu
+            setTutorial={setTutorial}
+            view={view}
+            setView={setView}
+          />
+        </GameEventStateProvider>
+      </LocationProvider>
+    </>
   );
 }

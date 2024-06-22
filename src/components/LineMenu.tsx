@@ -6,10 +6,11 @@ import { MAP_VIEWS } from "enums";
 
 type Props = {
   setTutorial: Dispatch<SetStateAction<boolean>>;
+  view: MAP_VIEWS;
   setView: Dispatch<SetStateAction<MAP_VIEWS>>;
 };
 
-export default function LineMenu({ setTutorial, setView }: Props) {
+export default function LineMenu({ setTutorial, view, setView }: Props) {
   const divRef = useRef(null);
 
   const [open, setOpen] = useState(false);
@@ -27,6 +28,7 @@ export default function LineMenu({ setTutorial, setView }: Props) {
 
       <LineMenuPopupList
         open={open}
+        view={view}
         setOpen={setOpen}
         setTutorial={setTutorial}
         setView={setView}

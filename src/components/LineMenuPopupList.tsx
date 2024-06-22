@@ -8,25 +8,27 @@ type Props = {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
   setTutorial: Dispatch<SetStateAction<boolean>>;
+  view: MAP_VIEWS;
   setView: Dispatch<SetStateAction<MAP_VIEWS>>;
 };
 
-export function LineMenuPopupList({ open, setOpen, setTutorial, setView }: Props) {
-  const navRef = useRef<HTMLDivElement>(null);
-
-  const [ViewButton, setViewButton] = useState(() => EventViewButton);
-
+export function LineMenuPopupList({
+  open,
+  setOpen,
+  setTutorial,
+  view,
+  setView,
+}: Props) {
   function handleNavClick() {
     setOpen(false);
   }
 
   function toggleView() {
-    if (view === MAP_VIEWS.EVENT) {
-      setTimeout(setView, VIEW.LINE_MENU_ANIMATION_DURATION, MAP_VIEWS.PLAYGROUND);
-    } //
-    else {
-      setTimeout(setView, VIEW.LINE_MENU_ANIMATION_DURATION, MAP_VIEWS.EVENT);
-    }
+    setTimeout(
+      setView,
+      VIEW.LINE_MENU_ANIMATION_DURATION,
+      view === MAP_VIEWS.EVENT ? MAP_VIEWS.PLAYGROUND : MAP_VIEWS.EVENT,
+    );
   }
 
   function handleTutorialClick(ev: MouseEvent | React.BaseSyntheticEvent) {
