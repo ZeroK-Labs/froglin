@@ -57,41 +57,38 @@ function enableMapActionsEvent(map: mapboxgl.Map, view: MAP_VIEWS) {
   if (mobileClient) map.doubleClickZoom.enable();
 }
 
+// work-around to counteract the sky being black after loading
+function setMapFog(map: mapboxgl.Map) {
+  map.once("styledata", () => {
+    map.setFog({
+      // range: [1, 20],
+      color: "rgba(16, 6, 16, 0.9)", // Lower atmosphere
+      "high-color": "rgb(0, 12, 14)", // Upper atmosphere
+      "horizon-blend": 0.08, // Atmosphere thickness (default 0.2 at low zooms)
+      "space-color": "rgb(19, 12, 21)", // Background color
+      "star-intensity": 0.45, // Background star brightness (default 0.35 at low zoooms )
+    });
+  });
+}
+
 export default function MapScreen({ view }: { view: MAP_VIEWS }) {
   const idleCallbackRef = useRef<() => void>(() => {});
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
   const durationRef = useRef(VIEW.FLY_ANIMATION_DURATION);
-
   const mapRef = useRef<mapboxgl.Map>();
 
   const location = useLocation();
   const { getEventBounds, interestPoints, revealedFroglins } = useGameEventState();
 
   function mapCallback(node: MapRef) {
-    if (!node || location.disabled) return;
-    if (viewLevelRef.current === view) return;
+    if (!node) return;
 
     if (!mapRef.current) {
       mapRef.current = node.getMap();
-
-      // work-around to counteract the sky being black after loading
-      mapRef.current.once("styledata", () => {
-        mapRef.current!.setFog({
-          // range: [1, 20],
-          color: "rgba(16, 6, 16, 0.9)", // Lower atmosphere
-          "high-color": "rgb(0, 12, 14)", // Upper atmosphere
-          "horizon-blend": 0.08, // Atmosphere thickness (default 0.2 at low zooms)
-          "space-color": "rgb(19, 12, 21)", // Background color
-          "star-intensity": 0.45, // Background star brightness (default 0.35 at low zoooms )
-        });
-
-        mapRef.current!.once("idle", () => {
-          mapCallback(node);
-        });
-      });
-
-      return;
+      setMapFog(mapRef.current);
     }
+
+    if (viewLevelRef.current === view || location.disabled) return;
 
     viewLevelRef.current = view;
     disableMapActions(mapRef.current);
@@ -135,7 +132,7 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
     () => {
       console.log("map - location change", location);
 
-      if (!mapRef.current || mapRef.current.isMoving() || location.disabled) return;
+      if (!mapRef.current || mapRef.current.isEasing() || location.disabled) return;
 
       mapRef.current.flyTo({
         center: [location.coordinates.longitude, location.coordinates.latitude],
@@ -146,7 +143,7 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
   );
 
   return (
-    <div className="fixed inset-0 h-full w-full">
+    <div className="fixed inset-0 h-screen w-screen">
       <Map
         reuseMaps
         ref={mapCallback}
@@ -156,6 +153,14 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
         // @ts-expect-error - make all animations essential
         respectPrefersReducedMotion={false}
         projection={{ name: "globe" }}
+        // fog={{
+        //   // range: [1, 20],
+        //   color: "rgba(16, 6, 16, 0.9)", // Lower atmosphere
+        //   "high-color": "rgb(0, 12, 14)", // Upper atmosphere
+        //   "horizon-blend": 0.08, // Atmosphere thickness (default 0.2 at low zooms)
+        //   "space-color": "rgb(19, 12, 21)", // Background color
+        //   "star-intensity": 0.45, // Background star brightness (default 0.35 at low zoooms )
+        // }}
         // initialViewState={
         //   {
         //     // zoom: 2.77, // fit the globe vertically in view (without any padding/margin)
