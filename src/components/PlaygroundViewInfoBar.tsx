@@ -3,19 +3,18 @@ import { useEffect, useRef, useState } from "react";
 import { CountDownTimer, CapturedFroglinList } from "components";
 import { BatteryIcon, StopwatchIcon, MapPinIcon } from "assets/svg";
 import { TimeoutId } from "types";
-import { useGameEventState } from "stores";
+import { useGameEventState, useLocation } from "stores";
 
-export default function PlaygroundViewInfoBar({
-  distance = 0,
-  visible,
-}: {
-  distance: number;
+type Props = {
   visible: boolean;
-}) {
+};
+
+export default function PlaygroundViewInfoBar({ visible }: Props) {
   const epochTickerRef = useRef<TimeoutId>();
   const [secondsLeft, setSecondsLeft] = useState(0);
 
   const { epochCount, epochDuration, epochStartTime } = useGameEventState();
+  const { metersTravelled } = useLocation();
 
   useEffect(
     () => {
@@ -62,7 +61,7 @@ export default function PlaygroundViewInfoBar({
           <span className="pl-1 font-semibold">{CountDownTimer(secondsLeft)}</span>
         </div>
         <div className="flex items-center space-x-1">
-          <span className="font-semibold">{Math.ceil(distance)} m</span>
+          <span className="font-semibold">{Math.ceil(metersTravelled)} m</span>
           <MapPinIcon className="h-6 w-6" />
         </div>
       </div>

@@ -2,7 +2,11 @@
 import { CountDownTimer } from "components";
 import { useGameEventState } from "stores";
 
-export default function EventViewInfoBar({ visible }: { visible: boolean }) {
+type Props = {
+  visible: boolean;
+};
+
+export default function EventViewInfoBar({ visible }: Props) {
   const { epochCount, epochDuration, capturedFroglins, interestPoints } =
     useGameEventState();
 
