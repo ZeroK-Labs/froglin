@@ -42,7 +42,7 @@ export default function LocationRestoreButton({ map }: { map: mapboxgl.Map }) {
         map.off("move", checkBounds);
       };
     }, //
-    [],
+    [coordinates],
   );
 
   return contained ? null : (
