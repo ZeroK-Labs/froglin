@@ -73,6 +73,7 @@ export default (_, argv) => {
           MapboxAccessToken: JSON.stringify(process.env.MAPBOX_ACCESS_TOKEN),
         },
       }),
+      new MiniCssExtractPlugin(),
       production &&
         new CompressionPlugin({
           filename: "[path][base].gz[query]",
@@ -81,7 +82,6 @@ export default (_, argv) => {
           threshold: 0,
           minRatio: 0.8,
         }),
-      production && new MiniCssExtractPlugin(),
     ],
     //
     // https://webpack.js.org/configuration/module
@@ -102,18 +102,12 @@ export default (_, argv) => {
         },
         {
           test: /\.css$/i,
-          use: [
-            {
-              loader: "postcss-loader",
-              options: {
-                postcssOptions: {
-                  config: "postcss.config.js",
-                },
-              },
-            },
-          ],
+          use: [MiniCssExtractPlugin.loader, "css-loader"],
         },
         {
+          //
+          // https://webpack.js.org/guides/asset-modules/
+          //
           test: /\.(png|jpe?g|gif|svg|webp)$/i,
           use: [
             {
@@ -128,13 +122,6 @@ export default (_, argv) => {
           ],
         },
       ],
-    },
-    //
-    // https://webpack.js.org/configuration/experiments
-    //
-    experiments: {
-      // https://github.com/webpack/webpack/issues/14893
-      css: true,
     },
     //
     // https://webpack.js.org/configuration/performance
@@ -215,7 +202,7 @@ export default (_, argv) => {
       allowedHosts: "all",
       historyApiFallback: true,
       hot: development,
-      liveReload: !development,
+      liveReload: production,
       client: {
         logging: development ? "verbose" : "none",
         reconnect: true,
