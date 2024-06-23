@@ -5,13 +5,13 @@ import { VIEW } from "settings";
 export default function LoadingFallback() {
   useEffect(
     () => {
+      const root = document.getElementById("root")! as HTMLDivElement;
+      const reloaded = root.style.transitionProperty === "opacity";
+
+      root.style.opacity = "0";
+      root.style.transitionProperty = "";
+
       return () => {
-        const root = document.getElementById("root")! as HTMLDivElement;
-        const reloaded = root.style.transitionProperty === "opacity";
-
-        root.style.opacity = "0";
-        root.style.transitionProperty = "";
-
         function setVisible() {
           root.style.transitionProperty = "opacity";
           root.style.transitionDuration = `${VIEW.MAP_LOAD_ANIMATION_DURATION}ms`;
