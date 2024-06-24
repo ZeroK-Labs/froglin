@@ -10,6 +10,10 @@ export default {
         "main-purple": "rgba(88, 28, 135, 0.5)",
         "main-purple-hover": "rgba(102, 34, 155, 0.8)",
       },
+      grayscale: {
+        50: "50%",
+        80: "80%",
+      },
       keyframes: {
         "fade-in-out": {
           "0%, 100%": { opacity: 0 },

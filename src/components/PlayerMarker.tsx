@@ -26,7 +26,7 @@ export default function PlayerMarker({ view }: Props) {
   const [duplicateTrapIndex, setDuplicateTrapIndex] = useState<number | null>(null);
   const [open, setOpen] = useState<boolean>(false);
 
-  const { coordinates } = useLocation();
+  const { coordinates, lost } = useLocation();
   const { setVisible, setSize } = useRevealingCircleState();
   const {
     interestPoints,
@@ -204,8 +204,6 @@ export default function PlayerMarker({ view }: Props) {
     [],
   );
 
-  if (!location) return null;
-
   return (
     <>
       <Marker
@@ -232,7 +230,10 @@ export default function PlayerMarker({ view }: Props) {
             >
               Jules Verne
             </div>
-            <PlayerMarkerImage size="60px" />
+            <PlayerMarkerImage
+              size="60px"
+              grayscale={lost}
+            />
           </label>
 
           <div className={`${cssMenuButton} menu-disabled`}>
