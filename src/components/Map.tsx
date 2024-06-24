@@ -82,10 +82,15 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
 
       if (location.disabled || mapRef.current!.isBusy()) return;
 
-      mapRef.current!.flyTo({
-        center: [location.coordinates.longitude, location.coordinates.latitude],
-        duration: 1_000,
-      });
+      setTimeout(
+        () => {
+          mapRef.current!.flyTo({
+            center: [location.coordinates.longitude, location.coordinates.latitude],
+            duration: VIEW.LOCATION_FOLLOW_ANIMATION_DURATION,
+          });
+        }, //
+        VIEW.LOCATION_FOLLOW_ANIMATION_DELAY,
+      );
     }, //
     [location.coordinates.longitude, location.coordinates.latitude],
   );

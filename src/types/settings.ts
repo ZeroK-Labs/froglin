@@ -33,6 +33,14 @@ export type ViewSettings = {
    * Tutorial fade transition animation duration (miliseconds)
    */
   readonly TUTORIAL_ANIMATION_DURATION: number;
+  /**
+   * GPS location change follow-up fly-to animation duration (miliseconds)
+   */
+  readonly LOCATION_FOLLOW_ANIMATION_DURATION: number;
+  /**
+   * GPS location change follow-up fly-to animation delay (miliseconds)
+   */
+  readonly LOCATION_FOLLOW_ANIMATION_DELAY: number;
 };
 
 /**

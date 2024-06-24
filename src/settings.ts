@@ -23,6 +23,8 @@ export const VIEW: ViewSettings = {
   VIEW_ANIMATION_DURATION: 3_000,
   TUTORIAL_ANIMATION_DURATION: 1_000,
   LINE_MENU_ANIMATION_DURATION: 300,
+  LOCATION_FOLLOW_ANIMATION_DURATION: 1_000,
+  LOCATION_FOLLOW_ANIMATION_DELAY: 1_000,
 } as const;
 
 const CLOSE_RANGE: PointGenerationRange = {
@@ -42,7 +44,7 @@ const FAR_RANGE: PointGenerationRange = {
 
 export const EVENT: EventSettings = {
   EPOCH_COUNT: 21,
-  EPOCH_DURATION: 30_000,
+  EPOCH_DURATION: 5_000,
   BOUNDS_SIDE_LENGTH: FAR_RANGE.TO * 2,
   MARKER_COUNT: 100,
   CLOSE_RANGE,
@@ -73,11 +75,11 @@ export const FROGLIN: FroglinSettings = {
 export const LOCATION: LocationSettings = {
   DEVICE: {
     GPS_OPTIONS: {
-      enableHighAccuracy: false,
+      enableHighAccuracy: true,
       maximumAge: 0,
-      timeout: 1_000,
+      timeout: 3_000,
     },
-    SESSION_DURATION: 30_000,
+    SESSION_DURATION: 3_000,
   },
 
   KEYBOARD: {
