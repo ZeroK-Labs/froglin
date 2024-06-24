@@ -1,5 +1,19 @@
+import mapboxgl from "mapbox-gl";
+
 import { VIEW } from "settings";
 import { mobileClient } from "./window";
+
+declare module "mapbox-gl" {
+  interface Map {
+    isBusy: () => boolean;
+  }
+}
+
+function isBusy(this: mapboxgl.Map) {
+  return this.isEasing() || this.isZooming() || this.isMoving() || this.isRotating();
+}
+
+mapboxgl.Map.prototype.isBusy = isBusy;
 
 export function disableMapActions(map: mapboxgl.Map) {
   map.setMinPitch(0);

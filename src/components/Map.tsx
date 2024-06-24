@@ -80,9 +80,9 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
     () => {
       console.log("map - location change", location);
 
-      if (!mapRef.current || mapRef.current.isEasing() || location.disabled) return;
+      if (location.disabled || mapRef.current!.isBusy()) return;
 
-      mapRef.current.flyTo({
+      mapRef.current!.flyTo({
         center: [location.coordinates.longitude, location.coordinates.latitude],
         duration: 1_000,
       });

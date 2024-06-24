@@ -11,6 +11,8 @@ export default function LocationRestoreButton({ map }: { map: mapboxgl.Map }) {
   const { coordinates } = useLocation();
 
   function handleClick() {
+    if (map.isBusy()) return;
+
     setContained(true);
     disableMapActions(map);
 
