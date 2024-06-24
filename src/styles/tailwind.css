@@ -57,6 +57,17 @@
   }
 }
 
+#gps {
+  width: 70dvw;
+  font-size: 16pt;
+  position: fixed;
+  left: 4rem;
+  bottom: 1rem;
+  display: flex;
+  justify-content: center;
+  z-index: 99999;
+}
+
 body::-webkit-scrollbar {
   display: none;
 }

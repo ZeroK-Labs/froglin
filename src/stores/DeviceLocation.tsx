@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { LOCATION } from "settings";
-import { LocationInfo } from "types";
+import { LocationInfo, TimeoutId } from "types";
 import { StoreFactory } from "stores";
 import { getDistance } from "utils/map";
 import { nullMapCoordinates, nullifyMapCoordinates } from "classes/MapCoordinates";
@@ -13,88 +13,84 @@ function createState(): LocationInfo {
   const [metersTravelled, setMetersTravelled] = useState(0);
   const [disabled, setDisabled] = useState(true);
   const [lost, setLost] = useState(false);
-  const sessionTimerId = useRef<ReturnType<typeof setTimeout>>();
-  const focusLostTime = useRef(0);
-  const glitchCountRef = useRef(0);
 
   useEffect(
     () => {
+      const divGPS = document.getElementById("gps")!;
+      const coordinateAcc = { longitude: 0, latitude: 0 };
+      const samplesTotal = 1;
+
       let coordinates = nullMapCoordinates();
+      let sampleCount = 0;
+      let lostCount = 0;
 
       function markDisabled() {
+        sampleCount = 0;
         nullifyMapCoordinates(coordinates);
         setCoordinates(nullMapCoordinates());
         setDisabled(true);
       }
 
-      function handleKeydown(ev: KeyboardEvent) {
-        if (ev.key === "z") setDisabled((d) => !d);
-      }
-
-      function handleLostFocus() {
-        if (
-          document.visibilityState === "visible" &&
-          Date.now() - focusLostTime.current < LOCATION.DEVICE.SESSION_DURATION
-        ) {
-          clearTimeout(sessionTimerId.current);
-        } //
-        else {
-          focusLostTime.current = Date.now();
-          sessionTimerId.current = setTimeout(
-            markDisabled,
-            LOCATION.DEVICE.SESSION_DURATION,
-          );
-        }
-      }
-
       function handleUpdated(position: GeolocationPosition) {
-        const coords = {
-          longitude: position.coords.longitude,
-          latitude: position.coords.latitude,
+        divGPS.innerText = "";
+        setTimeout(
+          () => {
+            divGPS.innerText = `${position.coords.longitude} ${position.coords.latitude} ${position.coords.accuracy.toFixed(2)}`;
+          }, //
+          250,
+        );
+
+        coordinateAcc.longitude += position.coords.longitude;
+        coordinateAcc.latitude += position.coords.latitude;
+        sampleCount += 1;
+
+        if (sampleCount !== samplesTotal) return;
+
+        const newCoordinates = {
+          longitude: coordinateAcc.longitude / sampleCount,
+          latitude: coordinateAcc.latitude / sampleCount,
         };
-        // console.log("location", coords.longitude, coords.latitude);
-        if (isNaN(coordinates.longitude)) setDisabled(false);
-        else {
-          let travelDistance = 0;
+        coordinateAcc.longitude = coordinateAcc.latitude = 0;
+        sampleCount = 0;
 
-          if (!lost) {
-            travelDistance = getDistance(
-              coordinates.longitude,
-              coordinates.longitude,
-              coordinates.latitude,
-              coordinates.latitude,
-            );
-            // console.log(travelDistance);
-            if (travelDistance > 50) {
-              glitchCountRef.current += 1;
-              console.log("location glitch");
+        if (!isNaN(coordinates.longitude)) {
+          const travelDistance = getDistance(
+            coordinates.longitude,
+            newCoordinates.longitude,
+            coordinates.latitude,
+            newCoordinates.latitude,
+          );
 
-              if (glitchCountRef.current < 4) return;
-            } //
-            else if (travelDistance < 3) {
-              // console.log("distance too small");
-              return;
-            }
-          }
-
-          glitchCountRef.current = 0;
-          coordinates.longitude = (coordinates.longitude + coords.longitude) / 2;
-          coordinates.latitude = (coordinates.latitude + coords.latitude) / 2;
-
-          setMetersTravelled((prevDistance) => prevDistance + travelDistance / 2);
+          setMetersTravelled((d) => d + travelDistance);
         }
-        coordinates = coords;
-        setCoordinates(coordinates);
+
+        coordinates = newCoordinates;
+
+        lostCount = 0;
         setLost(false);
+        setDisabled(false);
+        setCoordinates(coordinates);
       }
 
       function handleError(error: GeolocationPositionError) {
         if (document.visibilityState !== "visible") return;
 
-        console.log("Failed to get location", error.message);
+        console.log("Failed to get location " + error.message);
+
+        divGPS.innerText = "";
+        setTimeout(
+          () => {
+            divGPS.innerText = error.message;
+          }, //
+          250,
+        );
 
         if (error.code === error.PERMISSION_DENIED) markDisabled();
-        else if (error.code === error.TIMEOUT) setLost(true);
+        else if (error.code === error.TIMEOUT) {
+          lostCount += 1;
+          if (lostCount === 3) setLost(true);
+          else if (lostCount === 5) markDisabled();
+        }
       }
 
       function pollPosition() {
@@ -103,6 +99,25 @@ function createState(): LocationInfo {
           handleError,
           LOCATION.DEVICE.GPS_OPTIONS,
         );
+      }
+
+      let sessionTimerId: TimeoutId;
+      let focusLostTime = 0;
+      function handleLostFocus() {
+        if (document.visibilityState === "visible") {
+          if (Date.now() - focusLostTime < LOCATION.DEVICE.SESSION_DURATION) {
+            clearTimeout(sessionTimerId);
+          }
+        }
+        //
+        else {
+          focusLostTime = Date.now();
+          sessionTimerId = setTimeout(markDisabled, LOCATION.DEVICE.SESSION_DURATION);
+        }
+      }
+
+      function handleKeydown(ev: KeyboardEvent) {
+        if (ev.key === "z") setDisabled((d) => !d);
       }
 
       pollPosition();
