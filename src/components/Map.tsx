@@ -23,7 +23,7 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
   const mapRef = useRef<mapboxgl.Map>();
   const enableMapActionsRef = useRef<() => void>(() => {});
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
-  const durationRef = useRef(VIEW.FLY_ANIMATION_DURATION);
+  const durationRef = useRef(VIEW.FIRST_FLIGHT_ANIMATION_DURATION);
 
   const location = useLocation();
   const { getEventBounds, interestPoints, revealedFroglins } = useGameEventState();

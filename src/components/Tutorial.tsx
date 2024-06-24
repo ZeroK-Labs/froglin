@@ -42,7 +42,7 @@ export default function Tutorial({ tutorial, setTutorial }: TutorialState) {
           width: "calc(100% - 1rem)",
           opacity: tutorial ? 1 : 0,
           pointerEvents: tutorial ? "auto" : "none",
-          transitionDuration: `${VIEW.TUTORIAL_ANIMATION_DURATION}ms`,
+          transitionDuration: `${VIEW.TUTORIAL_FADE_ANIMATION_DURATION}ms`,
         }}
       >
         <p className="absolute left-2 top-2 text-xl drop-shadow-md shadow-gray-400">

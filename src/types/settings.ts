@@ -14,25 +14,17 @@ export type ViewSettings = {
    */
   readonly EVENT: CameraSettings;
   /**
-   * Map fade-in after load transition animation duration (miliseconds)
+   * Application fade-in after load transition animation duration (miliseconds)
    */
-  readonly MAP_LOAD_ANIMATION_DURATION: number;
+  readonly LOAD_FADE_ANIMATION_DURATION: number;
   /**
    * Initial (first fly in) transition animation duration (miliseconds)
    */
-  readonly FLY_ANIMATION_DURATION: number;
+  readonly FIRST_FLIGHT_ANIMATION_DURATION: number;
   /**
-   * Transition animation duration when switching view modes
+   * View mode swith transition animation duration (milliseconds)
    */
   readonly VIEW_ANIMATION_DURATION: number;
-  /**
-   * Line menu popup list transition animation duration (miliseconds)
-   */
-  readonly LINE_MENU_ANIMATION_DURATION: number;
-  /**
-   * Tutorial fade transition animation duration (miliseconds)
-   */
-  readonly TUTORIAL_ANIMATION_DURATION: number;
   /**
    * GPS location change follow-up fly-to animation duration (miliseconds)
    */
@@ -41,17 +33,25 @@ export type ViewSettings = {
    * GPS location change follow-up fly-to animation delay (miliseconds)
    */
   readonly LOCATION_FOLLOW_ANIMATION_DELAY: number;
+  /**
+   * Tutorial fade transition animation duration (miliseconds)
+   */
+  readonly TUTORIAL_FADE_ANIMATION_DURATION: number;
+  /**
+   * Line menu popup list fade animation duration (miliseconds)
+   */
+  readonly LINE_MENU_FADE_ANIMATION_DURATION: number;
 };
 
 /**
  * The values of two squares' sides, expressing concentric bounds, used in coordinate generation
- * +--------+ <- TO
- * |        |
- * |  +--+  <-- FROM
- * |  |  |  |
- * |  +--+  |
- * |        |
- * +--------+
+ * +- - - - - -+ <-- TO
+ * |           |
+ * |   + - + <-- FROM
+ * |   |   |   |
+ * |   + - +   |
+ * |           |
+ * +- - - - - -+
  */
 export type PointGenerationRange = {
   readonly FROM: number;

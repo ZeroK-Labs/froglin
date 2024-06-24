@@ -26,7 +26,7 @@ export function LineMenuPopupList({
   function toggleView() {
     setTimeout(
       setView,
-      VIEW.LINE_MENU_ANIMATION_DURATION,
+      VIEW.LINE_MENU_FADE_ANIMATION_DURATION,
       view === MAP_VIEWS.EVENT ? MAP_VIEWS.PLAYGROUND : MAP_VIEWS.EVENT,
     );
   }
@@ -57,7 +57,7 @@ export function LineMenuPopupList({
   return (
     <nav
       className={`absolute bottom-14 -left-2 p-2 border rounded-md shadow-lg shadow-main-purple/80 bg-gray-800 transition-opacity ${open ? "opacity-90" : "opacity-0 pointer-events-none"}`}
-      style={{ transitionDuration: `${VIEW.LINE_MENU_ANIMATION_DURATION}ms` }}
+      style={{ transitionDuration: `${VIEW.LINE_MENU_FADE_ANIMATION_DURATION}ms` }}
       onClick={handleNavClick}
     >
       <ul>
