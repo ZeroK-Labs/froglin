@@ -7,6 +7,7 @@ const InfoBarsContainer = lazy(() => import("components/InfoBarsContainer"));
 const LineMenu = lazy(() => import("components/LineMenu"));
 const Map = lazy(() => import("components/Map"));
 const Tutorial = lazy(() => import("components/Tutorial"));
+const PXEConnectionTracker = lazy(() => import("components/PXEConnectionTracker"));
 
 export default function App() {
   const { tutorial, setTutorial } = useTutorialState();
@@ -33,6 +34,9 @@ export default function App() {
           />
         </GameEventStateProvider>
       </LocationProvider>
+
+      {/* NOTE: when injected into the DOM, the UI thread hangs due to WASM loading */}
+      <PXEConnectionTracker />
     </>
   );
 }

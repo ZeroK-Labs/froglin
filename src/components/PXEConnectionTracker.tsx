@@ -1,46 +1,51 @@
 import { PXE, createPXEClient } from "@aztec/aztec.js";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const TIMEOUT = 5_000;
-const URL = process.env.PXE_URL!;
+
+function createClient() {
+  return createPXEClient(process.env.PXE_URL!);
+}
 
 export default function PXEConnectionTracker() {
-  const [pxeClient] = useState<PXE>(createPXEClient(URL));
+  const checkingRef = useRef(false);
+
+  const [pxeClient] = useState<PXE>(createClient);
   const [connected, setConnected] = useState(false);
 
-  function handleError(e: TypeError) {
-    console.log(e);
+  async function checkConnection() {
+    if (checkingRef.current) return;
 
-    if (e.message === "Failed to fetch") {
-      if (!connected) setTimeout(testConnection, TIMEOUT);
-      setConnected(false);
+    checkingRef.current = true;
+
+    try {
+      const blockNumber = await pxeClient.getBlockNumber();
+
+      console.log(blockNumber);
+      setConnected(true);
+      //
+    } catch (e: unknown) {
+      if ((e as TypeError).message === "Failed to fetch") setConnected(false);
     }
+
+    checkingRef.current = false;
   }
 
-  function handleDiscovery(value: number) {
-    console.log(value);
+  useEffect(
+    () => {
+      checkConnection();
+      const timer = setInterval(checkConnection, TIMEOUT);
 
-    setConnected(true);
-  }
-
-  function testConnection() {
-    pxeClient
-      .getBlockNumber()
-      .then(connected ? testLiveness : handleDiscovery)
-      .catch(handleError);
-  }
-
-  function testLiveness() {
-    setTimeout(testConnection, TIMEOUT);
-  }
-
-  useEffect(() => {
-    connected ? testLiveness() : testConnection();
-  }, [connected]);
+      return () => {
+        clearInterval(timer);
+      };
+    }, //
+    [],
+  );
 
   return (
     <div
-      className={`absolute bottom-4 right-4 ${connected ? "" : "animate-fade-in-out"}`}
+      className={`z-[9998] fixed bottom-2 right-2 text-sm ${connected ? "" : "animate-fade-in-out"}`}
     >
       {connected ? "✅" : "🟥"}
     </div>
