@@ -78,7 +78,7 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
   // map camera follows player
   useEffect(
     () => {
-      console.log("map - location change", location);
+      // console.log("map - location change", location);
 
       if (location.disabled || mapRef.current!.isBusy()) return;
 

@@ -182,7 +182,7 @@ export function Canvas({ id = "3d", center, children, ...props }: CanvasProps) {
   // R3F update on children changed
   useEffect(
     () => {
-      console.log("\x1b[30mR3FMapbox - repaint\x1b[0m");
+      // console.log("\x1b[30mR3FMapbox - repaint\x1b[0m");
 
       root.render(children);
       map.triggerRepaint();

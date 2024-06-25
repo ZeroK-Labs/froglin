@@ -3,8 +3,6 @@ import { useEffect, useState } from "react";
 import { TutorialState } from "types";
 
 export default function useTutorialState(): TutorialState {
-  console.log("useTutorialState");
-
   const [tutorial, setTutorial] = useState(false);
 
   useEffect(

@@ -7,7 +7,7 @@ import { getDistance } from "utils/map";
 import { nullMapCoordinates, nullifyMapCoordinates } from "classes/MapCoordinates";
 
 function createState(): LocationInfo {
-  console.log("DeviceLocation createState");
+  // console.log("DeviceLocation createState");
 
   const [coordinates, setCoordinates] = useState(nullMapCoordinates());
   const [metersTravelled, setMetersTravelled] = useState(0);

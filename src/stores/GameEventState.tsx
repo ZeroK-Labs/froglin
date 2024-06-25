@@ -21,7 +21,7 @@ function getCloseInterestPoints(coords: MapCoordinates, count: number) {
 }
 
 function createState(): GameEventState {
-  console.log("GameEventState createState");
+  // console.log("GameEventState createState");
 
   const epochTickerRef = useRef<TimeoutId>();
   const interestPointsRef = useRef<InterestPoint[]>([]);
@@ -92,11 +92,11 @@ function createState(): GameEventState {
 
     setInterestPoints(newPoints);
 
-    console.log("GameEventState createFroglins", visibleCount);
+    // console.log("GameEventState createFroglins", visibleCount);
   }
 
   function createGameEvent(location: MapCoordinates) {
-    console.log("GameEventState createGameEvent");
+    // console.log("GameEventState createGameEvent");
 
     setLocation({ ...location });
     setBounds(getBoundsForCoordinate(location));
@@ -143,7 +143,7 @@ function createState(): GameEventState {
       if (epochCount === 0 || isNaN(location.longitude)) return;
 
       epochTickerRef.current = setTimeout(() => {
-        console.log("epoch", location);
+        // console.log("epoch", location);
 
         setEpochStartTime((t) => t + epochDuration);
         setEpochCount((e) => e - 1);
@@ -151,7 +151,7 @@ function createState(): GameEventState {
 
         if (epochCount !== 1) return;
 
-        console.log("game ended");
+        // console.log("game ended");
       }, epochDuration);
 
       return () => {
@@ -164,7 +164,7 @@ function createState(): GameEventState {
   // create event
   useEffect(
     () => {
-      console.log("GameEvent - location source", playerLocation.coordinates);
+      // console.log("GameEvent - location source", playerLocation.coordinates);
 
       if (playerLocation.disabled) return;
 

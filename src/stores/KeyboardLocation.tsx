@@ -25,7 +25,7 @@ function handleLostFocus() {
 }
 
 function createState(): LocationInfo {
-  console.log("KeyboardLocation createState");
+  // console.log("KeyboardLocation createState");
 
   const [coordinates, setCoordinates] = useState(nullMapCoordinates());
   const [disabled, setDisabled] = useState(true);
