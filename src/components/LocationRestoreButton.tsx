@@ -49,7 +49,7 @@ export default function LocationRestoreButton({ map }: { map: mapboxgl.Map }) {
 
   return contained ? null : (
     <button
-      className="fixed bottom-6 right-6 z-[9999] rounded-md"
+      className="fixed bottom-5 right-5 rounded-md"
       onClick={handleClick}
     >
       <PlayerMarkerImage size="40px" />
