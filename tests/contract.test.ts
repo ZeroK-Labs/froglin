@@ -1,9 +1,9 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 import { AccountManager } from "@aztec/aztec.js/account";
 import { SingleKeyAccountContract } from "@aztec/accounts/single_key";
+import { NoRetryError } from "@aztec/foundation/retry";
 import {
   AccountWallet,
-  Contract,
   Fr,
   PXE,
   Wallet,
@@ -13,78 +13,202 @@ import {
 
 import { FroglinContract } from "contracts/artifacts/Froglin";
 
+const maxBits = 254; // Noir Field data type is 254 bits wide
+const maxBigInt = (1n << BigInt(maxBits)) - 1n; // 2^254 - 1
+
+function stringToBigInt(str: string): bigint {
+  let hash = 0n;
+  for (let i = 0; i < str.length; i++) {
+    const char = BigInt(str.charCodeAt(i));
+    hash = (hash << 5n) - hash + char;
+    hash &= maxBigInt; // Ensure hash is within 254 bits
+  }
+  return hash;
+}
+
+type SecretKey = number | bigint | boolean | Fr | Buffer;
+
+type AccountWithContract = {
+  secretKey: bigint;
+  contract: FroglinContract;
+  wallet: AccountWallet;
+};
+
+async function createWallet(pxe: PXE, secret: SecretKey): Promise<AccountWallet> {
+  const secretKey = new Fr(secret);
+  const encryptionPrivateKey = deriveMasterIncomingViewingSecretKey(secretKey);
+  const contract = new SingleKeyAccountContract(encryptionPrivateKey);
+  const manager = new AccountManager(pxe, secretKey, contract);
+
+  const wallet = await manager.register();
+  return wallet;
+}
+
 describe("Contract Tests", () => {
   const timeout = 40_000;
 
   let pxe: PXE;
-  let account: AccountManager;
-  let wallet: AccountWallet;
-  let contract: Contract;
-
-  async function call_get_counter(contract: Contract) {
-    const counter = await contract.methods
-      .get_counter(wallet.getCompleteAddress())
-      .simulate();
-
-    return Number(counter);
-  }
+  let alice = {} as AccountWithContract;
+  let bob = {} as AccountWithContract;
+  let charlie = {} as AccountWithContract;
 
   beforeAll(async () => {
     pxe = createPXEClient(process.env.PXE_URL!);
 
-    const secretKey = Fr.random();
-    const encryptionPrivateKey = deriveMasterIncomingViewingSecretKey(secretKey);
-    const accountContract = new SingleKeyAccountContract(encryptionPrivateKey);
-    account = new AccountManager(pxe, secretKey, accountContract);
+    const deploymentAccount = await createWallet(pxe, 123n);
 
-    wallet = await account.register();
-
-    contract = await FroglinContract.deploy(
-      wallet as any as Wallet,
-      wallet.getCompleteAddress().address,
-      wallet.getCompleteAddress().address,
-    )
+    // initialize contract
+    const contract = await FroglinContract.deploy(deploymentAccount as any as Wallet)
       .send({ contractAddressSalt: Fr.random() })
       .deployed();
 
     expect(contract).not.toBeNull();
     expect(contract.address).not.toBeNull();
     expect(contract.address.toString().substring(0, 2)).toBe("0x");
+
+    // initialize test accounts
+
+    alice.secretKey = 0xabcn;
+    alice.wallet = await createWallet(pxe, alice.secretKey);
+    alice.contract = contract.withWallet(alice.wallet);
+
+    bob.secretKey = 0xdefn;
+    bob.wallet = await createWallet(pxe, bob.secretKey);
+    bob.contract = contract.withWallet(bob.wallet);
+
+    charlie.secretKey = 0xabcdefn;
+    charlie.wallet = await createWallet(pxe, charlie.secretKey);
+    charlie.contract = contract.withWallet(charlie.wallet);
   });
 
   it(
-    "get_counter returns 0 after being deployed",
+    "registers player with expected name",
     async () => {
-      const counter_value = await call_get_counter(contract);
-      expect(counter_value).toBe(0);
+      const nameAsField = stringToBigInt("alice");
+
+      await alice.contract.methods.register(nameAsField).send().wait();
+
+      const viewTxReceipt = await alice.contract.methods
+        .view_name(alice.wallet.getCompleteAddress().address)
+        .simulate();
+
+      expect(nameAsField).toBe(viewTxReceipt.value);
     },
     timeout,
   );
 
   it(
-    "get_counter returns expected value after increment",
+    "updates player with expected name",
     async () => {
-      await contract.methods
-        .increment(wallet.getCompleteAddress(), wallet.getCompleteAddress())
-        .send()
-        .wait();
+      const nameAsField = stringToBigInt("alice in wonderland");
 
-      const counter_value = await call_get_counter(contract);
-      expect(counter_value).toBe(1);
+      await alice.contract.methods.update_name(nameAsField).send().wait();
+
+      const viewTxReceipt = await alice.contract.methods
+        .view_name(alice.wallet.getCompleteAddress().address)
+        .simulate();
+
+      expect(nameAsField).toBe(viewTxReceipt.value);
+    },
+    timeout,
+  );
+
+  // it(
+  //   "returns expected name when requested get by owner account",
+  //   async () => {
+  //     const viewTxReceipt = await alice.contract.methods.get_name().send().wait();
+
+  //     console.log(viewTxReceipt);
+  //   },
+  //   timeout,
+  // );
+
+  it(
+    "returns expected name when viewed by owner account",
+    async () => {
+      const nameAsField = stringToBigInt("alice in wonderland");
+
+      const viewTxReceipt = await alice.contract.methods
+        .view_name(alice.wallet.getCompleteAddress().address)
+        .simulate();
+
+      expect(nameAsField).toBe(viewTxReceipt.value);
     },
     timeout,
   );
 
   it(
-    "get_counter returns expected value after decrement",
+    "fails when an un-registered account tries to read its name",
     async () => {
-      await contract.methods
-        .decrement(wallet.getCompleteAddress(), wallet.getCompleteAddress())
-        .send()
-        .wait();
+      try {
+        await bob.contract.methods
+          .view_name(bob.wallet.getCompleteAddress().address)
+          .simulate();
+        //
+      } catch (error) {
+        expect(error).toBeInstanceOf(NoRetryError);
+        expect((error as NoRetryError).message).toContain(
+          "(JSON-RPC PROPAGATED) Failed to solve brillig function 'self._is_some'",
+        );
+      }
+    },
+    timeout,
+  );
 
-      const counter_value = await call_get_counter(contract);
-      expect(counter_value).toBe(0);
+  it(
+    "fails when an un-registered account tries to read the name of another registered account",
+    async () => {
+      try {
+        await bob.contract.methods
+          .view_name(alice.wallet.getCompleteAddress().address)
+          .simulate();
+        //
+      } catch (error) {
+        expect(error).toBeInstanceOf(NoRetryError);
+        expect((error as NoRetryError).message).toContain(
+          "(JSON-RPC PROPAGATED) Failed to solve brillig function 'self._is_some'",
+        );
+      }
+    },
+    timeout,
+  );
+
+  it(
+    "fails when a registered account tries to read the name of another registered account",
+    async () => {
+      try {
+        const nameAsField = stringToBigInt("charlie");
+
+        await charlie.contract.methods.register(nameAsField).send().wait();
+
+        await charlie.contract.methods
+          .view_name(alice.wallet.getCompleteAddress().address)
+          .simulate();
+        //
+      } catch (error) {
+        expect(error).toBeInstanceOf(NoRetryError);
+        expect((error as NoRetryError).message).toContain(
+          "(JSON-RPC PROPAGATED) Failed to solve brillig function 'self._is_some'",
+        );
+      }
+    },
+    timeout,
+  );
+
+  it(
+    "fails when an un-registered account tries to update its name in the registry",
+    async () => {
+      try {
+        const nameAsField = stringToBigInt("bob in wonderland");
+
+        await bob.contract.methods.update_name(nameAsField).send().wait();
+        //
+      } catch (error) {
+        expect(error).toBeInstanceOf(NoRetryError);
+        expect((error as NoRetryError).message).toContain(
+          "(JSON-RPC PROPAGATED) Failed to solve brillig function 'self._is_some'",
+        );
+      }
     },
     timeout,
   );
