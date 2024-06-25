@@ -17,6 +17,7 @@ export default function SignInScreen() {
           Sign In
         </button>
       </div>
+      {/* TODO: move this some place else */}
       <div
         className={`z-[9998] fixed bottom-2 right-2 text-sm ${connected ? "" : "animate-fade-in-out"}`}
       >

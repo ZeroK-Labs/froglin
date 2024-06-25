@@ -19,7 +19,7 @@ export default function App() {
         <PXEClientProvider>
           <GameEventStateProvider>
             <Map view={view} />
-
+            {/* TODO: remove all these into a new component */}
             <InfoBarsContainer
               view={view}
               visible={!tutorial}

@@ -10,7 +10,7 @@ function createClient() {
   return createPXEClient(process.env.PXE_URL!);
 }
 
-function createState() {
+function createState(): { pxeClient: PXE; connected: boolean } {
   const checkingRef = useRef(false);
 
   const [pxeClient] = useState<PXE>(createClient);
@@ -24,7 +24,7 @@ function createState() {
     try {
       const blockNumber = await pxeClient.getBlockNumber();
 
-      console.log(blockNumber);
+      // console.log(blockNumber);
       setConnected(true);
       //
     } catch (e: unknown) {
@@ -52,5 +52,7 @@ function createState() {
   };
 }
 
-export const { Provider: PXEClientProvider, useProvider: usePXEClient } =
-  StoreFactory(createState);
+export const { Provider: PXEClientProvider, useProvider: usePXEClient } = StoreFactory<{
+  pxeClient: PXE;
+  connected: boolean;
+}>(createState);

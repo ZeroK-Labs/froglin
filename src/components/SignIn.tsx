@@ -1,15 +1,77 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
+import { AccountManager } from "@aztec/aztec.js/account";
 import { SingleKeyAccountContract } from "@aztec/accounts/single_key";
+import {
+  AccountWallet,
+  Contract,
+  Fr,
+  PXE,
+  Wallet,
+  createPXEClient,
+  deriveMasterIncomingViewingSecretKey,
+} from "@aztec/aztec.js";
+
+import { usePXEClient } from "stores";
+
+const colors = [
+  "#15c621",
+  "#73c615",
+  "#abc615",
+  "#c6c615",
+  "#c6ab15",
+  "#c69015",
+  "#c66715",
+  "#cb4015",
+  "#c62e15",
+  "#c61515",
+];
 
 function SignIn({ setViewSignIn }: { setViewSignIn: React.Dispatch<boolean> }) {
   const [touchCoordinates, setTouchCoordinates] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [checkPassword, setCheckPassword] = useState<string>("");
+  // TODO: check passwords match
   const [lastRecordTime, setLastRecordTime] = useState(0);
-  const [secret, setSecret] = useState(false);
+  const [accountContract, setAccountContract] = useState<SingleKeyAccountContract>();
+  const [account, setAccount] = useState<AccountManager>();
+  const [wallet, setWallet] = useState<AccountWallet>();
+  // let wallet: AccountWallet;
+
+  const { pxeClient } = usePXEClient();
+  console.log("wallet", wallet);
+  // TODO: after we have wallet obj we hide the sign in form and
+  useEffect(
+    () => {
+      if (touchCoordinates.length < 100) return;
+      if (!pxeClient) return;
+      let accountRes: AccountManager;
+      let walletRes: AccountWallet;
+      const secretKey = Fr.fromString(touchCoordinates);
+      const encryptionPrivateKey = deriveMasterIncomingViewingSecretKey(secretKey);
+
+      const accountContract = new SingleKeyAccountContract(encryptionPrivateKey);
+      setAccountContract(accountContract);
+
+      accountRes = new AccountManager(pxeClient, secretKey, accountContract);
+      if (accountRes) setAccount(accountRes);
+
+      (async function registerAccount() {
+        if (!accountRes) return;
+        walletRes = await accountRes.register();
+
+        if (walletRes) {
+          setWallet(walletRes);
+        }
+      })();
+    }, //
+    [touchCoordinates],
+  );
 
   const handleTouch = (event: React.TouchEvent<HTMLDivElement>) => {
-    event.preventDefault();
-
     const now = Date.now();
+
     if (now - lastRecordTime > 30) {
       // Throttle check: more than 30 ms since last record
       const touches = event.touches;
@@ -29,20 +91,29 @@ function SignIn({ setViewSignIn }: { setViewSignIn: React.Dispatch<boolean> }) {
     }
   };
 
-  const colors = [
-    "#15c621",
-    "#73c615",
-    "#abc615",
-    "#c6c615",
-    "#c6ab15",
-    "#c69015",
-    "#c66715",
-    "#cb4015",
-    "#c62e15",
-    "#c61515",
-  ];
   return (
     <div className="fixed left-2 top-[10vh] right-4 p-2 flex flex-col z-[10000]">
+      <div className="mb-4">
+        <label className="block text-white text-sm font-bold mb-2">Sign In</label>
+        <input
+          type="text"
+          className="block w-full p-2 mb-2 text-gray-700 border rounded text-sm"
+          placeholder="Username"
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <input
+          type="password"
+          className="block w-full p-2 text-gray-700 border rounded text-sm"
+          placeholder="Password"
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <input
+          type="password"
+          className="block w-full p-2 text-gray-700 border rounded text-sm"
+          placeholder="Confirm Password"
+          onChange={(e) => setCheckPassword(e.target.value)}
+        />
+      </div>
       <div
         className="w-56 h-56 bg-blue-500"
         onTouchStart={handleTouch}
