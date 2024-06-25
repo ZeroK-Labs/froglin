@@ -18,3 +18,4 @@ export { default as PlaygroundViewInfoBar } from "./PlaygroundViewInfoBar";
 export { default as TrapMarker } from "./TrapMarker";
 export { default as TrapMarkerList } from "./TrapMarkerList";
 export { default as Tutorial } from "./Tutorial";
+export { default as SignIn } from "./SignIn";

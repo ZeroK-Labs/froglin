@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { SingleKeyAccountContract } from "@aztec/accounts/single_key";
 
-export function SecretKey({ setSecret }: { setSecret: React.Dispatch<boolean> }) {
+function SignIn({ setViewSignIn }: { setViewSignIn: React.Dispatch<boolean> }) {
   const [touchCoordinates, setTouchCoordinates] = useState<string>("");
   const [lastRecordTime, setLastRecordTime] = useState(0);
+  const [secret, setSecret] = useState(false);
 
   const handleTouch = (event: React.TouchEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -73,6 +75,8 @@ export function SecretKey({ setSecret }: { setSecret: React.Dispatch<boolean> })
     </div>
   );
 }
+
+export default SignIn;
 
 export function getHealthBarBackgroundColor(
   percentage: number,
