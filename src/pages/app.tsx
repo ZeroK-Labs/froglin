@@ -4,8 +4,6 @@ import { GameEventStateProvider, LocationProvider, PXEClientProvider } from "sto
 import AppWithoutUser from "components/AppWithoutUser";
 import AppWithUser from "components/AppWithUser";
 
-// const PXEConnectionTracker = lazy(() => import("components/PXEConnectionTracker"));
-
 export default function App() {
   const [user, setUser] = useState(false);
 
@@ -32,9 +30,6 @@ export default function App() {
           </GameEventStateProvider>
         </PXEClientProvider>
       </LocationProvider>
-
-      {/* NOTE: when injected into the DOM, the UI thread hangs due to WASM loading */}
-      {/* <PXEConnectionTracker /> */}
     </>
   );
 }

@@ -11,7 +11,6 @@ export { default as LineMenu } from "./LineMenu";
 export { default as LoadingFallback } from "./LoadingFallback";
 export { default as LocationRestoreButton } from "./LocationRestoreButton";
 export { default as Map } from "./Map";
-export { default as PXEConnectionTracker } from "./PXEConnectionTracker";
 export { default as PlayerMarker } from "./PlayerMarker";
 export { default as PlayerMarkerImage } from "./PlayerMarkerImage";
 export { default as PlaygroundViewInfoBar } from "./PlaygroundViewInfoBar";

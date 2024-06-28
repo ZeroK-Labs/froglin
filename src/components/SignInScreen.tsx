@@ -11,19 +11,7 @@ import {
   deriveMasterIncomingViewingSecretKey,
 } from "@aztec/aztec.js";
 import { usePXEClient } from "stores";
-
-const colors = [
-  "#15c621",
-  "#73c615",
-  "#abc615",
-  "#c6c615",
-  "#c6ab15",
-  "#c69015",
-  "#c66715",
-  "#cb4015",
-  "#c62e15",
-  "#c61515",
-];
+import { stringToBigInt } from "utils/math";
 
 export default function SignInScreen({
   setUser,
@@ -31,33 +19,23 @@ export default function SignInScreen({
   setUser: React.Dispatch<boolean>;
 }) {
   const [viewSignIn, setViewSignIn] = useState(false);
-  const { connected } = usePXEClient();
+  const { connected, pxeClient } = usePXEClient();
 
   const [touchCoordinates, setTouchCoordinates] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [lastRecordTime, setLastRecordTime] = useState(0);
-  const [downloadUrl, setDownloadUrl] = useState("");
   const [accountContract, setAccountContract] = useState<SingleKeyAccountContract>();
   const [account, setAccount] = useState<AccountManager>();
   const [wallet, setWallet] = useState<AccountWallet>();
   const [loading, setLoading] = useState<boolean>(false);
-  const { pxeClient } = usePXEClient();
 
-  function stringToBigInt(str: string): bigint {
-    let hash = 0n;
-    for (let i = 0; i < str.length; i++) {
-      const char = BigInt(str.charCodeAt(i));
-      hash = (hash << 5n) - hash + char;
-      hash &= maxBigInt; // Ensure hash is within 254 bits
-    }
-    return hash;
-  }
-  const maxBits = 64; // Noir Field data type is 254 bits wide
-  const maxBigInt = (1n << BigInt(maxBits)) - 1n; // 2^254 - 1
-  console.log("loading", loading);
   useEffect(
     () => {
       if (touchCoordinates.length < 100) return;
+      if (touchCoordinates.length > 100) {
+        setTouchCoordinates(touchCoordinates.slice(0, 100));
+      }
+      // TODO: uncomment this when we deploy the sandbox
       // if (!pxeClient) return;
       let accountRes: AccountManager;
       let walletRes: AccountWallet;
@@ -70,8 +48,7 @@ export default function SignInScreen({
       setAccountContract(accountContract);
 
       accountRes = new AccountManager(pxeClient, keyFr, accountContract);
-      if (accountRes) setAccount(accountRes);
-      console.log("accountRes", accountRes);
+
       setLoading(true);
       (async function registerAccount() {
         if (!accountRes) return;
@@ -80,28 +57,17 @@ export default function SignInScreen({
         if (walletRes) {
           setWallet(walletRes);
         }
+        setLoading(false);
+        setUser(true);
       })();
-      setLoading(false);
-      setUser(true);
     }, //
     [touchCoordinates],
   );
 
-  // useEffect(() => {
-  //   if (encryptionPrivateKey) {
-  //     const blob = new Blob([encryptionPrivateKey], { type: "text/plain" });
-  //     const url = URL.createObjectURL(blob);
-  //     setDownloadUrl(url);
-
-  //     // Clean up the blob URL after the component unmounts
-  //     return () => URL.revokeObjectURL(url);
-  //   }
-  // }, [encryptionPrivateKey]);
-
   const handleTouch = (event: React.TouchEvent<HTMLDivElement>) => {
     const now = Date.now();
 
-    if (now - lastRecordTime > 30) {
+    if (now - lastRecordTime > 100) {
       // Throttle check: more than 30 ms since last record
       const touches = event.touches;
       if (touches.length > 0 && touchCoordinates.length < 100) {
@@ -113,7 +79,11 @@ export default function SignInScreen({
         ) {
           return;
         }
-        const coords = `${touch.clientX}${touch.clientY}`;
+
+        const xCoordsString = (touch.clientX | 0).toString();
+        const yCoordsString = (touch.clientY | 0).toString();
+        const coords = xCoordsString + yCoordsString;
+
         setTouchCoordinates((prevCoords) => prevCoords + coords);
         setLastRecordTime(now);
       }
@@ -150,7 +120,7 @@ export default function SignInScreen({
             <div
               style={{
                 width: `${touchCoordinates.length}%`,
-                minHeight: 8,
+                minHeight: 18,
                 backgroundColor: getHealthBarBackgroundColor(
                   touchCoordinates.length,
                   colors,
@@ -161,18 +131,7 @@ export default function SignInScreen({
           <div className="text-white w-64 whitespace-normal overflow-y-auto h-32 text-sm">
             {touchCoordinates}
           </div>
-          {/* <div>
-        {downloadUrl && (
-          <a
-            href={downloadUrl}
-            download="PrivateKey.txt"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Download Private Key
-          </a>
-        )}
-      </div> */}
+
           {loading && <div>Loading...</div>}
         </div>
       ) : null}
@@ -194,6 +153,19 @@ export default function SignInScreen({
     </>
   );
 }
+
+const colors = [
+  "#15c621",
+  "#73c615",
+  "#abc615",
+  "#c6c615",
+  "#c6ab15",
+  "#c69015",
+  "#c66715",
+  "#cb4015",
+  "#c62e15",
+  "#c61515",
+];
 
 export function getHealthBarBackgroundColor(
   percentage: number,
