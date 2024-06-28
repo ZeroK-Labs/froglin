@@ -33,12 +33,12 @@ function createState(): LocationInfo {
 
       function handleUpdated(position: GeolocationPosition) {
         divGPS.innerText = "";
-        setTimeout(
-          () => {
-            divGPS.innerText = `${position.coords.longitude} ${position.coords.latitude} ${position.coords.accuracy.toFixed(2)}`;
-          }, //
-          250,
-        );
+        // setTimeout(
+        //   () => {
+        //     divGPS.innerText = `${position.coords.longitude} ${position.coords.latitude} ${position.coords.accuracy.toFixed(2)}`;
+        //   }, //
+        //   250,
+        // );
 
         coordinateAcc.longitude += position.coords.longitude;
         coordinateAcc.latitude += position.coords.latitude;

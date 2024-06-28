@@ -18,7 +18,7 @@ export default function SignInScreen({
 }: {
   setUser: React.Dispatch<boolean>;
 }) {
-  const [viewSignIn, setViewSignIn] = useState(false);
+  const [viewSignIn, setViewSignIn] = useState(true);
   const { connected, pxeClient } = usePXEClient();
 
   const [touchCoordinates, setTouchCoordinates] = useState<string>("");
@@ -92,35 +92,33 @@ export default function SignInScreen({
   return (
     <>
       {viewSignIn ? (
-        <div className="fixed left-2 top-[10vh] right-4 p-2 flex flex-col z-[10000]">
+        <div className="fixed left-2 top-[10vh] border-2 border-red-500 right-4 p-2 flex flex-col items-center z-[10000]">
           <div className="mb-4">
             <label className="block text-white text-sm font-bold mb-2">Sign In</label>
             <input
               type="text"
-              className="block w-full p-2 mb-2 text-gray-700 border rounded text-sm"
+              className="block w-56 p-2 mb-2 text-gray-700 border rounded text-sm"
               placeholder="Username"
               onChange={(e) => setUsername(e.target.value)}
             />
           </div>
+          <label className="block w-56 text-white text-[6px] font-bold mb-2"></label>
           <div
             className="w-56 h-56 bg-blue-500"
             onTouchStart={handleTouch}
             onTouchMove={handleTouch}
-          ></div>
-          <div
-            className="relative w-56 border-b-2 border-transparent border-solid border-gradient-tr-gold-yellow-darkblue overflow-hidden"
-            style={{
-              height: "10",
-            }}
           >
+            Move your finger inside the blue area to generate a random number
+          </div>
+          <div className="relative w-56 border-b-2 border-transparent border-solid border-gradient-tr-gold-yellow-darkblue overflow-hidden">
             <div className="absolute bg-radient-ellipse-bl from-black/50 to-transparent w-full h-full" />
-            <span className="absolute flex w-full h-full items-center justify-center font-philosopher text-sm text-white font-bold">
+            <span className="absolute py-2 flex w-full h-full items-center justify-center font-philosopher text-sm text-white font-bold">
               {Math.floor(touchCoordinates.length)} / {100}
             </span>
             <div
               style={{
                 width: `${touchCoordinates.length}%`,
-                minHeight: 18,
+                minHeight: 20,
                 backgroundColor: getHealthBarBackgroundColor(
                   touchCoordinates.length,
                   colors,
@@ -128,17 +126,14 @@ export default function SignInScreen({
               }}
             />
           </div>
-          <div className="text-white w-64 whitespace-normal overflow-y-auto h-32 text-sm">
-            {touchCoordinates}
-          </div>
 
           {loading && <div>Loading...</div>}
         </div>
       ) : null}
-      <div className="fixed bottom-20 right-12">
+      <div className="fixed bottom-24 left-0 right-0 mx-auto flex justify-center">
         <button
           type="button"
-          className={`rounded-md px-2.5 py-2 text-sm font-semibold shadow-sm bg-indigo-500 text-white`}
+          className={`rounded-md w-28 px-2.5 py-2 text-lg font-semibold shadow-sm bg-indigo-500 text-white`}
           onClick={() => setViewSignIn(!viewSignIn)}
         >
           Sign In
