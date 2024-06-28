@@ -80,7 +80,7 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
     () => {
       // console.log("map - location change", location);
 
-      if (location.disabled || mapRef.current!.isBusy()) return;
+      if (location.disabled || !mapRef.current || mapRef.current!.isBusy()) return;
 
       setTimeout(
         () => {

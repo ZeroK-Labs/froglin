@@ -1,39 +1,34 @@
-import { lazy } from "react";
+import { useEffect, useState } from "react";
 
-import { useTutorialState, useViewState } from "hooks";
 import { GameEventStateProvider, LocationProvider, PXEClientProvider } from "stores";
-import SignInScreen from "components/SignInScreen";
+import AppWithoutUser from "components/AppWithoutUser";
+import AppWithUser from "components/AppWithUser";
 
-const InfoBarsContainer = lazy(() => import("components/InfoBarsContainer"));
-const LineMenu = lazy(() => import("components/LineMenu"));
-const Map = lazy(() => import("components/Map"));
-const Tutorial = lazy(() => import("components/Tutorial"));
 // const PXEConnectionTracker = lazy(() => import("components/PXEConnectionTracker"));
 
 export default function App() {
-  const { tutorial, setTutorial } = useTutorialState();
-  const { view, setView } = useViewState();
+  const [user, setUser] = useState(false);
+
+  useEffect(
+    () => {
+      const loadedUser = localStorage.getItem("user");
+      if (loadedUser) {
+        const userData = JSON.parse(loadedUser);
+        if ((userData.type = "Fq")) {
+          setUser(true);
+        }
+        console.log("User loaded from localStorage:", userData);
+      }
+    }, //
+    [],
+  );
+
   return (
     <>
       <LocationProvider>
         <PXEClientProvider>
           <GameEventStateProvider>
-            <Map view={view} />
-            {/* TODO: remove all these into a new component */}
-            <InfoBarsContainer
-              view={view}
-              visible={!tutorial}
-            />
-            <Tutorial
-              tutorial={tutorial}
-              setTutorial={setTutorial}
-            />
-            <LineMenu
-              setTutorial={setTutorial}
-              view={view}
-              setView={setView}
-            />
-            <SignInScreen />
+            {user ? <AppWithUser /> : <AppWithoutUser setUser={setUser} />}
           </GameEventStateProvider>
         </PXEClientProvider>
       </LocationProvider>
