@@ -2,7 +2,7 @@ import { Map, MapRef } from "react-map-gl";
 import { useEffect, useRef } from "react";
 
 import { MAP_VIEWS } from "enums";
-import { RevealingCircleStateProvider, useGameEventState, useLocation } from "stores";
+import { RevealingCircleStateProvider, useDemoEventState, useLocation } from "stores";
 import { VIEW } from "settings";
 import {
   CanvasOverlay,
@@ -26,7 +26,7 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
   const durationRef = useRef(VIEW.FIRST_FLIGHT_ANIMATION_DURATION);
 
   const location = useLocation();
-  const { getEventBounds, interestPoints, revealedFroglins } = useGameEventState();
+  const { getEventBounds, interestPoints, revealedFroglins } = useDemoEventState();
 
   function mapCallback(node: MapRef) {
     if (!node) return;

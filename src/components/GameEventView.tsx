@@ -1,6 +1,6 @@
 import { Layer, Source } from "react-map-gl";
 
-import { useGameEventState } from "stores";
+import { useDemoEventState } from "stores";
 
 type Props = {
   visible: boolean;
@@ -10,7 +10,7 @@ const DURATION_SHOW = 3_000;
 const DURATION_HIDE = 1_000;
 
 export default function GameEventView(props: Props) {
-  const { bounds } = useGameEventState();
+  const { bounds } = useDemoEventState();
 
   const options = props.visible
     ? {

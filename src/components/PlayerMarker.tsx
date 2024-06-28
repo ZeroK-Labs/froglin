@@ -6,7 +6,7 @@ import { Froglin, InterestPoint, MapCoordinates } from "types";
 import { MAP_VIEWS } from "enums";
 import { PlayerMarkerImage, TrapMarkerList } from "components";
 import { inRange, inTriangle } from "utils/map";
-import { useGameEventState, useRevealingCircleState, useLocation } from "stores";
+import { useDemoEventState, useRevealingCircleState, useLocation } from "stores";
 
 type Props = {
   view: MAP_VIEWS;
@@ -34,7 +34,7 @@ export default function PlayerMarker({ view }: Props) {
     setInterestPoints,
     revealFroglins,
     captureFroglins,
-  } = useGameEventState();
+  } = useDemoEventState();
 
   const cssMenuButton = `${open ? "" : "opacity-0"} menu-item`;
 

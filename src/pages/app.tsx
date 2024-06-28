@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { GameEventStateProvider, LocationProvider, PXEClientProvider } from "stores";
+import { LocationProvider, PXEClientProvider } from "stores";
 import AppWithoutUser from "components/AppWithoutUser";
 import AppWithUser from "components/AppWithUser";
 
@@ -25,9 +25,7 @@ export default function App() {
     <>
       <LocationProvider>
         <PXEClientProvider>
-          <GameEventStateProvider>
-            {user ? <AppWithUser /> : <AppWithoutUser setUser={setUser} />}
-          </GameEventStateProvider>
+          {user ? <AppWithUser /> : <AppWithoutUser setUser={setUser} />}
         </PXEClientProvider>
       </LocationProvider>
     </>

@@ -194,5 +194,5 @@ function createState(): GameEventState {
   };
 }
 
-export const { Provider: GameEventStateProvider, useProvider: useGameEventState } =
+export const { Provider: DemoEventStateProvider, useProvider: useDemoEventState } =
   StoreFactory<GameEventState>(createState);

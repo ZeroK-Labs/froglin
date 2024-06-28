@@ -1,7 +1,7 @@
 import { Dispatch, MutableRefObject, SetStateAction, useEffect, useRef } from "react";
 
 import { CapturedFroglinListItem } from "components";
-import { useGameEventState } from "stores";
+import { useDemoEventState } from "stores";
 
 type Dispacher = Dispatch<SetStateAction<boolean>>;
 
@@ -9,7 +9,7 @@ export default function CapturedFroglinList() {
   const divRef = useRef<HTMLDivElement>(null);
   const itemSetActiveDispatcher = useRef<Dispacher>();
 
-  const { capturedFroglins } = useGameEventState();
+  const { capturedFroglins } = useDemoEventState();
 
   function updateItemSetActiveDispatcher(dispatch: Dispacher) {
     if (dispatch === itemSetActiveDispatcher.current) return;
