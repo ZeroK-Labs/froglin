@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # get environment info
-scripts/.env/get.sh
+source scripts/.env/get.sh
 
 # ubuntu
 if [[ "$OS_NAME" == "ubuntu" ]]; then
@@ -14,7 +14,7 @@ if [[ "$OS_NAME" == "ubuntu" ]]; then
       echo "log out and back in to apply the group changes"
     else
       echo "adding user "$USER" to the "docker" group failed"
-      return 1
+      exit 1
     fi
   fi
 
@@ -23,7 +23,7 @@ if [[ "$OS_NAME" == "ubuntu" ]]; then
 
 # macOS
 elif [[ "$OS_NAME" == "mac" ]]; then
-  if docker info > /dev/null 2>&1; then return 0; fi
+  if docker info > /dev/null 2>&1; then exit 0; fi
 
   printf "Starting Docker"
 
@@ -34,7 +34,7 @@ elif [[ "$OS_NAME" == "mac" ]]; then
       printf "."
       sleep 0.33
     done
-    printfe "\033[3D\033[0J"
+    printf "\033[3D\033[0J"
   done
 
   printf "...done"

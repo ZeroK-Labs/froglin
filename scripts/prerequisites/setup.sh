@@ -7,7 +7,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 fi
 
 # get environment info
-scripts/.env/get.sh
+source scripts/.env/get.sh
 
 # ask for access before proceeding
 sudo -v
@@ -23,7 +23,7 @@ if [ ! -f "$GIT_COMMIT_HOOK_FILE" ]; then
 fi
 
 # clear screen
-echo -e "\033[H\033[2J\033[3J"
+printf "\033[H\033[2J\033[3J"
 
 # install prerequisites
 PREREQUISITES=""
@@ -43,19 +43,19 @@ for pkg in curl nvm node bun docker aztec-sandbox; do
   # install package
   printf "\nInstalling \033[32m$pkg\033[0m...\n\n"
 
-  if ! install_$pkg; then return $?; fi
+  if ! install_$pkg; then exit $?; fi
 
   # verify
   PACKAGE_VERSION=$(get_version_$pkg 2>/dev/null)
   if [ $? -ne 0 ]; then
     echo "$pkg installation failed"
-    return 1
+    exit 1
   fi
 
   # do post installation
   if declare -f post_install_$pkg > /dev/null;
   then
-    if ! post_install_$pkg; then return $?; fi
+    if ! post_install_$pkg; then exit $?; fi
   fi
 
   PREREQUISITES="$PREREQUISITES\n\033[32m$pkg\033[0m@$PACKAGE_VERSION"

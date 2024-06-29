@@ -7,7 +7,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 fi
 
 # get environment info
-scripts/.env/get.sh
+source scripts/.env/get.sh
 
 # ask for access before proceeding
 sudo -v
