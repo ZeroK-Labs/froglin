@@ -17,7 +17,7 @@ get_version_aztec-sandbox() {
 
   # sync toml version with project version when different
   if [[ "$PROJECT_VERSION" != "$TOML_VERSION" ]]; then
-    sed -i "s/aztec-packages-v$TOML_VERSION/aztec-packages-v$PROJECT_VERSION/" src/contracts/Nargo.toml
+    sed -i "aztec-packages-v$TOML_VERSION" "aztec-packages-v$PROJECT_VERSION/" src/contracts/Nargo.toml
   fi
 
   # extract the version number
@@ -31,7 +31,7 @@ get_version_aztec-sandbox() {
 }
 
 install_aztec-sandbox() {
-  if ! grep -q "# aztec" $ENV_VARS_FILE; then
+  if ! grep -q "# aztec" "$ENV_VARS_FILE"; then
 
     local path_root=""
     if [[ "$OS_NAME" == "ubuntu" ]]; then path_root="/home";

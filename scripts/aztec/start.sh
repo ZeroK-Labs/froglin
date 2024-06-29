@@ -1,6 +1,6 @@
 #!/bin/bash
 
-COMMAND="docker compose -f $HOME/.aztec/docker-compose.yml -p sandbox up"
+COMMAND="DEBUG=aztec:* docker compose -f $HOME/.aztec/docker-compose.yml -p sandbox up"
 
 open_new_terminal_and_run_sandbox() {
   local TITLE="aztec-sandbox"
@@ -38,7 +38,7 @@ docker compose -f $HOME/.aztec/docker-compose.yml -p sandbox down > /dev/null 2>
 if [[ "$1" == "newWindow" ]]; then
   open_new_terminal_and_run_sandbox
 else
-  $COMMAND
+  eval $COMMAND
 fi;
 
 # TODO: use this after finding out how to start a specific sandbox version
