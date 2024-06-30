@@ -5,34 +5,55 @@ get_version_docker() {
 }
 
 install_docker() {
-  # linux Ubuntu
-  if [[ "$OS_NAME" == "ubuntu" ]]; then
+  # linux
+  if [[ "$OS_NAME" == "linux" ]]; then
     # uninstall conflicting packages
-    sudo apt-get remove docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc -y
+    maybe_sudo apt-get remove docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc -y
     if [ $? -ne 0 ]; then return $?; fi
+    maybe_sudo apt-get autoclean -y
+    maybe_sudo apt-get autoremove -y
 
-    # add Docker's official GPG key
-    DOCKER_KEYRING_PATH="/etc/apt/keyrings/docker.asc"
-    if [ -f "$DOCKER_KEYRING_PATH" ]; then
-      sudo rm "$DOCKER_KEYRING_PATH"
+    # ensure prerequisites are installed
+    maybe_sudo apt-get update
+    maybe_sudo apt-get install -y \
+    apt-transport-https ca-certificates software-properties-common gnupg
+
+    maybe_sudo mkdir -p /etc/apt/keyrings
+    if [ -f "$DOCKER_KEYRING_PATH" ]; then maybe_sudo rm "$DOCKER_KEYRING_PATH"; fi
+
+    if [[ "$OS_DISTRIBUTION" == "ubuntu" ]]; then
+      # add Docker's official GPG key
+      maybe_sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o $DOCKER_KEYRING_PATH
+      if [ $? -ne 0 ]; then
+        echo "docker keyring download failed"
+        return 1
+      fi
+      maybe_sudo chmod a+r "$DOCKER_KEYRING_PATH"
+
+      # add docker repository to apt-sources
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=$DOCKER_KEYRING_PATH] https://download.docker.com/linux/ubuntu \
+        $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+        tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+    elif [[ "$OS_DISTRIBUTION" == "debian" ]]; then
+      # add Docker's official GPG key
+      maybe_sudo curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o $DOCKER_KEYRING_PATH
+      if [ $? -ne 0 ]; then
+        echo "docker keyring download failed"
+        return 1
+      fi
+
+      # add docker repository to apt-sources
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=$DOCKER_KEYRING_PATH] https://download.docker.com/linux/debian \
+      $(lsb_release -cs) stable" | \
+      tee /etc/apt/sources.list.d/docker.list > /dev/null
     fi
-    sudo apt-get update
-    sudo apt-get install ca-certificates -y
-    sudo install -m 0755 -d /etc/apt/keyrings
-    sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o $DOCKER_KEYRING_PATH
-    if [ $? -ne 0 ]; then
-      echo "docker keyring download failed"
-      return 1
-    fi
-    sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-    # add the docker repository to apt-sources
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=$DOCKER_KEYRING_PATH] https://download.docker.com/linux/ubuntu \
-      $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-    sudo apt-get update
+    # install docker
+    maybe_sudo apt-get update
+    maybe_sudo apt-get install -y \
+    docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-    sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
   # macOS
   elif [[ "$OS_NAME" == "mac" ]]; then
     brew install homebrew/cask/docker

@@ -8,23 +8,23 @@ fi
 
 # get environment info
 source scripts/.env/get.sh
-
-# ask for access before proceeding
-sudo -v
+source scripts/.env/maybe_sudo.sh
 
 # clear screen
 echo -e "\033[H\033[2J\033[3J"
 
-if [[ "$OS_NAME" == "ubuntu" ]]; then
+if [[ "$OS_NAME" == "linux" ]]; then
   nvm uninstall $(cat .nvmrc)
 
   # remove using apt-get
-  sudo apt-get remove nodejs npm yarn docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc -y
-  sudo apt autoremove -y
-  sudo apt autoclean
+  maybe_sudo apt-get remove -y \
+  npm yarn nodejs \
+  docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc
+  maybe_sudo apt autoremove -y
+  maybe_sudo apt autoclean -y
 
   # remove docker keyring
-  sudo rm -rf /etc/apt/keyrings/docker.asc
+  maybe_sudo rm -rf $DOCKER_KEYRING_PATH
 
 elif [[ "$OS_NAME" == "mac" ]]; then
   brew uninstall --force node;
@@ -33,18 +33,18 @@ elif [[ "$OS_NAME" == "mac" ]]; then
 fi
 
 # remove files and folders
-sudo rm -rf ~/.aztec
-sudo rm -rf ~/.bun
+maybe_sudo rm -rf ~/.aztec
+maybe_sudo rm -rf ~/.bun
 
 # cleanup node
-sudo rm -rf                 \
+maybe_sudo rm -rf           \
 /usr/local/bin/npm          \
 /usr/local/lib/dtrace/node.d\
 ~/.node                     \
 ~/.npm
 
 # cleanup nvm
-sudo rm -rf ~/.nvm
+maybe_sudo rm -rf ~/.nvm
 
 # unset all functions matching the pattern nvm_*
 for func in $(declare -F | grep nvm_ | awk "{print $3}"); do
@@ -54,7 +54,7 @@ unset -f "__nvm"
 unset -f "nvm"
 
 # cleanup docker
-sudo rm -rf                                 \
+maybe_sudo rm -rf                           \
 ~/.docker                                   \
 /Applications/Docker                        \
 /usr/local/bin/docker                       \

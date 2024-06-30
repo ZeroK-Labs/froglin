@@ -32,15 +32,9 @@ get_version_aztec-sandbox() {
 
 install_aztec-sandbox() {
   if ! grep -q "# aztec" "$ENV_VARS_FILE"; then
-
-    local path_root=""
-    if [[ "$OS_NAME" == "ubuntu" ]]; then path_root="/home";
-    elif [[ "$OS_NAME" == "mac" ]]; then path_root="/Users";
-    fi
-
     echo "" >> $ENV_VARS_FILE
     echo "# aztec" >> $ENV_VARS_FILE
-    echo export PATH="$path_root/$USER/.aztec/bin":\$PATH >> $ENV_VARS_FILE
+    echo export PATH="~/.aztec/bin":\$PATH >> $ENV_VARS_FILE
 
     # reload bash context
     source $ENV_VARS_FILE

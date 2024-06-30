@@ -4,26 +4,34 @@
 
 # linux
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  # ubuntu
-  if [ -f /etc/lsb-release ]; then
-    source /etc/lsb-release
+  if [ -f /etc/os-release ]; then
+    source /etc/os-release
 
-    if [[ "$DISTRIB_ID" == "Ubuntu" ]]; then
-      OS_NAME="ubuntu"
+    if [[ "$ID" == "ubuntu" ]]; then
+      DOCKER_KEYRING_PATH="/etc/apt/keyrings/docker.asc"
+    elif [[ "$ID" == "debian" ]]; then
+      DOCKER_KEYRING_PATH="/etc/apt/keyrings/docker.gpg"
     else
-      echo "This script only supports Ubuntu for Linux"
+      echo "This script only supports Ubuntu and Debian distributions"
       exit 1
     fi
   else
-    echo "This script only supports Ubuntu for Linux"
+    echo "This script only supports Ubuntu and Debian distributions"
     exit 1
   fi
+
+  OS_DISTRIBUTION=$ID
+  OS_NAME="linux"
+
 # macOS
 elif [[ "$OSTYPE" == "darwin"* ]]; then
   OS_NAME="mac"
+
+# other OS
 else
   echo "Unsupported OS "$OSTYPE""
-  echo "This script only supports Linux Ubuntu and macOS"
+  echo "This script only supports Linux Ubuntu, Debian, and macOS"
+
   exit 1
 fi
 

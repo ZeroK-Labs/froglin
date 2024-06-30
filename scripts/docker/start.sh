@@ -4,10 +4,10 @@
 source scripts/.env/get.sh
 
 # ubuntu
-if [[ "$OS_NAME" == "ubuntu" ]]; then
+if [[ "$OS_NAME" == "linux" ]]; then
   # add the current user to the "docker" group
   if ! groups $USER | grep &>/dev/null "\bdocker\b"; then
-    sudo usermod -aG docker $USER
+    usermod -aG docker $USER
 
     if [ $? -eq 0 ]; then
       echo "user "$USER" added to the "docker" group"
@@ -19,7 +19,7 @@ if [[ "$OS_NAME" == "ubuntu" ]]; then
   fi
 
   # start docker daemon
-  if ! pgrep -x "dockerd" > /dev/null; then sudo dockerd; fi
+  if ! pgrep -x "dockerd" > /dev/null; then dockerd; fi
 
 # macOS
 elif [[ "$OS_NAME" == "mac" ]]; then

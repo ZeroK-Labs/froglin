@@ -6,9 +6,9 @@ get_version_curl() {
 
 install_curl() {
   # linux Ubuntu
-  if [[ "$OS_NAME" == "ubuntu" ]]; then
-    sudo apt update
-    sudo apt install curl -y
+  if [[ "$OS_NAME" == "linux" ]]; then
+    maybe_sudo apt update
+    maybe_sudo apt install -y curl
   # macOS
   elif [[ "$OS_NAME" == "mac" ]]; then
     brew install curl

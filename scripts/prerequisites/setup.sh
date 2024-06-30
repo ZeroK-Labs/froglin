@@ -8,18 +8,16 @@ fi
 
 # get environment info
 source scripts/.env/get.sh
-
-# ask for access before proceeding
-sudo -v
+source scripts/.env/maybe_sudo.sh
 
 # enable execution of all shell files under the folder 'scripts'
-find scripts -type f -name "*.sh" -exec sudo chmod +x {} \;
+find scripts -type f -name "*.sh" -exec chmod +x {} \;
 
 # enable git commit hook
 GIT_COMMIT_HOOK_FILE=.git/hooks/pre-commit
 if [ ! -f "$GIT_COMMIT_HOOK_FILE" ]; then
   cp scripts/git/pre-commit.sh $GIT_COMMIT_HOOK_FILE
-  sudo chmod +x $GIT_COMMIT_HOOK_FILE
+  chmod +x $GIT_COMMIT_HOOK_FILE
 fi
 
 # clear screen
@@ -27,45 +25,40 @@ printf "\033[H\033[2J\033[3J"
 
 # install prerequisites
 PREREQUISITES=""
-for pkg in curl nvm node bun docker aztec-sandbox; do
+for pkg in curl unzip nvm node bun docker aztec-sandbox; do
   # load the installation script file
   source scripts/prerequisites/_/$pkg.sh
 
-  # check if package is already available
-  PACKAGE_VERSION=$(get_version_$pkg 2>/dev/null)
-  if [ $? -eq 0 ]; then
-    PREREQUISITES="$PREREQUISITES\n\033[32m$pkg\033[0m@$PACKAGE_VERSION"
-    # print installed prerequisites
-    echo -e "\033[32m$pkg\033[0m@$PACKAGE_VERSION"
-    continue
-  fi
-
-  # install package
-  printf "\nInstalling \033[32m$pkg\033[0m...\n\n"
-
-  if ! install_$pkg; then exit $?; fi
-
-  # verify
+  # check package version (available and matches required, else returns an error)
   PACKAGE_VERSION=$(get_version_$pkg 2>/dev/null)
   if [ $? -ne 0 ]; then
-    echo "$pkg installation failed"
-    exit 1
+    # install missing packages
+    printf "\nInstalling \033[32m$pkg\033[0m...\n\n"
+    if ! install_$pkg; then exit $?; fi
+
+    # verify
+    PACKAGE_VERSION=$(get_version_$pkg 2>/dev/null)
+    if [ $? -ne 0 ]; then
+      echo "$pkg installation failed"
+      exit 1
+    fi
+
+    # post installation
+    if declare -f post_install_$pkg > /dev/null;
+    then
+      if ! post_install_$pkg; then exit $?; fi
+    fi
   fi
 
-  # do post installation
-  if declare -f post_install_$pkg > /dev/null;
-  then
-    if ! post_install_$pkg; then exit $?; fi
-  fi
-
+  # store installed package and version (for pretty-printing)
   PREREQUISITES="$PREREQUISITES\n\033[32m$pkg\033[0m@$PACKAGE_VERSION"
 
   # clear screen
-  echo -e "\033[H\033[2J\033[3J"
+  printf "\033[H\033[2J\033[3J"
 
   # print installed prerequisites
-  echo -e "$PREREQUISITES"
+  printf "$PREREQUISITES\n"
 done
 
-# install packages in a new terminal
+# install dependecy packages in a new terminal
 exec bash -c 'echo "" && bun i'
