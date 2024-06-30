@@ -12,7 +12,7 @@ export default function App() {
       const loadedUser = localStorage.getItem("user");
       if (loadedUser) {
         const userData = JSON.parse(loadedUser);
-        if ((userData.type = "Fq")) {
+        if (userData.type == "Fq") {
           setUser(true);
         }
         console.log("User loaded from localStorage:", userData);
