@@ -1,6 +1,6 @@
-import { EVENT } from "settings";
+import { EVENT } from "../src/settings";
 import { InterestPoint, MapCoordinates, TimeoutId } from "types";
-import { getInterestPoints, getBoundsForCoordinate } from "utils/map";
+import { getInterestPoints, getBoundsForCoordinate } from "../src/utils/map";
 import { sendMessage } from "./sockets";
 
 export type ServerGameEventState = {

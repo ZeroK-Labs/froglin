@@ -92,7 +92,7 @@ export default function SignInScreen({
   return (
     <>
       {viewSignIn ? (
-        <div className="fixed left-2 top-[10vh] border-2 border-red-500 right-4 p-2 flex flex-col items-center z-[10000]">
+        <div className="fixed left-3 top-[10vh] bg-[#6c5ce7] border-4  border-purple-950 rounded-sm right-4 p-2 flex flex-col items-center z-[10000]">
           <div className="mb-4">
             <label className="block text-white text-sm font-bold mb-2">Sign In</label>
             <input
@@ -102,32 +102,40 @@ export default function SignInScreen({
               onChange={(e) => setUsername(e.target.value)}
             />
           </div>
-          <label className="block w-56 text-white text-[6px] font-bold mb-2"></label>
-          <div
-            className="w-56 h-56 bg-blue-500"
-            onTouchStart={handleTouch}
-            onTouchMove={handleTouch}
-          >
-            Move your finger inside the blue area to generate a random number
-          </div>
-          <div className="relative w-56 border-b-2 border-transparent border-solid border-gradient-tr-gold-yellow-darkblue overflow-hidden">
-            <div className="absolute bg-radient-ellipse-bl from-black/50 to-transparent w-full h-full" />
-            <span className="absolute py-2 flex w-full h-full items-center justify-center font-philosopher text-sm text-white font-bold">
-              {Math.floor(touchCoordinates.length)} / {100}
-            </span>
-            <div
-              style={{
-                width: `${touchCoordinates.length}%`,
-                minHeight: 20,
-                backgroundColor: getHealthBarBackgroundColor(
-                  touchCoordinates.length,
-                  colors,
-                ),
-              }}
-            />
-          </div>
+          {username.length > 3 ? (
+            <>
+              <div
+                className="w-56 h-56 bg-blue-500"
+                onTouchStart={handleTouch}
+                onTouchMove={handleTouch}
+              >
+                Move your finger inside the blue area to generate a random number
+              </div>
+              <div className="relative w-56 border-b-2 border-transparent border-solid border-gradient-tr-gold-yellow-darkblue overflow-hidden">
+                <div className="absolute bg-radient-ellipse-bl from-black/50 to-transparent w-full h-full" />
+                <span className="absolute py-2 flex w-full h-full items-center justify-center font-philosopher text-sm text-white font-bold">
+                  {Math.floor(touchCoordinates.length)} / {100}
+                </span>
+                <div
+                  style={{
+                    width: `${touchCoordinates.length}%`,
+                    minHeight: 20,
+                    backgroundColor: getHealthBarBackgroundColor(
+                      touchCoordinates.length,
+                      colors,
+                    ),
+                  }}
+                />
+              </div>
+            </>
+          ) : null}
 
-          {loading && <div>Loading...</div>}
+          {loading && (
+            <>
+              <div>Loading...</div>
+              <div>Aztec Info</div>
+            </>
+          )}
         </div>
       ) : null}
       <div className="fixed bottom-24 left-0 right-0 mx-auto flex justify-center">
