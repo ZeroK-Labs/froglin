@@ -6,7 +6,7 @@ import { Froglin, InterestPoint, MapCoordinates } from "types";
 import { MAP_VIEWS } from "enums";
 import { PlayerMarkerImage, TrapMarkerList } from "components";
 import { inRange, inTriangle } from "utils/map";
-import { useDemoEventState, useRevealingCircleState, useLocation } from "stores";
+import { useRealEventState, useRevealingCircleState, useLocation } from "stores";
 
 type Props = {
   view: MAP_VIEWS;
@@ -34,7 +34,7 @@ export default function PlayerMarker({ view }: Props) {
     setInterestPoints,
     revealFroglins,
     captureFroglins,
-  } = useDemoEventState();
+  } = useRealEventState();
 
   const cssMenuButton = `${open ? "" : "opacity-0"} menu-item`;
 
@@ -49,16 +49,12 @@ export default function PlayerMarker({ view }: Props) {
 
     for (let i = 0; i !== interestPoints.length; ++i) {
       const point = interestPoints[i];
+      interestPointsHidden.push(point);
 
-      if (!point.visible || !inRange(point.coordinates, coordinates, radius)) {
-        interestPointsHidden.push(point);
-
-        continue;
-      }
+      if (!point.visible || !inRange(point.coordinates, coordinates, radius)) continue;
 
       // hide the point to start fade out animation
       point.visible = false;
-      interestPointsHidden.push(point);
 
       // send some goblins to the void
       const gone = Math.random();

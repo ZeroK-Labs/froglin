@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { FROGLIN } from "settings";
 import { Froglin } from "types";
-import { useDemoEventState } from "stores";
+import { useRealEventState } from "stores";
 
 type Props = {
   froglin: Froglin;
@@ -14,7 +14,7 @@ export default function FroglinMarker(props: Props) {
   const [message, setMessage] = useState<string>("");
   const [opacity, setOpacity] = useState(0);
 
-  const { captureFroglins } = useDemoEventState();
+  const { captureFroglins } = useRealEventState();
 
   function showStats() {
     setMessage("Tap here to capture");

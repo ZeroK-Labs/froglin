@@ -3,7 +3,7 @@ import { SingleKeyAccountContract } from "@aztec/accounts/single_key";
 import {
   AccountWallet,
   Fr,
-  PXE,
+  createPXEClient,
   deriveMasterIncomingViewingSecretKey,
 } from "@aztec/aztec.js";
 
@@ -30,10 +30,9 @@ export type AccountWithContract = {
   wallet: AccountWallet;
 };
 
-export async function createWallet(
-  pxe: PXE,
-  secret: SecretKey,
-): Promise<AccountWallet> {
+export async function createWallet(secret: SecretKey): Promise<AccountWallet> {
+  let pxe = createPXEClient(process.env.PXE_URL!);
+
   const secretKey = new Fr(secret);
   const encryptionPrivateKey = deriveMasterIncomingViewingSecretKey(secretKey);
   const contract = new SingleKeyAccountContract(encryptionPrivateKey);

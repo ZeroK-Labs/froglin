@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { CountDownTimer, CapturedFroglinList } from "components";
 import { BatteryIcon, StopwatchIcon, MapPinIcon } from "assets/svg";
 import { TimeoutId } from "types";
-import { useDemoEventState, useLocation } from "stores";
+import { useRealEventState, useLocation } from "stores";
 
 type Props = {
   visible: boolean;
@@ -13,24 +13,19 @@ export default function PlaygroundViewInfoBar({ visible }: Props) {
   const epochTickerRef = useRef<TimeoutId>();
   const [secondsLeft, setSecondsLeft] = useState(0);
 
-  const { epochCount, epochDuration, epochStartTime } = useDemoEventState();
+  const { epochDuration, epochStartTime } = useRealEventState();
   const { metersTravelled } = useLocation();
 
   useEffect(
     () => {
-      if (epochCount === 0 || epochStartTime === 0) return;
-
-      let timeLeft = epochDuration;
+      let timeLeft = epochDuration - (Date.now() - epochStartTime);
+      setSecondsLeft(Math.floor(timeLeft * 0.001 + 0.5));
 
       epochTickerRef.current = setInterval(
         () => {
-          if (timeLeft === 0) {
-            clearInterval(epochTickerRef.current);
-            return;
-          }
-
           timeLeft -= 1_000;
-          setSecondsLeft(Math.floor(timeLeft * 0.001 + 0.5));
+          if (timeLeft > 0) setSecondsLeft(Math.floor(timeLeft * 0.001 + 0.5));
+          else clearInterval(epochTickerRef.current);
         }, //
         1_000,
       );
@@ -39,7 +34,7 @@ export default function PlaygroundViewInfoBar({ visible }: Props) {
         clearInterval(epochTickerRef.current);
       };
     }, //
-    [epochStartTime, epochCount],
+    [epochStartTime],
   );
 
   return (

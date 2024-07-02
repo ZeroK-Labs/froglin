@@ -29,7 +29,8 @@
     "scripts/loadenv.js",
     "src/contracts/target/*.json",
     "src/**/*.ts*",
-    "tests/**/*.ts"
+    "tests/**/*.ts",
+    "backend/**/*.ts"
   ],
   "exclude": ["**/node_modules", "build"]
 }

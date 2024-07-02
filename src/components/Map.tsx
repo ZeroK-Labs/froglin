@@ -1,8 +1,8 @@
 import { Map, MapRef } from "react-map-gl";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { MAP_VIEWS } from "enums";
-import { RevealingCircleStateProvider, useDemoEventState, useLocation } from "stores";
+import { RevealingCircleStateProvider, useRealEventState, useLocation } from "stores";
 import { VIEW } from "settings";
 import {
   CanvasOverlay,
@@ -20,30 +20,34 @@ import {
 } from "utils/mapbox";
 
 export default function MapScreen({ view }: { view: MAP_VIEWS }) {
-  const mapRef = useRef<mapboxgl.Map>();
   const enableMapActionsRef = useRef<() => void>(() => {});
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
   const durationRef = useRef(VIEW.FIRST_FLIGHT_ANIMATION_DURATION);
 
+  const [map, setMap] = useState<mapboxgl.Map>();
+
   const location = useLocation();
-  const { getEventBounds, interestPoints, revealedFroglins } = useDemoEventState();
+  const { getEventBounds, interestPoints, revealedFroglins } = useRealEventState();
 
   function mapCallback(node: MapRef) {
     if (!node) return;
 
-    if (!mapRef.current) {
-      mapRef.current = node.getMap();
-      setMapFog(mapRef.current);
+    if (!map) {
+      const map = node.getMap();
+      setMapFog(map);
+      setMap(map);
+
+      return;
     }
 
     if (viewLevelRef.current === view || location.disabled) return;
 
     viewLevelRef.current = view;
-    disableMapActions(mapRef.current);
+    disableMapActions(map);
 
     let enableMapActions: (map: mapboxgl.Map) => void;
     if (view === MAP_VIEWS.PLAYGROUND) {
-      mapRef.current.flyTo({
+      map.flyTo({
         center: [location.coordinates.longitude, location.coordinates.latitude],
         zoom: VIEW.PLAYGROUND.ZOOM,
         pitch: VIEW.PLAYGROUND.PITCH,
@@ -58,7 +62,7 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
       durationRef.current = VIEW.VIEW_ANIMATION_DURATION;
     } //
     else if (view === MAP_VIEWS.EVENT) {
-      mapRef.current.fitBounds(getEventBounds(), {
+      map.fitBounds(getEventBounds(), {
         zoom: VIEW.EVENT.ZOOM - 0.5,
         pitch: VIEW.EVENT.PITCH,
         bearing: VIEW.EVENT.BEARING,
@@ -68,11 +72,11 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
     }
 
     // ensure only one handler is subscribed
-    mapRef.current.off("moveend", enableMapActionsRef.current);
+    map.off("idle", enableMapActionsRef.current);
     enableMapActionsRef.current = () => {
-      enableMapActions(mapRef.current!);
+      enableMapActions(map!);
     };
-    mapRef.current.once("moveend", enableMapActionsRef.current);
+    map.once("idle", enableMapActionsRef.current);
   }
 
   // map camera follows player
@@ -80,11 +84,11 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
     () => {
       // console.log("map - location change", location);
 
-      if (location.disabled || !mapRef.current || mapRef.current!.isBusy()) return;
+      if (location.disabled || !map || map!.isBusy()) return;
 
       setTimeout(
         () => {
-          mapRef.current!.flyTo({
+          map!.flyTo({
             center: [location.coordinates.longitude, location.coordinates.latitude],
             duration: VIEW.LOCATION_FOLLOW_ANIMATION_DURATION,
           });
@@ -133,14 +137,14 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
 
         <GameEventView visible={view === MAP_VIEWS.EVENT} />
 
-        {!mapRef.current || location.disabled ? null : (
+        {!map || location.disabled ? null : (
           <>
             <RevealingCircleStateProvider>
               <CanvasOverlay />
               <PlayerMarker view={view} />
             </RevealingCircleStateProvider>
 
-            <LocationRestoreButton map={mapRef.current} />
+            <LocationRestoreButton map={map} />
           </>
         )}
       </Map>

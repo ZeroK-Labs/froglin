@@ -26,7 +26,7 @@ type GameEventState = {
   revealFroglins: (froglins: Froglin[]) => void;
 
   capturedFroglins: Froglin[];
-  captureFroglins: (froglinIds: [Froglin["id"]?]) => void;
+  captureFroglins: (froglinIds: Froglin["id"][]) => void;
 };
 
 export default GameEventState;

@@ -1,7 +1,7 @@
 import { lazy, Dispatch, SetStateAction } from "react";
 
 import SignInScreen from "./SignInScreen";
-import { DemoEventStateProvider } from "stores";
+import { RealEventStateProvider } from "stores";
 import { useTutorialState, useViewState } from "hooks";
 
 const InfoBarsContainer = lazy(() => import("components/InfoBarsContainer"));
@@ -14,7 +14,7 @@ function AppWithoutUser({ setUser }: { setUser: Dispatch<SetStateAction<boolean>
   const { view, setView } = useViewState();
   return (
     <>
-      <DemoEventStateProvider>
+      <RealEventStateProvider>
         <Map view={view} />
         <InfoBarsContainer
           view={view}
@@ -30,7 +30,7 @@ function AppWithoutUser({ setUser }: { setUser: Dispatch<SetStateAction<boolean>
           setView={setView}
         />
         <SignInScreen setUser={setUser} />
-      </DemoEventStateProvider>
+      </RealEventStateProvider>
     </>
   );
 }

@@ -108,7 +108,7 @@ function createState(): GameEventState {
     setRevealedFroglins((old) => [...old, ...froglins]);
   }
 
-  function captureFroglins(froglinIds: [Froglin["id"]?]) {
+  function captureFroglins(froglinIds: Froglin["id"][]) {
     setRevealedFroglins((old) => {
       const capturedFroglins: Froglin[] = [];
       const revealedFroglins: Froglin[] = [];

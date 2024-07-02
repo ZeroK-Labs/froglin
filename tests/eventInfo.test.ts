@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "bun:test";
-import { Fr, PXE, createPXEClient } from "@aztec/aztec.js";
+import { Fr } from "@aztec/aztec.js";
 
 import { FroglinContract } from "contracts/artifacts/Froglin";
 import { AccountWithContract, createWallet, stringToBigInt } from "./utils";
@@ -7,18 +7,15 @@ import { AccountWithContract, createWallet, stringToBigInt } from "./utils";
 describe("EventInfo Tests", () => {
   const timeout = 60_000;
 
-  let pxe: PXE;
   let game_master = {} as AccountWithContract;
   let alice = {} as AccountWithContract;
   let bob = {} as AccountWithContract;
 
   beforeAll(async () => {
-    pxe = createPXEClient(process.env.PXE_URL!);
-
     // initialize deployment account
 
     game_master.secret = 0x123n;
-    game_master.wallet = await createWallet(pxe, game_master.secret);
+    game_master.wallet = await createWallet(game_master.secret);
 
     // deploy contract
 
@@ -29,11 +26,11 @@ describe("EventInfo Tests", () => {
     // initialize test accounts
 
     alice.secret = 0xabcn;
-    alice.wallet = await createWallet(pxe, alice.secret);
+    alice.wallet = await createWallet(alice.secret);
     alice.contract = game_master.contract.withWallet(alice.wallet);
 
     bob.secret = 0xdefn;
-    bob.wallet = await createWallet(pxe, bob.secret);
+    bob.wallet = await createWallet(bob.secret);
     bob.contract = game_master.contract.withWallet(bob.wallet);
   });
 

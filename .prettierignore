@@ -2,6 +2,7 @@
 /*
 
 # keep src and tests folders
+!backend/
 !src/
 !tests/
 

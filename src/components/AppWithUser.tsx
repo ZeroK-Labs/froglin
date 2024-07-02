@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { DemoEventStateProvider } from "stores";
+import { RealEventStateProvider } from "stores";
 
 import { useTutorialState, useViewState } from "hooks";
 
@@ -13,7 +13,7 @@ function AppWithUser() {
   const { view, setView } = useViewState();
   return (
     <>
-      <DemoEventStateProvider>
+      <RealEventStateProvider>
         <Map view={view} />
         <InfoBarsContainer
           view={view}
@@ -28,7 +28,7 @@ function AppWithUser() {
           view={view}
           setView={setView}
         />
-      </DemoEventStateProvider>
+      </RealEventStateProvider>
     </>
   );
 }
