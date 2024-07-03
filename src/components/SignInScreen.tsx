@@ -18,7 +18,7 @@ export default function SignInScreen({
 }: {
   setUser: React.Dispatch<boolean>;
 }) {
-  const [viewSignIn, setViewSignIn] = useState(true);
+  const [viewSignIn, setViewSignIn] = useState(false);
   const { connected, pxeClient } = usePXEClient();
 
   const [touchCoordinates, setTouchCoordinates] = useState<string>("");
@@ -98,7 +98,7 @@ export default function SignInScreen({
             <input
               type="text"
               className="block w-56 p-2 mb-2 text-gray-700 border rounded text-sm"
-              placeholder="Username"
+              placeholder="Username (min 3 characters)"
               onChange={(e) => setUsername(e.target.value)}
             />
           </div>
@@ -132,26 +132,29 @@ export default function SignInScreen({
 
           {loading && (
             <>
-              <div>Loading...</div>
-              <div>Aztec Info</div>
+              <div>Creating Wallet and registering</div>
+              <div>username in the contract's Storage as </div>
+              <div>{"PrivateMutable<ValueNote>"}</div>
             </>
           )}
         </div>
       ) : null}
-      <div className="fixed bottom-24 left-0 right-0 mx-auto flex justify-center">
-        <button
-          type="button"
-          className={`rounded-md w-28 px-2.5 py-2 text-lg font-semibold shadow-sm bg-indigo-500 text-white`}
-          onClick={() => setViewSignIn(!viewSignIn)}
-        >
-          Sign In
-        </button>
-      </div>
+      {connected ? (
+        <div className="fixed bottom-24 left-0 right-0 mx-auto flex justify-center">
+          <button
+            type="button"
+            className={`rounded-md w-28 px-2.5 py-2 text-lg font-semibold shadow-sm bg-indigo-500 text-white`}
+            onClick={() => setViewSignIn(!viewSignIn)}
+          >
+            Sign In
+          </button>
+        </div>
+      ) : null}
       {/* TODO: move this some place else */}
       <div
-        className={`z-[9998] fixed bottom-2 right-2 text-sm ${connected ? "" : "animate-fade-in-out"}`}
+        className={`z-[9998] fixed bottom-2 right-2 text-sm text-red-600 ${connected ? "" : "animate-fade-in-out"}`}
       >
-        {connected ? "✅" : "🟥"}
+        {connected ? "✅" : "PXE is not connected 🟥"}
       </div>
     </>
   );
