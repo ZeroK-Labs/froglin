@@ -1,7 +1,7 @@
 #!/bin/bash
 
 get_version_docker() {
-  docker --version | grep -oE 'Docker version [0-9\.]+' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' 2>/dev/null
+  docker --version 2>/dev/null | grep -oE 'Docker version [0-9\.]+' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'
 }
 
 install_docker() {
@@ -33,7 +33,7 @@ install_docker() {
       # add docker repository to apt-sources
       echo "deb [arch=$(dpkg --print-architecture) signed-by=$DOCKER_KEYRING_PATH] https://download.docker.com/linux/ubuntu \
         $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-        tee /etc/apt/sources.list.d/docker.list > /dev/null
+        maybe_sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
     elif [[ "$OS_DISTRIBUTION" == "debian" ]]; then
       # add Docker's official GPG key
@@ -46,7 +46,7 @@ install_docker() {
       # add docker repository to apt-sources
       echo "deb [arch=$(dpkg --print-architecture) signed-by=$DOCKER_KEYRING_PATH] https://download.docker.com/linux/debian \
       $(lsb_release -cs) stable" | \
-      tee /etc/apt/sources.list.d/docker.list > /dev/null
+      maybe_sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     fi
 
     # install docker

@@ -2,12 +2,13 @@
 
 # get environment info
 source scripts/.env/get.sh
+source scripts/.env/maybe_sudo.sh
 
 # ubuntu
 if [[ "$OS_NAME" == "linux" ]]; then
   # add the current user to the "docker" group
   if ! groups $USER | grep &>/dev/null "\bdocker\b"; then
-    usermod -aG docker $USER
+    maybe_sudo usermod -aG docker $USER
 
     if [ $? -eq 0 ]; then
       echo "user "$USER" added to the "docker" group"
