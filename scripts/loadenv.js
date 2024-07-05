@@ -9,7 +9,7 @@ export default (mode = "dev") => {
   else {
     console.error(`Missing required file '${envFile}' while preparing environment`);
 
-    return 1;
+    process.exit(1);
   }
 
   process.env.NODE_ENV = mode === "dev" ? "development" : "production";
