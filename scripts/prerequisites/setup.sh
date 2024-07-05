@@ -60,5 +60,5 @@ for pkg in curl unzip nvm node bun docker aztec-sandbox; do
   printf "$PREREQUISITES\n"
 done
 
-# install dependecy packages in a new terminal
-exec bash -c 'echo "" && bun i'
+# install package dependecies
+bun i
