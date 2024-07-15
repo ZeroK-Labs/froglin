@@ -4,8 +4,6 @@ import { MAP_VIEWS } from "enums";
 import { ViewState } from "types";
 
 export default function useViewState(): ViewState {
-  console.log("useViewState");
-
   const [view, setView] = useState(MAP_VIEWS.PLAYGROUND);
 
   useEffect(

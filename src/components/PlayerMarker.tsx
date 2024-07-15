@@ -199,6 +199,7 @@ export default function PlayerMarker({ view }: Props) {
     }, //
     [],
   );
+  console.log("PlayerMarker.tsx", coordinates);
 
   return (
     <>

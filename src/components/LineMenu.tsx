@@ -8,9 +8,15 @@ type Props = {
   setTutorial: Dispatch<SetStateAction<boolean>>;
   view: MAP_VIEWS;
   setView: Dispatch<SetStateAction<MAP_VIEWS>>;
+  setLeaderBoard?: Dispatch<SetStateAction<boolean>>;
 };
 
-export default function LineMenu({ setTutorial, view, setView }: Props) {
+export default function LineMenu({
+  setTutorial,
+  view,
+  setView,
+  setLeaderBoard,
+}: Props) {
   const divRef = useRef(null);
 
   const [open, setOpen] = useState(false);
@@ -31,6 +37,7 @@ export default function LineMenu({ setTutorial, view, setView }: Props) {
         view={view}
         setOpen={setOpen}
         setTutorial={setTutorial}
+        setLeaderBoard={setLeaderBoard}
         setView={setView}
       />
     </div>

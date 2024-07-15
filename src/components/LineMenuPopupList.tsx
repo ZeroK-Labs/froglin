@@ -10,6 +10,7 @@ type Props = {
   setTutorial: Dispatch<SetStateAction<boolean>>;
   view: MAP_VIEWS;
   setView: Dispatch<SetStateAction<MAP_VIEWS>>;
+  setLeaderBoard: Dispatch<SetStateAction<boolean>>;
 };
 
 export function LineMenuPopupList({
@@ -18,6 +19,7 @@ export function LineMenuPopupList({
   setTutorial,
   view,
   setView,
+  setLeaderBoard,
 }: Props) {
   function handleNavClick() {
     setOpen(false);
@@ -34,6 +36,11 @@ export function LineMenuPopupList({
   function handleTutorialClick(ev: MouseEvent | React.BaseSyntheticEvent) {
     setOpen(false);
     setTutorial(true);
+    ev.stopPropagation();
+  }
+  function handleLeaderBoardClick(ev: MouseEvent | React.BaseSyntheticEvent) {
+    setOpen(false);
+    setLeaderBoard(true);
     ev.stopPropagation();
   }
 
@@ -68,6 +75,10 @@ export function LineMenuPopupList({
         <LineMenuPopupListItem
           text="📖"
           onClick={handleTutorialClick}
+        />
+        <LineMenuPopupListItem
+          text="🏆"
+          onClick={handleLeaderBoardClick}
         />
       </ul>
     </nav>
