@@ -3,30 +3,23 @@ import { AccountManager } from "@aztec/aztec.js/account";
 import { SingleKeyAccountContract } from "@aztec/accounts/single_key";
 import {
   AccountWallet,
-  Contract,
   Fr,
-  PXE,
-  Wallet,
-  createPXEClient,
   deriveMasterIncomingViewingSecretKey,
 } from "@aztec/aztec.js";
+
 import { usePXEClient } from "stores";
 import { stringToBigInt } from "utils/math";
 
-export default function SignInScreen({
-  setUser,
-}: {
-  setUser: React.Dispatch<boolean>;
-}) {
+export default function SignInScreen({ setUser }: { setUser: (a: boolean) => void }) {
   const [viewSignIn, setViewSignIn] = useState(false);
   const { connected, pxeClient } = usePXEClient();
 
   const [touchCoordinates, setTouchCoordinates] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [lastRecordTime, setLastRecordTime] = useState(0);
-  const [accountContract, setAccountContract] = useState<SingleKeyAccountContract>();
-  const [account, setAccount] = useState<AccountManager>();
-  const [wallet, setWallet] = useState<AccountWallet>();
+  const [_1, setAccountContract] = useState<SingleKeyAccountContract>();
+  // const [account, setAccount] = useState<AccountManager>();
+  const [_2, setWallet] = useState<AccountWallet>();
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(
@@ -35,8 +28,10 @@ export default function SignInScreen({
       if (touchCoordinates.length > 100) {
         setTouchCoordinates(touchCoordinates.slice(0, 100));
       }
+
       // TODO: uncomment this when we deploy the sandbox
       // if (!pxeClient) return;
+
       let accountRes: AccountManager;
       let walletRes: AccountWallet;
       const secretKey = stringToBigInt(touchCoordinates);
@@ -50,21 +45,22 @@ export default function SignInScreen({
       accountRes = new AccountManager(pxeClient, keyFr, accountContract);
 
       setLoading(true);
-      (async function registerAccount() {
-        if (!accountRes) return;
+      async function registerAccount() {
         walletRes = await accountRes.register();
 
-        if (walletRes) {
-          setWallet(walletRes);
-        }
         setLoading(false);
+
+        if (!walletRes) return;
+
+        setWallet(walletRes);
         setUser(true);
-      })();
+      }
+      registerAccount();
     }, //
     [touchCoordinates],
   );
 
-  const handleTouch = (event: React.TouchEvent<HTMLDivElement>) => {
+  function handleTouch(event: React.TouchEvent) {
     const now = Date.now();
 
     if (now - lastRecordTime > 100) {
@@ -88,7 +84,8 @@ export default function SignInScreen({
         setLastRecordTime(now);
       }
     }
-  };
+  }
+
   return (
     <>
       {viewSignIn ? (
@@ -102,7 +99,7 @@ export default function SignInScreen({
               onChange={(e) => setUsername(e.target.value)}
             />
           </div>
-          {username.length > 3 ? (
+          {username.length > 2 ? (
             <>
               <div
                 className="w-56 h-56 bg-blue-500"
