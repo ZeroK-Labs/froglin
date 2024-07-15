@@ -1,14 +1,19 @@
-use dep::aztec::{context::PrivateContext, prelude::AztecAddress, protocol_types::grumpkin_point::GrumpkinPoint};
+use dep::aztec::{context::PrivateContext, prelude::AztecAddress};
+use std::embedded_curve_ops::EmbeddedCurvePoint;
 
 struct PublicKeys {
     npk_hash: Field,
-    ovpk: GrumpkinPoint,
-    ivpk: GrumpkinPoint,
+    ovpk: EmbeddedCurvePoint,
+    ivpk: EmbeddedCurvePoint,
 }
 
 impl PublicKeys {
     pub fn none() -> PublicKeys {
-        PublicKeys { npk_hash: 0, ovpk: GrumpkinPoint { x: 0, y: 0 }, ivpk: GrumpkinPoint { x: 0, y: 0 } }
+        PublicKeys {
+            npk_hash: 0,
+            ovpk: EmbeddedCurvePoint { x: 0, y: 0, is_infinite: false },
+            ivpk: EmbeddedCurvePoint { x: 0, y: 0, is_infinite: false }
+        }
     }
 
     pub fn from_private_context(context: &mut PrivateContext, owner: AztecAddress) -> PublicKeys {
