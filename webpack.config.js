@@ -18,7 +18,7 @@ export default (_, argv) => {
 
   loadenv(mode);
 
-  console.log(`\n\x1b[32m${process.env.NODE_ENV}\x1b[0m mode`);
+  console.log(`\n\x1b[32m${process.env.NODE_ENV}\x1b[0m mode\n`);
 
   //
   // https://webpack.js.org/configuration
@@ -70,7 +70,9 @@ export default (_, argv) => {
         "process.env": {
           NODE_ENV: JSON.stringify(process.env.NODE_ENV),
           PXE_URL: JSON.stringify(process.env.PXE_URL),
-          MapboxAccessToken: JSON.stringify(process.env.MAPBOX_ACCESS_TOKEN),
+          REACT_APP_MAPBOX_ACCESS_TOKEN: JSON.stringify(
+            process.env.MAPBOX_ACCESS_TOKEN,
+          ),
         },
       }),
       new MiniCssExtractPlugin(),
