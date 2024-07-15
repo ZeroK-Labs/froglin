@@ -3,6 +3,9 @@ import { Fr } from "@aztec/aztec.js";
 
 import { FroglinContract } from "contracts/artifacts/Froglin";
 import { AccountWithContract, createWallet, stringToBigInt } from "./utils";
+// import loadenv from "../scripts/loadenv";
+
+// loadenv();
 
 describe("Registration Tests", () => {
   const timeout = 40_000;
