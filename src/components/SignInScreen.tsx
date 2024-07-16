@@ -108,6 +108,7 @@ export default function SignInScreen({ setUser }: { setUser: (a: boolean) => voi
         const encryptionPrivateKey = deriveMasterIncomingViewingSecretKey(keyFr);
 
         localStorage.setItem("user", JSON.stringify(encryptionPrivateKey));
+        localStorage.setItem("username", username);
 
         const accountContract = new SingleKeyAccountContract(encryptionPrivateKey);
         const accountManager = new AccountManager(pxeClient, keyFr, accountContract);

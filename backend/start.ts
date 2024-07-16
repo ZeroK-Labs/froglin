@@ -4,6 +4,7 @@ import fs from "fs";
 import https from "https";
 import path from "path";
 import { getGame } from "./endpoints/game";
+import { getLeaderboard } from "./endpoints/leaderboard";
 import { createSocketServer } from "./sockets";
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(express.static(path.resolve(import.meta.dir, "../public")));
 
 // endpoints
 app.get("/game", getGame);
+app.get("/leaderboard", getLeaderboard);
 
 // HTML SERVER
 const PORT = 3002;

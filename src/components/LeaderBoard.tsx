@@ -1,5 +1,4 @@
-import { kill } from "process";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { VIEW } from "settings";
 
 type LeaderBoardState = {
@@ -7,15 +6,29 @@ type LeaderBoardState = {
   setLeaderBoard: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const leaderBoardData = [
-  { username: "user1verylong very very lon mname indeed", killed: 100 },
-  { username: "user2", killed: 100 },
-  { username: "user3", killed: 100 },
-  { username: "user4", killed: 100 },
-];
+type LeaderBoardData = {
+  username: string;
+  froglins: number;
+};
 
 function LeaderBoard({ leaderBoard, setLeaderBoard }: LeaderBoardState) {
   const divRef = useRef<HTMLDivElement>(null);
+
+  const [leaderBoardData, setLeaderBoardData] = useState<LeaderBoardData[]>([]);
+
+  useEffect(() => {
+    async function fetchLeaderBoard() {
+      try {
+        const response = await fetch("https://localhost:3002/leaderboard");
+
+        const data = await response.json();
+        setLeaderBoardData(data);
+      } catch (error) {
+        console.error("Failed to fetch leaderboard data", error);
+      }
+    }
+    fetchLeaderBoard();
+  }, []);
 
   function handleClose(ev: MouseEvent | React.BaseSyntheticEvent) {
     if (
@@ -54,7 +67,7 @@ function LeaderBoard({ leaderBoard, setLeaderBoard }: LeaderBoardState) {
           transitionDuration: `${VIEW.TUTORIAL_FADE_ANIMATION_DURATION}ms`,
         }}
       >
-        <div className="flex flex-col items-center max-h-[500px] backdrop-blur pointer-events-auto">
+        <div className="flex flex-col max-h-[500px] backdrop-blur pointer-events-auto">
           <div className="relative p-4 overflow-y-scroll max-h-[500px]">
             <div
               className="grid grid-cols-3 gap-5 justify-items-start items-center px-2 pb-2 mb-2 text-white text-[14px] font-bold border-b"
@@ -62,9 +75,9 @@ function LeaderBoard({ leaderBoard, setLeaderBoard }: LeaderBoardState) {
             >
               <span className="mr-4 w-6">Rank</span>
               <span>Player</span>
-              <span>Killed</span>
+              <span>Captured</span>
             </div>
-            {leaderBoardData.map(({ username, killed }, index) => (
+            {leaderBoardData.map(({ username, froglins }, index) => (
               <div
                 key={index}
                 className="grid grid-cols-3 gap-5 justify-items-start items-center p-2 font-bold text-white text-sm"
@@ -72,9 +85,7 @@ function LeaderBoard({ leaderBoard, setLeaderBoard }: LeaderBoardState) {
               >
                 <span className="w-6 mr-4">{index + 1}</span>
                 <span className="truncate max-w-[150px]">{username}</span>
-                <span className="whitespace-nowrap">
-                  {killed} {killed === 1 ? "frog" : "frogs"}
-                </span>
+                <span className="whitespace-nowrap">{froglins}</span>
               </div>
             ))}
           </div>
