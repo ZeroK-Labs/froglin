@@ -174,8 +174,6 @@ function createState(): GameEventState {
   );
 
   return {
-    location,
-    setLocation,
     bounds,
     setBounds,
     epochCount,

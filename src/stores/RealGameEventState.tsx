@@ -1,55 +1,12 @@
 import { useEffect, useState } from "react";
 
-import { Froglin, InterestPoint } from "types";
+import { Froglin, GameEventState, InterestPoint } from "types";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { StoreFactory } from "stores";
 import { ServerGameEventState } from "../../backend/GameEventState";
+import { CLIENT_SOCKET } from "utils/sockets";
 
-type GameEventStateTemporar = {
-  bounds: GeoJSON.Position[][];
-  setBounds: React.Dispatch<React.SetStateAction<GeoJSON.Position[][]>>;
-  getEventBounds: () => LngLatBoundsLike;
-
-  epochCount: number;
-  setEpochCount: React.Dispatch<React.SetStateAction<number>>;
-
-  epochDuration: number;
-  setEpochDuration: React.Dispatch<React.SetStateAction<number>>;
-
-  epochStartTime: number;
-  setEpochStartTime: React.Dispatch<React.SetStateAction<number>>;
-
-  interestPoints: InterestPoint[];
-  setInterestPoints: React.Dispatch<React.SetStateAction<InterestPoint[]>>;
-
-  revealedFroglins: Froglin[];
-  revealFroglins: (froglins: Froglin[]) => void;
-
-  capturedFroglins: Froglin[];
-  captureFroglins: (froglinIds: Froglin["id"][]) => void;
-};
-
-const socket = new WebSocket("wss://localhost:3002");
-
-socket.addEventListener("open", () => {
-  console.log("WebSocket connection established");
-});
-
-socket.addEventListener("message", (event) => {
-  console.log("Received " + event.data);
-
-  if (event.data === "reload") window.location.reload();
-});
-
-socket.addEventListener("close", () => {
-  console.log("WebSocket connection closed");
-});
-
-socket.addEventListener("error", (error) => {
-  console.error("WebSocket error:", error);
-});
-
-function createState(): GameEventStateTemporar {
+function createState(): GameEventState {
   // console.log("GameEventState createState");
 
   const [bounds, setBounds] = useState<GeoJSON.Position[][]>([
@@ -133,12 +90,12 @@ function createState(): GameEventStateTemporar {
         if (event.data === "newEpoch") fetchData();
       }
 
-      socket.addEventListener("message", handleServerEpochUpdate);
+      CLIENT_SOCKET.addEventListener("message", handleServerEpochUpdate);
 
       fetchData();
 
       return () => {
-        socket.removeEventListener("message", handleServerEpochUpdate);
+        CLIENT_SOCKET.removeEventListener("message", handleServerEpochUpdate);
       };
     }, //
     [],
@@ -164,4 +121,4 @@ function createState(): GameEventStateTemporar {
 }
 
 export const { Provider: RealEventStateProvider, useProvider: useRealEventState } =
-  StoreFactory<GameEventStateTemporar>(createState);
+  StoreFactory<GameEventState>(createState);
