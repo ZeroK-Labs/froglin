@@ -44,7 +44,7 @@ for ((i = 0; i <= ${#PIDS[@]}-3; ++i)); do
 done
 
 # start webpack concurrently and run tailwind watcher
-scripts/tailwind/start.sh &
-webpack serve --env mode=$arg
+webpack serve --env mode=$arg &
+scripts/tailwind/start.sh
 
 cleanup
