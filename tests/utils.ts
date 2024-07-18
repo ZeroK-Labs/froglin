@@ -1,13 +1,20 @@
-import { AccountManager } from "@aztec/aztec.js/account";
-import { SingleKeyAccountContract } from "@aztec/accounts/single_key";
-import {
-  AccountWallet,
-  Fr,
-  createPXEClient,
-  deriveMasterIncomingViewingSecretKey,
-} from "@aztec/aztec.js";
+import { AccountWallet, PXE } from "@aztec/aztec.js";
+import { exec } from "child_process";
 
 import { FroglinContract } from "contracts/artifacts/Froglin";
+import {
+  createPXEServiceProcess,
+  LOCAL_IP,
+  destroyPXEServiceProcess,
+} from "../common/PXEManager";
+
+export type AccountWithContract = {
+  secret: bigint;
+  pxe: PXE;
+  pxe_url: string;
+  contract: FroglinContract;
+  wallet: AccountWallet;
+};
 
 const maxBits = 254; // Noir Field data type is 254 bits wide
 const maxBigInt = (1n << BigInt(maxBits)) - 1n; // 2^254 - 1
@@ -22,22 +29,35 @@ export function stringToBigInt(str: string): bigint {
   return hash;
 }
 
-type SecretKey = number | bigint | boolean | Fr | Buffer;
+export function createPXEServer(): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    console.log("Creating PXE server...");
 
-export type AccountWithContract = {
-  secret: bigint;
-  contract: FroglinContract;
-  wallet: AccountWallet;
-};
+    const [port, pxe] = createPXEServiceProcess();
 
-export async function createWallet(secret: SecretKey): Promise<AccountWallet> {
-  let pxe = createPXEClient(process.env.PXE_URL!);
+    pxe.stdout!.on("data", (data) => {
+      // process.stdout.write(data);
 
-  const secretKey = new Fr(secret);
-  const encryptionPrivateKey = deriveMasterIncomingViewingSecretKey(secretKey);
-  const contract = new SingleKeyAccountContract(encryptionPrivateKey);
-  const manager = new AccountManager(pxe, secretKey, contract);
+      if (!data.includes(`Aztec Server listening on port ${port}`)) return;
 
-  const wallet = await manager.register();
-  return wallet;
+      console.log("PXE sever created successfully!");
+      resolve(LOCAL_IP + port);
+    });
+
+    pxe.stderr!.on("data", (data) => {
+      process.stderr.write(data);
+
+      exec(`pkill -f ${port}`);
+
+      reject(data);
+    });
+
+    // pxe.on("close", (code) => {
+    //   console.log(`PXE process exited with code ${code}`);
+    // });
+  });
+}
+
+export function destroyPXEServer(url: string) {
+  destroyPXEServiceProcess(Number(url.split(":")[2]));
 }

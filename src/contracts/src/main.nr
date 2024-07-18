@@ -23,9 +23,7 @@ contract Froglin {
 
     #[aztec(internal)]
     unconstrained fn _check_registration(account: AztecAddress) {
-        assert(
-            storage.players.at(account).is_initialized(), "method callable only by registered player accounts"
-        );
+        assert(storage.players.at(account).is_initialized(), "method callable only by registered players");
     }
 
     #[aztec(internal)]
@@ -62,6 +60,9 @@ contract Froglin {
 
     #[aztec(private)]
     fn update_name(name: Field) {
+        let player = context.msg_sender();
+        _check_registration(player);
+
         let keys = PublicKeys::from_private_context(&mut context, context.msg_sender());
 
         let players = storage.players;
@@ -104,13 +105,9 @@ contract Froglin {
         storage.players.at(player).view_note().value
     }
 
-    unconstrained fn view_event_info(player: AztecAddress, npk_hash: Field) -> pub ValueNote {
+    unconstrained fn view_event_info(player: AztecAddress) -> pub ValueNote {
         _check_registration(player);
 
-        let note = storage.event_info_notes.at(player).view_note();
-
-        assert_eq(npk_hash, note.npk_m_hash, "not allowed");
-
-        note
+        storage.event_info_notes.at(player).view_note()
     }
 }
