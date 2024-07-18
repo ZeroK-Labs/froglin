@@ -37,7 +37,7 @@ function Modal({ isOpen, setIsOpen, children, borderColor = "#000764" }: ModalPr
   return (
     <div
       ref={divRef}
-      className={`fixed left-3 p-2 top-[10vh] z-[9999] hide-scrollbar overflow-scroll border-2 bg-[#6c5ce7] transition-all ${isOpen ? "" : "invisible"} `}
+      className={`fixed left-3 p-2 top-[10vh] z-[9999] hide-scrollbar overflow-scroll border-2 bg-[#6c5ce7] text-gray-800 transition-all ${isOpen ? "" : "invisible"} `}
       style={{
         width: "calc(100% - 1.5rem)",
         borderColor,
