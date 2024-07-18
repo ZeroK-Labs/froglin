@@ -1,7 +1,7 @@
 import { EVENT } from "../src/settings";
 import { InterestPoint, MapCoordinates, TimeoutId } from "types";
 import { getInterestPoints, getBoundsForCoordinate } from "../src/utils/map";
-import { sendMessage } from "./sockets";
+import { broadcastMessage } from "./sockets";
 
 export type ServerGameEventState = {
   location: MapCoordinates;
@@ -63,7 +63,7 @@ export function createGameEvent(center: MapCoordinates): ServerGameEventState {
         return;
       }
 
-      sendMessage("newEpoch");
+      broadcastMessage("newEpoch");
 
       event.epochStartTime = Date.now();
 

@@ -5,7 +5,7 @@ import https from "https";
 import path from "path";
 import { getGame } from "./endpoints/game";
 import { getLeaderboard } from "./endpoints/leaderboard";
-import { createSocketServer } from "./sockets";
+import { createSocketServer, destroySocketServer } from "./sockets";
 
 const app = express();
 
@@ -39,3 +39,14 @@ html_server.listen(PORT, () => {
 });
 
 createSocketServer({ server: html_server });
+
+// graceful shutdown on Ctrl+C
+process.on("SIGINT", () => {
+  console.log("Shutting down...");
+
+  destroySocketServer();
+
+  html_server.close(() => {
+    console.log("HTTP server closed");
+  });
+});
