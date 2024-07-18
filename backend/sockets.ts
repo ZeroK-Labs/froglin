@@ -38,6 +38,7 @@ export function createSocketServer(options?: ServerOptions) {
 
       if (!data.includes(`Aztec Server listening on port ${port}`)) return;
 
+      console.log("Client PXE ready", url);
       socket.send(`ready ${url}`);
     });
 
