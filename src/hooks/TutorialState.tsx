@@ -9,10 +9,17 @@ export default function useTutorialState(): TutorialState {
     () => {
       // show tutorial by default when flag is missing in sessionStorage
       const sessionKeyId = "Froglin:tutorial";
-      if (sessionStorage.getItem(sessionKeyId) !== "1") {
+      if (sessionStorage.getItem(sessionKeyId) === "1") return;
+      if (localStorage.getItem("user")) return;
+
+      const timerId = setTimeout(() => {
         sessionStorage.setItem(sessionKeyId, "1");
-        setTimeout(setTutorial, 2_000, true);
-      }
+        setTutorial(true);
+      }, 2_000);
+
+      return () => {
+        clearTimeout(timerId);
+      };
     }, //
     [],
   );
