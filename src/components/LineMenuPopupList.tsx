@@ -10,7 +10,7 @@ type Props = {
   setTutorial: Dispatch<SetStateAction<boolean>>;
   view: MAP_VIEWS;
   setView: Dispatch<SetStateAction<MAP_VIEWS>>;
-  setLeaderBoard: Dispatch<SetStateAction<boolean>>;
+  setLeaderBoard?: Dispatch<SetStateAction<boolean>>;
 };
 
 export function LineMenuPopupList({
@@ -40,7 +40,7 @@ export function LineMenuPopupList({
   }
   function handleLeaderBoardClick(ev: MouseEvent | React.BaseSyntheticEvent) {
     setOpen(false);
-    setLeaderBoard(true);
+    setLeaderBoard?.(true);
     ev.stopPropagation();
   }
 
