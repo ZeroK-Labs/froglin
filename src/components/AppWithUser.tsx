@@ -14,6 +14,7 @@ function AppWithUser() {
 
   const { tutorial, setTutorial } = useTutorialState();
   const { view, setView } = useViewState();
+
   return (
     <>
       <RealEventStateProvider>
