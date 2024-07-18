@@ -30,7 +30,8 @@
     "src/contracts/target/*.json",
     "src/**/*.ts*",
     "tests/**/*.ts",
-    "backend/**/*.ts"
+    "backend/**/*.ts",
+    "common/**/*.ts"
   ],
   "exclude": ["**/node_modules", "build"]
 }
