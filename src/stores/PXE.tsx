@@ -1,20 +1,27 @@
 import { PXE, createPXEClient } from "@aztec/aztec.js";
-
 import { useEffect, useState, useRef } from "react";
 
+import { CLIENT_SOCKET } from "utils/sockets";
 import { StoreFactory } from "stores";
+
+type PXEState = {
+  connected: boolean;
+  sandboxClient: PXE;
+  pxeClient: PXE | null;
+};
 
 const TIMEOUT = 5_000;
 
-function createClient() {
+function createSandboxClient() {
   return createPXEClient(process.env.PXE_URL!);
 }
 
-function createState(): { pxeClient: PXE; connected: boolean } {
+function createState(): PXEState {
   const checkingRef = useRef(false);
 
-  const [pxeClient] = useState<PXE>(createClient);
   const [connected, setConnected] = useState<boolean>(false);
+  const [sandboxClient] = useState<PXE>(createSandboxClient);
+  const [pxeClient, setPXEClient] = useState<PXE | null>(null);
 
   async function checkConnection() {
     if (checkingRef.current) return;
@@ -22,9 +29,8 @@ function createState(): { pxeClient: PXE; connected: boolean } {
     checkingRef.current = true;
 
     try {
-      const blockNumber = await pxeClient.getBlockNumber();
+      await sandboxClient.getBlockNumber();
 
-      // console.log(blockNumber);
       setConnected(true);
       //
     } catch (e: unknown) {
@@ -39,20 +45,32 @@ function createState(): { pxeClient: PXE; connected: boolean } {
       checkConnection();
       const timer = setInterval(checkConnection, TIMEOUT);
 
+      function handlePXEReady(event: MessageEvent<string>) {
+        if (event.data.includes("ready ")) {
+          const url = event.data.split(" ")[1];
+
+          console.log(url);
+          setPXEClient(createPXEClient(url));
+        }
+      }
+
+      CLIENT_SOCKET.addEventListener("message", handlePXEReady);
+
       return () => {
+        CLIENT_SOCKET.removeEventListener("message", handlePXEReady);
+
         clearInterval(timer);
       };
     }, //
     [],
-  ); // console.log("DeviceLocation createState");
+  );
 
   return {
-    pxeClient,
     connected,
+    pxeClient,
+    sandboxClient,
   };
 }
 
-export const { Provider: PXEClientProvider, useProvider: usePXEClient } = StoreFactory<{
-  pxeClient: PXE;
-  connected: boolean;
-}>(createState);
+export const { Provider: PXEClientProvider, useProvider: usePXEClient } =
+  StoreFactory<PXEState>(createState);

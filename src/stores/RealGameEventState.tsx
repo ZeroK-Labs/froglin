@@ -65,7 +65,7 @@ function createState(): GameEventState {
 
   async function fetchData() {
     try {
-      const response = await fetch("https://localhost:3002/game");
+      const response = await fetch(`${process.env.BACKEND_URL}/game`);
 
       const event: ServerGameEventState = await response.json();
 

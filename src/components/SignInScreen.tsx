@@ -1,7 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { AccountManager } from "@aztec/aztec.js/account";
-import { SingleKeyAccountContract } from "@aztec/accounts/single_key";
-import { Fr, deriveMasterIncomingViewingSecretKey } from "@aztec/aztec.js";
 
 import { usePXEClient } from "stores";
 import { stringToBigInt } from "utils/math";
@@ -45,10 +42,9 @@ export default function SignInScreen({ setUser }: { setUser: (a: boolean) => voi
 
   const [inputKey, setInputKey] = useState("");
   const [username, setUsername] = useState("");
-  const [loading, setLoading] = useState(false);
   const [visible, setVisible] = useState(false);
 
-  const { connected, pxeClient } = usePXEClient();
+  const { pxeClient } = usePXEClient();
 
   const completionPercentage = Math.floor((inputKey.length / INPUT_KEY_LENGTH) * 100);
 
@@ -90,6 +86,17 @@ export default function SignInScreen({ setUser }: { setUser: (a: boolean) => voi
 
   useEffect(
     () => {
+      const secretString = localStorage.getItem("user");
+      if (!secretString) return;
+
+      setUser(true);
+      console.log("User loaded from localStorage");
+    }, //
+    [],
+  );
+
+  useEffect(
+    () => {
       if (inputKey.length < INPUT_KEY_LENGTH) return;
       if (inputKey.length > INPUT_KEY_LENGTH) {
         setInputKey(inputKey.slice(0, INPUT_KEY_LENGTH));
@@ -97,31 +104,12 @@ export default function SignInScreen({ setUser }: { setUser: (a: boolean) => voi
         return;
       }
 
-      // TODO: uncomment this when we deploy the sandbox
-      // if (!pxeClient) return;
+      const secretKey = stringToBigInt(inputKey);
 
-      setLoading(true);
+      localStorage.setItem("user", secretKey.toString());
+      localStorage.setItem("username", username);
 
-      async function registerAccount() {
-        const secretKey = stringToBigInt(inputKey);
-        const keyFr = new Fr(secretKey);
-        const encryptionPrivateKey = deriveMasterIncomingViewingSecretKey(keyFr);
-
-        localStorage.setItem("user", JSON.stringify(encryptionPrivateKey));
-        localStorage.setItem("username", username);
-
-        const accountContract = new SingleKeyAccountContract(encryptionPrivateKey);
-        const accountManager = new AccountManager(pxeClient, keyFr, accountContract);
-        const wallet = await accountManager.register();
-        if (!wallet) return;
-
-        setTimeout(() => {
-          setUser(true);
-          setLoading(false);
-        }, 3_000);
-      }
-
-      registerAccount();
+      setUser(true);
     }, //
     [inputKey],
   );
@@ -129,7 +117,7 @@ export default function SignInScreen({ setUser }: { setUser: (a: boolean) => voi
   return (
     <>
       {visible ? (
-        <div className="fixed left-3 top-[10vh] bg-[#6c5ce7] border-4  border-purple-950 rounded-sm right-4 p-2 flex flex-col items-center z-[10000]">
+        <div className="fixed left-3 top-[10vh] bg-[#6c5ce7] border-4 border-purple-950 rounded-sm right-4 p-2 flex flex-col items-center z-[10000]">
           <div className="mb-4">
             <label className="block text-white text-sm font-bold mb-2">Sign In</label>
 
@@ -169,7 +157,7 @@ export default function SignInScreen({ setUser }: { setUser: (a: boolean) => voi
               </div>
             </>
           ) : null}
-
+          {/*
           {loading ? (
             <>
               <br />
@@ -180,11 +168,11 @@ export default function SignInScreen({ setUser }: { setUser: (a: boolean) => voi
               </div>
               <code>{"PrivateMutable<ValueNote>"}</code>
             </>
-          ) : null}
+          ) : null} */}
         </div>
       ) : null}
 
-      {connected ? (
+      {pxeClient ? (
         <div className="fixed bottom-24 left-0 right-0 mx-auto flex justify-center">
           <button
             type="button"
@@ -195,13 +183,6 @@ export default function SignInScreen({ setUser }: { setUser: (a: boolean) => voi
           </button>
         </div>
       ) : null}
-
-      {/* TODO: move this some place else */}
-      <div
-        className={`z-[9998] fixed bottom-2 right-2 text-sm text-red-600 ${connected ? "" : "animate-fade-in-out"}`}
-      >
-        {connected ? "✅" : "PXE is not connected 🟥"}
-      </div>
     </>
   );
 }
