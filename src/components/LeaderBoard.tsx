@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { VIEW } from "settings";
+import { useEffect, useState } from "react";
+import Modal from "components/Modal";
 
 type LeaderBoardState = {
   leaderBoard: boolean;
@@ -12,8 +12,6 @@ type LeaderBoardData = {
 };
 
 function LeaderBoard({ leaderBoard, setLeaderBoard }: LeaderBoardState) {
-  const divRef = useRef<HTMLDivElement>(null);
-
   const [leaderBoardData, setLeaderBoardData] = useState<LeaderBoardData[]>([]);
 
   useEffect(() => {
@@ -30,42 +28,12 @@ function LeaderBoard({ leaderBoard, setLeaderBoard }: LeaderBoardState) {
     fetchLeaderBoard();
   }, []);
 
-  function handleClose(ev: MouseEvent | React.BaseSyntheticEvent) {
-    if (
-      !(ev.target instanceof HTMLButtonElement) &&
-      divRef.current &&
-      divRef.current.contains(ev.target as Node)
-    ) {
-      return;
-    }
-
-    setLeaderBoard(false);
-  }
-
-  useEffect(
-    () => {
-      if (!leaderBoard) return;
-
-      document.addEventListener("click", handleClose);
-
-      return () => {
-        document.removeEventListener("click", handleClose);
-      };
-    }, //
-    [leaderBoard],
-  );
   return (
     <>
-      <div
-        ref={divRef}
-        className={`fixed left-3 p-2 top-[10vh] z-[9999] hide-scrollbar overflow-scroll border-2 bg-[#6c5ce7] transition-all ${leaderBoard ? "" : "invisible"} `}
-        style={{
-          width: "calc(100% - 1.5rem)",
-          borderColor: "#9c6e3f",
-          opacity: leaderBoard ? 1 : 0,
-          pointerEvents: leaderBoard ? "auto" : "none",
-          transitionDuration: `${VIEW.TUTORIAL_FADE_ANIMATION_DURATION}ms`,
-        }}
+      <Modal
+        isOpen={leaderBoard}
+        setIsOpen={setLeaderBoard}
+        borderColor="#9c6e3f"
       >
         <div className="flex flex-col max-h-[500px] backdrop-blur pointer-events-auto">
           <div className="relative p-4 overflow-y-scroll max-h-[500px]">
@@ -90,7 +58,7 @@ function LeaderBoard({ leaderBoard, setLeaderBoard }: LeaderBoardState) {
             ))}
           </div>
         </div>
-      </div>
+      </Modal>
     </>
   );
 }
