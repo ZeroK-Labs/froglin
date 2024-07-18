@@ -1,6 +1,6 @@
 #!/bin/bash
 
-COMMAND="DEBUG=aztec:* docker compose -f $HOME/.aztec/docker-compose.yml -p sandbox up"
+COMMAND="DEBUG=aztec:* docker compose -f $HOME/.aztec/docker-compose.sandbox.yml -p sandbox up"
 
 open_new_terminal_and_run_sandbox() {
   local TITLE="aztec-sandbox"

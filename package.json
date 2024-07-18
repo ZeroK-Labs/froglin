@@ -18,8 +18,8 @@
     "!*.test.*"
   ],
   "dependencies": {
-    "@aztec/accounts": "0.46.5",
-    "@aztec/aztec.js": "0.46.5",
+    "@aztec/accounts": "0.46.7",
+    "@aztec/aztec.js": "0.46.7",
     "@react-three/drei": "9.108.4",
     "@react-three/fiber": "8.16.8",
     "mapbox-gl": "3.4.0",
@@ -74,6 +74,7 @@
     "push-staging": "scripts/git/push_staging.sh",
     "aztec:build": "scripts/aztec/build.sh",
     "aztec:start": "scripts/aztec/start.sh",
+    "backend:start": "bun backend/start.ts",
     "typescript:compile": "tsc --noEmit --pretty",
     "webpack:clean": "scripts/webpack/clean.sh",
     "webpack:build": "scripts/webpack/build.sh",
