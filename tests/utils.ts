@@ -1,5 +1,4 @@
 import { AccountWallet, PXE } from "@aztec/aztec.js";
-import { exec } from "child_process";
 
 import { FroglinContract } from "contracts/artifacts/Froglin";
 import {
@@ -34,6 +33,10 @@ export function createPXEServer(): Promise<string> {
 
     const [port, pxe] = createPXEServiceProcess();
 
+    // pxe.stderr!.on("data", (data) => {
+    //   process.stderr.write(data);
+    // });
+
     pxe.stdout!.on("data", (data) => {
       // process.stdout.write(data);
 
@@ -45,17 +48,12 @@ export function createPXEServer(): Promise<string> {
       resolve(`http://${process.env.SANDBOX_HOST}:${port}`);
     });
 
-    pxe.stderr!.on("data", (data) => {
-      process.stderr.write(data);
+    pxe.on("close", (code) => {
+      const msg = `PXE process exited with code ${code}`;
+      console.log(msg);
 
-      exec(`pkill -f ${port}`);
-
-      reject(data);
+      reject(msg);
     });
-
-    // pxe.on("close", (code) => {
-    //   console.log(`PXE process exited with code ${code}`);
-    // });
   });
 }
 

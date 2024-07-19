@@ -23,8 +23,7 @@ export function createPXEServiceProcess(): [number, ChildProcess] {
 
   return [
     port,
-    // spawn PXE process in same terminal session
-    spawn(`script -q -c "aztec start -p ${port} --pxe nodeUrl=${SANDBOX_URL}"`, {
+    spawn(`scripts/aztec/create_PXE.sh ${port} ${SANDBOX_URL}`, {
       shell: true,
       stdio: ["ignore", "pipe", "pipe"],
     }),

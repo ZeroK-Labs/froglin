@@ -31,6 +31,10 @@ export function createSocketServer(options?: ServerOptions) {
       destroyPXEServiceProcess(port);
     });
 
+    // pxe.stderr!.on("data", (data) => {
+    //   process.stderr.write(data);
+    // });
+
     pxe.stdout!.on("data", (data) => {
       // process.stdout.write(data);
 
@@ -43,12 +47,9 @@ export function createSocketServer(options?: ServerOptions) {
       socket.send(`ready ${url}`);
     });
 
-    pxe.stderr!.on("data", (data) => {
-      process.stderr.write(data);
-    });
-
     pxe.on("close", (code) => {
-      console.log(`PXE process exited with code ${code}`);
+      const msg = `PXE process exited with code ${code}`;
+      console.log(msg);
 
       delete PXEies[sessionId];
     });
