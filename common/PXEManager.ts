@@ -1,19 +1,21 @@
 import { ChildProcess, spawn, exec } from "child_process";
 
-import { getLocalIP } from "./IPUtils";
+import { getLocalIP } from "../common/IPUtils";
 
-export const LOCAL_IP = `http://${getLocalIP()}:`;
-export const SANDBOX_URL = LOCAL_IP + "8080";
-
-const PXE_PORT_LOWER_BOUND = 8081;
+const PXE_PORT_LOWER_BOUND = Number(process.env.SANDBOX_PORT) + 1;
+const PXE_PORT_UPPER_BOUND = 65535;
 const allocatedPorts: number[] = [];
+
+// TODO: cannot access sandbox using localhost, need IP (should be PXE_HOST)
+const SANDBOX_URL = `http://${getLocalIP()}:${process.env.SANDBOX_PORT}`;
 
 export function createPXEServiceProcess(): [number, ChildProcess] {
   // generate a port
   let port: number;
   do {
     port =
-      Math.floor(Math.random() * (65535 - PXE_PORT_LOWER_BOUND)) + PXE_PORT_LOWER_BOUND;
+      Math.floor(Math.random() * (PXE_PORT_UPPER_BOUND - PXE_PORT_LOWER_BOUND)) +
+      PXE_PORT_LOWER_BOUND;
     //
   } while (allocatedPorts.indexOf(port) !== -1);
 
@@ -31,7 +33,10 @@ export function createPXEServiceProcess(): [number, ChildProcess] {
 
 export function destroyPXEServiceProcess(port: number) {
   const index = allocatedPorts.indexOf(port);
-  if (index === -1) throw `Failed to destroy PXE service due to port ${port} missing from registry`;
+  if (index === -1) {
+    throw `Failed to destroy PXE service: port ${port} missing from registry`;
+  }
+
   allocatedPorts.splice(index, 1);
 
   exec(`pkill -f ${port}`);

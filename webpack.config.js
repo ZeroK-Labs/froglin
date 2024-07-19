@@ -10,15 +10,20 @@ import webpack from "webpack";
 
 import loadenv from "./scripts/loadenv.js";
 
-// @ts-expect-error: arguments can be any object
-export default (_, argv) => {
-  const mode = argv.env.mode || "dev";
-  const development = mode === "dev";
-  const production = !development;
+export default () => {
+  // extract mode from command-line args
+  let index = 0;
 
+  if (process.argv[2] === "--env") index = 3;
+  else if (process.argv[2] === "serve") index = 4;
+  else throw "Unable to identify 'mode' parameter from command line arguments";
+
+  // prepare environment
+  const mode = process.argv.slice(index)[0].split("=")[1];
   loadenv(mode);
 
-  console.log(`\n\x1b[32m${process.env.NODE_ENV}\x1b[0m mode\n`);
+  const development = mode === "dev";
+  const production = !development;
 
   //
   // https://webpack.js.org/configuration
@@ -69,7 +74,10 @@ export default (_, argv) => {
       new webpack.DefinePlugin({
         "process.env": {
           NODE_ENV: JSON.stringify(process.env.NODE_ENV),
-          PXE_URL: JSON.stringify(process.env.PXE_URL),
+          SANDBOX_PORT: JSON.stringify(process.env.SANDBOX_PORT),
+          SANDBOX_URL: JSON.stringify(process.env.SANDBOX_URL),
+          BACKEND_URL: JSON.stringify(process.env.BACKEND_URL),
+          WSS_URL: JSON.stringify(process.env.WSS_URL),
           REACT_APP_MAPBOX_ACCESS_TOKEN: JSON.stringify(
             process.env.MAPBOX_ACCESS_TOKEN,
           ),

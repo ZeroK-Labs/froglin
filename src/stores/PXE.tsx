@@ -13,7 +13,7 @@ type PXEState = {
 const TIMEOUT = 5_000;
 
 function createSandboxClient() {
-  return createPXEClient(process.env.PXE_URL!);
+  return createPXEClient(process.env.SANDBOX_URL!);
 }
 
 function createState(): PXEState {
@@ -42,24 +42,22 @@ function createState(): PXEState {
 
   useEffect(
     () => {
-      checkConnection();
-      const timer = setInterval(checkConnection, TIMEOUT);
-
       function handlePXEReady(event: MessageEvent<string>) {
         if (event.data.includes("ready ")) {
           const url = event.data.split(" ")[1];
-
-          console.log(url);
           setPXEClient(createPXEClient(url));
         }
       }
 
       CLIENT_SOCKET.addEventListener("message", handlePXEReady);
 
-      return () => {
-        CLIENT_SOCKET.removeEventListener("message", handlePXEReady);
+      checkConnection();
+      const timer = setInterval(checkConnection, TIMEOUT);
 
+      return () => {
         clearInterval(timer);
+
+        CLIENT_SOCKET.removeEventListener("message", handlePXEReady);
       };
     }, //
     [],

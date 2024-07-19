@@ -1,4 +1,4 @@
-export const CLIENT_SOCKET = new WebSocket("wss://localhost:3002");
+export const CLIENT_SOCKET = new WebSocket(process.env.WSS_URL!);
 
 CLIENT_SOCKET.addEventListener("open", () => {
   console.log("WebSocket connection established");

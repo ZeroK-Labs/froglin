@@ -6,32 +6,25 @@ export default (mode = "dev") => {
   const envFile = mode === "dev" ? ".env/dev" : ".env/prod";
 
   if (fs.existsSync(envFile)) dotenv.config({ path: envFile });
-  else {
-    console.error(`Missing required file '${envFile}' while preparing environment`);
-
-    process.exit(1);
-  }
+  else throw `Missing required file '${envFile}' while preparing environment`;
 
   process.env.NODE_ENV = mode === "dev" ? "development" : "production";
 
-  process.env.PXE_PROTOCOL = process.env.PXE_PROTOCOL || "http";
-  process.env.PXE_HOST = process.env.PXE_HOST || "localhost";
-  process.env.PXE_PORT = process.env.PXE_PORT || "8080";
-  process.env.WEBPACK_PROTOCOL = process.env.WEBPACK_PROTOCOL || "https";
-  process.env.WEBPACK_HOST = process.env.WEBPACK_HOST || "localhost";
-  process.env.WEBPACK_PORT = process.env.WEBPACK_PORT || "3001";
-
-  process.env.PXE_URL =
-    process.env.PXE_PROTOCOL +
+  process.env.SANDBOX_URL =
+    process.env.SANDBOX_PROTOCOL +
     "://" +
-    process.env.PXE_HOST +
+    process.env.SANDBOX_HOST +
     ":" +
-    process.env.PXE_PORT;
+    process.env.SANDBOX_PORT;
 
-  process.env.WEBPACK_URL =
-    process.env.WEBPACK_PROTOCOL +
+  process.env.BACKEND_URL =
+    process.env.BACKEND_PROTOCOL +
     "://" +
-    process.env.WEBPACK_HOST +
+    process.env.BACKEND_HOST +
     ":" +
-    process.env.WEBPACK_PORT;
+    process.env.BACKEND_PORT;
+
+  process.env.WSS_URL = `wss://${process.env.BACKEND_HOST}:${process.env.BACKEND_PORT}`;
+
+  console.log(`\n\x1b[32m${process.env.NODE_ENV}\x1b[0m mode\n`);
 };

@@ -17,7 +17,7 @@ function LeaderBoard({ leaderBoard, setLeaderBoard }: LeaderBoardState) {
   useEffect(() => {
     async function fetchLeaderBoard() {
       try {
-        const response = await fetch("https://localhost:3002/leaderboard");
+        const response = await fetch(`${process.env.BACKEND_URL}/leaderboard`);
 
         const data = await response.json();
         setLeaderBoardData(data);

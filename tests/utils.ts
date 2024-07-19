@@ -4,7 +4,6 @@ import { exec } from "child_process";
 import { FroglinContract } from "contracts/artifacts/Froglin";
 import {
   createPXEServiceProcess,
-  LOCAL_IP,
   destroyPXEServiceProcess,
 } from "../common/PXEManager";
 
@@ -41,7 +40,9 @@ export function createPXEServer(): Promise<string> {
       if (!data.includes(`Aztec Server listening on port ${port}`)) return;
 
       console.log("PXE sever created successfully!");
-      resolve(LOCAL_IP + port);
+
+      // TODO: this only allows HTTP under HTTPS for localhost, for server we need certificates
+      resolve(`http://${process.env.SANDBOX_HOST}:${port}`);
     });
 
     pxe.stderr!.on("data", (data) => {

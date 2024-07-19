@@ -1,3 +1,5 @@
+import "./prepare";
+
 import cors from "cors";
 import express from "express";
 import fs from "fs";
@@ -17,9 +19,7 @@ app.use(cors());
 app.get("/game", getGame);
 app.get("/leaderboard", getLeaderboard);
 
-// HTML SERVER
-const PORT = 3002;
-
+// SSL certificates
 const certPath = path.resolve("certificates/localhost-cert.pem");
 const keyPath = path.resolve("certificates/localhost-key.pem");
 
@@ -28,11 +28,12 @@ const options = {
   cert: fs.readFileSync(certPath),
 };
 
+// HTML SERVER
 const html_server = https.createServer(options, app);
 
-html_server.listen(PORT, () => {
+html_server.listen(Number(process.env.BACKEND_PORT), () => {
   console.log(
-    `\nWebserver is \x1b[32mlive\x1b[0m @ \x1b[1m\x1b[34mhttps\x1b[0m\x1b[0m://localhost:${PORT}\x1b[0m\n`,
+    `Webserver is \x1b[32mlive\x1b[0m @ \x1b[1m\x1b[34mhttps\x1b[0m\x1b[0m://localhost:${process.env.BACKEND_PORT}\x1b[0m\n`,
   );
 });
 

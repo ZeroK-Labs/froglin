@@ -1,8 +1,8 @@
 import { ChildProcess } from "child_process";
 import { WebSocketServer, ServerOptions } from "ws";
+
 import {
   createPXEServiceProcess,
-  LOCAL_IP,
   destroyPXEServiceProcess,
 } from "../common/PXEManager";
 
@@ -15,12 +15,10 @@ export function createSocketServer(options?: ServerOptions) {
 
   ws_server.on("connection", (socket: WebSocket, request) => {
     const sessionId = request.headers["sec-websocket-key"];
-
     if (!sessionId) throw "Socket connection error: missing request sec-websocket-key";
 
     const [port, pxe] = createPXEServiceProcess();
 
-    const url = LOCAL_IP + port;
     PXEies[sessionId] = { pxe };
 
     socket.on("message", (message) => {
@@ -37,6 +35,9 @@ export function createSocketServer(options?: ServerOptions) {
       // process.stdout.write(data);
 
       if (!data.includes(`Aztec Server listening on port ${port}`)) return;
+
+      // TODO: this only allows HTTP under HTTPS for localhost, for server we need certificates
+      const url = `http://${process.env.SANDBOX_HOST}:${port}`;
 
       console.log("Client PXE ready", url);
       socket.send(`ready ${url}`);
