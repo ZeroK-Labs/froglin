@@ -13,9 +13,10 @@ import loadenv from "./scripts/loadenv.js";
 export default () => {
   // extract mode from command-line args
   let index = 0;
+  const serving = process.argv[2] === "serve";
 
   if (process.argv[2] === "--env") index = 3;
-  else if (process.argv[2] === "serve") index = 4;
+  else if (serving) index = 4;
   else throw "Unable to identify 'mode' parameter from command line arguments";
 
   // prepare environment
@@ -171,7 +172,7 @@ export default () => {
                 ecma: 2020,
                 module: true,
                 arguments: true,
-                drop_console: true,
+                // drop_console: true,
                 keep_fargs: false,
                 toplevel: true,
                 properties: true,
@@ -207,23 +208,25 @@ export default () => {
     //
     // https://webpack.js.org/configuration/dev-server
     //
-    devServer: {
-      port: process.env.WEBPACK_PORT,
-      allowedHosts: "all",
-      historyApiFallback: true,
-      hot: development,
-      liveReload: production,
-      client: {
-        logging: development ? "verbose" : "none",
-        reconnect: true,
-      },
-      server: {
-        type: "https",
-        options: {
-          key: fs.readFileSync(path.resolve(process.env.SSL_KEY)),
-          cert: fs.readFileSync(path.resolve(process.env.SSL_CERT)),
+    ...(serving && {
+      devServer: {
+        port: process.env.WEBPACK_PORT,
+        allowedHosts: "all",
+        historyApiFallback: true,
+        hot: development,
+        liveReload: production,
+        client: {
+          logging: development ? "verbose" : "none",
+          reconnect: true,
+        },
+        server: {
+          type: "https",
+          options: {
+            key: fs.readFileSync(path.resolve(process.env.SSL_KEY)),
+            cert: fs.readFileSync(path.resolve(process.env.SSL_CERT)),
+          },
         },
       },
-    },
+    }),
   };
 };
