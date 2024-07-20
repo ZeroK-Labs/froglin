@@ -2,7 +2,7 @@ import { LngLat, MercatorCoordinate } from "mapbox-gl";
 import { Quaternion, Euler, Vector3, Matrix4 } from "three";
 
 import { AngleToRadian, MinusHalfPI } from "./math";
-import { EVENT } from "../settings";
+import { EVENT } from "../../src/settings";
 import { MapCoordinates } from "types";
 
 // radius of Earth in kilometers; 3956 for miles

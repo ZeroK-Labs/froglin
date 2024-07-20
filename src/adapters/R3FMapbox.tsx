@@ -4,7 +4,7 @@ import { Layer, useMap } from "react-map-gl";
 import { PropsWithChildren, useEffect, useState } from "react";
 
 import MapCoordinates from "types/MapCoordinates";
-import { getMatrixTransformForCoordinate } from "utils/map";
+import { getMatrixTransformForCoordinate } from "../../common/utils/map";
 
 interface BaseCanvasProps
   extends Omit<R3F.RenderProps<HTMLCanvasElement>, "dpr">,

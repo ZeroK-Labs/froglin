@@ -3,7 +3,7 @@ import { BackSide, FrontSide } from "three";
 import { useEffect, useState } from "react";
 
 import { RevealingCircleState } from "types";
-import { MinusHalfPI } from "utils/math";
+import { MinusHalfPI } from "../../../common/utils/math";
 import { PLAYER } from "settings";
 
 export default function RevealingCircle({

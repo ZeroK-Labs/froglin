@@ -6,7 +6,7 @@ import { Froglin, InterestPoint, MapCoordinates, TimeoutId } from "types";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { StoreFactory, useLocation } from "stores";
 import { nullMapCoordinates } from "classes/MapCoordinates";
-import { getInterestPoints, getBoundsForCoordinate } from "utils/map";
+import { getInterestPoints, getBoundsForCoordinate } from "../../common/utils/map";
 
 function getFarInterestPoints(coords: MapCoordinates, count: number) {
   return getInterestPoints(coords, count, EVENT.FAR_RANGE.FROM, EVENT.FAR_RANGE.TO);

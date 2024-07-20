@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { LOCATION } from "settings";
 import { LocationInfo, TimeoutId } from "types";
 import { StoreFactory } from "stores";
-import { getDistance } from "utils/map";
+import { getDistance } from "../../common/utils/map";
 import { nullMapCoordinates, nullifyMapCoordinates } from "classes/MapCoordinates";
 
 function createState(): LocationInfo {

@@ -5,7 +5,7 @@ import { FROGLIN, PLAYER } from "settings";
 import { Froglin, InterestPoint, MapCoordinates } from "types";
 import { MAP_VIEWS } from "enums";
 import { PlayerMarkerImage, TrapMarkerList } from "components";
-import { inRange, inTriangle } from "utils/map";
+import { inRange, inTriangle } from "../../common/utils/map";
 import { useRealEventState, useRevealingCircleState, useLocation } from "stores";
 
 type Props = {
