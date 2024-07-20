@@ -19,16 +19,12 @@ app.use(cors());
 app.get("/game", getGame);
 app.get("/leaderboard", getLeaderboard);
 
-// SSL certificates
-const certPath = path.resolve("certificates/localhost-cert.pem");
-const keyPath = path.resolve("certificates/localhost-key.pem");
-
+// HTML SERVER
 const options = {
-  key: fs.readFileSync(keyPath),
-  cert: fs.readFileSync(certPath),
+  key: fs.readFileSync(path.resolve(process.env.SSL_KEY!)),
+  cert: fs.readFileSync(path.resolve(process.env.SSL_CERT!)),
 };
 
-// HTML SERVER
 const html_server = https.createServer(options, app);
 
 html_server.listen(Number(process.env.BACKEND_PORT), () => {

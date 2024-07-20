@@ -220,8 +220,8 @@ export default () => {
       server: {
         type: "https",
         options: {
-          key: fs.readFileSync(path.resolve("certificates/localhost-key.pem")),
-          cert: fs.readFileSync(path.resolve("certificates/localhost-cert.pem")),
+          key: fs.readFileSync(path.resolve(process.env.SSL_KEY)),
+          cert: fs.readFileSync(path.resolve(process.env.SSL_CERT)),
         },
       },
     },
