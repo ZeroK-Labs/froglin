@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if command -v apache2 &>/dev/null || command -v httpd &>/dev/null; then
+  echo "ProxyPassReverse /pxe http://localhost:$1" >> "/etc/apache2/sites-available/froglin.proxy.conf"
+  apachectl graceful
+fi;
+
 docker run                    \
   --rm                        \
   --workdir "$PWD"            \

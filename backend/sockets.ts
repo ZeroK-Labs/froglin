@@ -8,7 +8,12 @@ import {
 
 let ws_server: WebSocketServer;
 
-const PXEies: { [key: string]: { pxe: ChildProcess } } = {};
+const PXEies: { [key: string]: ChildProcess } = {};
+
+const PXE_ROOT_URL =
+  process.env.SANDBOX_HOST === "localhost"
+    ? `http://localhost:`
+    : `https://${process.env.SANDBOX_HOST}/pxe/`;
 
 export function createSocketServer(options?: ServerOptions) {
   ws_server = new WebSocketServer(options);
@@ -19,7 +24,7 @@ export function createSocketServer(options?: ServerOptions) {
 
     const [port, pxe] = createPXEServiceProcess();
 
-    PXEies[sessionId] = { pxe };
+    PXEies[sessionId] = pxe;
 
     socket.on("message", (message) => {
       console.log(`Received message: ${message}`);
@@ -40,11 +45,9 @@ export function createSocketServer(options?: ServerOptions) {
 
       if (!data.includes(`Aztec Server listening on port ${port}`)) return;
 
-      // TODO: this only allows HTTP under HTTPS for localhost, for server we need certificates
-      const url = `http://${process.env.SANDBOX_HOST}:${port}`;
-
-      console.log("Client PXE ready", url);
+      const url = `${PXE_ROOT_URL}${port}`;
       socket.send(`ready ${url}`);
+      console.log("PXE ready", url);
     });
 
     pxe.on("close", (code) => {
@@ -73,11 +76,9 @@ export function destroySocketServer() {
     if (client.readyState === WebSocket.OPEN) client.close();
   }
 
-  for (const sessionId in PXEies) {
-    const { pxe } = PXEies[sessionId];
-    pxe.kill();
-    delete PXEies[sessionId];
-  }
+  // for (const sessionId in PXEies) {
+  //   PXEies[sessionId].kill();
+  // }
 
   ws_server.close();
 }

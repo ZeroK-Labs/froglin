@@ -1,4 +1,4 @@
-import { ChildProcess, spawn, exec } from "child_process";
+import { ChildProcess, spawn } from "child_process";
 
 import { getLocalIP } from "../common/IPUtils";
 
@@ -6,7 +6,7 @@ const PXE_PORT_LOWER_BOUND = Number(process.env.SANDBOX_PORT) + 1;
 const PXE_PORT_UPPER_BOUND = 65535;
 const allocatedPorts: number[] = [];
 
-// TODO: cannot access sandbox using localhost, need IP (should be PXE_HOST)
+// TODO: cannot access sandbox using localhost, need IP (should be SANDBOX_HOST)
 const SANDBOX_URL = `http://${getLocalIP()}:${process.env.SANDBOX_PORT}`;
 
 export function createPXEServiceProcess(): [number, ChildProcess] {
@@ -33,10 +33,13 @@ export function createPXEServiceProcess(): [number, ChildProcess] {
 export function destroyPXEServiceProcess(port: number) {
   const index = allocatedPorts.indexOf(port);
   if (index === -1) {
-    throw `Failed to destroy PXE service: port ${port} missing from registry`;
+    console.log(`Failed to destroy PXE service: port ${port} is missing from registry`);
   }
 
   allocatedPorts.splice(index, 1);
 
-  exec(`pkill -f ${port}`);
+  spawn(`scripts/aztec/destroy_PXE.sh ${port}`, {
+    shell: true,
+    stdio: "ignore", //"inherit",
+  });
 }
