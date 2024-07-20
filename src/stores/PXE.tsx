@@ -42,10 +42,18 @@ function createState(): PXEState {
 
   useEffect(
     () => {
-      function handlePXEReady(event: MessageEvent<string>) {
+      async function handlePXEReady(event: MessageEvent<string>) {
         if (event.data.includes("ready ")) {
           const url = event.data.split(" ")[1];
-          setPXEClient(createPXEClient(url));
+          const pxe = createPXEClient(url);
+          try {
+            await pxe.getPXEInfo(); // wait until PXE is connected
+            setPXEClient(pxe);
+            //
+          } catch (err) {
+            console.error(`Failed to create PXE client @ ${url}`);
+            console.error(err);
+          }
         }
       }
 
