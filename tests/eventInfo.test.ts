@@ -21,7 +21,7 @@ describe("EventInfo Tests", () => {
     console.log("Creating deployment account...");
 
     game_master.secret = 0x123n;
-    game_master.pxe_url = "http://localhost:8080";
+    game_master.pxe_url = `http://localhost:${process.env.SANDBOX_PORT}`;
     game_master.pxe = createPXEClient(game_master.pxe_url);
     game_master.wallet = await createWallet(game_master.secret, game_master.pxe);
 

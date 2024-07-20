@@ -29,7 +29,7 @@ export function stringToBigInt(str: string): bigint {
 
 export function createPXEServer(): Promise<string> {
   return new Promise<string>((resolve, reject) => {
-    console.log("Creating PXE server...");
+    console.log("Creating PXE...");
 
     const [port, pxe] = createPXEServiceProcess();
 
@@ -42,10 +42,10 @@ export function createPXEServer(): Promise<string> {
 
       if (!data.includes(`Aztec Server listening on port ${port}`)) return;
 
-      console.log("PXE sever created successfully!");
+      console.log("PXE created successfully!");
 
       // TODO: this only allows HTTP under HTTPS for localhost, for server we need certificates
-      resolve(`http://${process.env.SANDBOX_HOST}:${port}`);
+      resolve(`http://localhost:${port}`);
     });
 
     pxe.on("close", (code) => {
