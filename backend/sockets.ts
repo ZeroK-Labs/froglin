@@ -10,10 +10,10 @@ let ws_server: WebSocketServer;
 
 const PXEies: { [key: string]: ChildProcess } = {};
 
-const PXE_ROOT_URL =
-  process.env.SANDBOX_HOST === "localhost"
+const HOST =
+  process.env.BACKEND_HOST === "localhost"
     ? `http://localhost:`
-    : `https://${process.env.SANDBOX_HOST}/pxe/`;
+    : `https://${process.env.BACKEND_HOST}/pxe/`;
 
 export function createSocketServer(options?: ServerOptions) {
   ws_server = new WebSocketServer(options);
@@ -45,7 +45,7 @@ export function createSocketServer(options?: ServerOptions) {
 
       if (!data.includes(`Aztec Server listening on port ${port}`)) return;
 
-      const url = `${PXE_ROOT_URL}${port}`;
+      const url = `${HOST}${port}`;
       socket.send(`ready ${url}`);
       console.log("PXE ready", url);
     });

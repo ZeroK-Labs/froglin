@@ -1,7 +1,7 @@
 import os from "os";
 import { ChildProcess, spawn } from "child_process";
 
-// TODO: cannot access sandbox using localhost, need IP (should be SANDBOX_HOST)
+// TODO: cannot access sandbox using localhost, need specific IP
 export function getLocalIP() {
   const interfaces = os.networkInterfaces();
   if (!interfaces) throw "This device is missing a network adapter";
@@ -22,8 +22,8 @@ const PXE_PORT_LOWER_BOUND = Number(process.env.SANDBOX_PORT) + 1;
 const PXE_PORT_UPPER_BOUND = 65535;
 const allocatedPorts: number[] = [];
 
-// TODO: cannot access sandbox using localhost, need IP (should be SANDBOX_HOST)
-const SANDBOX_URL = `http://${getLocalIP()}:${process.env.SANDBOX_PORT}`;
+// TODO: cannot access sandbox using localhost, need specific IP
+const HOST = process.env.SANDBOX_URL!.replace("localhost", getLocalIP());
 
 export function createPXEServiceProcess(): [number, ChildProcess] {
   // generate a port
@@ -39,7 +39,7 @@ export function createPXEServiceProcess(): [number, ChildProcess] {
 
   return [
     port,
-    spawn(`scripts/aztec/create_PXE.sh ${port} ${SANDBOX_URL}`, {
+    spawn(`scripts/aztec/create_PXE.sh ${port} ${HOST}`, {
       shell: true,
       stdio: ["ignore", "pipe", "pipe"],
     }),
@@ -56,6 +56,6 @@ export function destroyPXEServiceProcess(port: number) {
 
   spawn(`scripts/aztec/destroy_PXE.sh ${port}`, {
     shell: true,
-    stdio: "ignore", //"inherit",
+    stdio: "ignore", // "inherit",
   });
 }

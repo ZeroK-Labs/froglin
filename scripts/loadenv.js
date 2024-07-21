@@ -10,11 +10,12 @@ export default (mode = "dev") => {
 
   process.env.NODE_ENV = mode === "dev" ? "development" : "production";
 
-  process.env.SANDBOX_URL =
-    (process.env.SANDBOX_HOST === "localhost"
+  process.env.SANDBOX_ROOT =
+    process.env.SANDBOX_HOST === "localhost"
       ? `http://localhost:`
-      : `https://${process.env.SANDBOX_HOST}/pxe/`) +
-    process.env.SANDBOX_PORT;
+      : `https://${process.env.SANDBOX_HOST}/pxe/`;
+
+  process.env.SANDBOX_URL = process.env.SANDBOX_ROOT + process.env.SANDBOX_PORT;
 
   process.env.BACKEND_URL =
     process.env.BACKEND_PROTOCOL +
