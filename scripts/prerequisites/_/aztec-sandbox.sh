@@ -4,16 +4,10 @@ get_version_aztec-sandbox() {
   scripts/docker/start.sh
 
   # stop sandbox
-  docker compose -p sandbox down > /dev/null 2>&1
+  docker compose -f $HOME/.aztec/docker-compose.yml -p sandbox down > /dev/null 2>&1
 
   # read the Node.js version from .nvmrc
-  local INSTALL_VERSION=$(
-    docker run                  \
-    --rm                        \
-    aztecprotocol/aztec:latest  \
-    aztec --version 2>/dev/null \
-    | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"
-  )
+  local INSTALL_VERSION=$(aztec --version 2>/dev/null | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
 
   # grep the line containing "@aztec/accounts"
   local line=$(grep '@aztec/aztec.js' package.json)
