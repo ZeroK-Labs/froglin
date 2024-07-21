@@ -14,6 +14,6 @@ install_bun() {
     echo "export PATH=$BUN_INSTALL/bin:\$PATH" >> $ENV_VARS_FILE
   fi
 
-  # reload bash context
-  source $ENV_VARS_FILE
+  export BUN_INSTALL="$HOME/.bun"
+  export PATH=$BUN_INSTALL/bin:$PATH
 }

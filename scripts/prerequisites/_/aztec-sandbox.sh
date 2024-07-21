@@ -37,8 +37,7 @@ install_aztec-sandbox() {
     echo "# aztec" >> $ENV_VARS_FILE
     echo export PATH="~/.aztec/bin":\$PATH >> $ENV_VARS_FILE
 
-    # reload bash context
-    source $ENV_VARS_FILE
+    export PATH=~/.aztec/bin:$PATH
   fi
 
   # Use grep to find the line containing "@aztec/accounts"
