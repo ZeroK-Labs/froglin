@@ -208,25 +208,23 @@ export default () => {
     //
     // https://webpack.js.org/configuration/dev-server
     //
-    ...(serving && {
-      devServer: {
-        port: process.env.WEBPACK_PORT,
-        allowedHosts: "all",
-        historyApiFallback: true,
-        hot: development,
-        liveReload: production,
-        client: {
-          logging: development ? "verbose" : "none",
-          reconnect: true,
-        },
-        server: {
-          type: "https",
-          options: {
-            key: fs.readFileSync(path.resolve(process.env.SSL_KEY)),
-            cert: fs.readFileSync(path.resolve(process.env.SSL_CERT)),
-          },
+    devServer: serving && {
+      port: process.env.WEBPACK_PORT,
+      allowedHosts: "all",
+      historyApiFallback: true,
+      hot: development,
+      liveReload: production,
+      client: {
+        logging: development ? "verbose" : "none",
+        reconnect: true,
+      },
+      server: {
+        type: "https",
+        options: {
+          key: fs.readFileSync(path.resolve(process.env.SSL_KEY)),
+          cert: fs.readFileSync(path.resolve(process.env.SSL_CERT)),
         },
       },
-    }),
+    },
   };
 };
