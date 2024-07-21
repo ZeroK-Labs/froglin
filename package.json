@@ -9,14 +9,6 @@
   "sideEffects": [
     "src/styles/global.css"
   ],
-  "files": [
-    "src/contracts/artifacts/*",
-    "src/contracts/target/*",
-    "src/components/*",
-    "src/pages/*",
-    "src/styles/*",
-    "!*.test.*"
-  ],
   "dependencies": {
     "@aztec/accounts": "0.46.7",
     "@aztec/aztec.js": "0.46.7",
