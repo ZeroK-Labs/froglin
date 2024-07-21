@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { createPXEClient } from "@aztec/aztec.js";
 
 import { AccountWithContract } from "./types";
-import { FroglinContract } from "contracts/artifacts/Froglin";
+import { FroglinContract } from "../contracts/artifacts/Froglin";
 import { createPXE, destroyPXE } from "./utils/PXE";
 import { createWallet } from "../common/WalletManager";
 import { stringToBigInt } from "../common/utils/bigint";

@@ -1,5 +1,5 @@
 import { PXE, AccountWallet } from "@aztec/aztec.js";
-import { FroglinContract } from "contracts/artifacts/Froglin";
+import { FroglinContract } from "../../contracts/artifacts/Froglin";
 
 type AccountWithContract = {
   secret: bigint;

@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd src/contracts
+cd contracts
 
 ${AZTEC_NARGO:-aztec-nargo} compile --silence-warnings

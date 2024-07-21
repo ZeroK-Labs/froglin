@@ -26,12 +26,11 @@
     "types": ["bun-types", "ws"]
   },
   "include": [
-    "scripts/loadenv.js",
-    "src/contracts/target/*.json",
-    "src/**/*.ts*",
-    "tests/**/*.ts",
     "backend/**/*.ts",
-    "common/**/*.ts"
+    "common/**/*.ts",
+    "contracts/target/**/*.ts",
+    "src/**/*.ts*",
+    "tests/**/*.ts"
   ],
   "exclude": ["**/node_modules", "build"]
 }

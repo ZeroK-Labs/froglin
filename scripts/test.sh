@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ! -f "src/contracts/artifacts/Froglin.ts" ]; then
+if [ ! -f "contracts/artifacts/Froglin.ts" ]; then
   scripts/aztec/prep.sh
 fi
 

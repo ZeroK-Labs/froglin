@@ -43,9 +43,9 @@ certificates
 # build-related output
 build
 dist
+contracts/artifacts
+contracts/target
 src/styles/global.css
-src/contracts/artifacts
-src/contracts/target
 codegenCache.json
 
 ############

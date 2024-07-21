@@ -1,5 +1,5 @@
 #!/bin/bash
 
-rm -rf                  \
-src/contracts/artifacts \
-src/contracts/target
+rm -rf              \
+contracts/artifacts \
+contracts/target

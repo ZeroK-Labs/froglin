@@ -16,11 +16,11 @@ get_version_aztec-sandbox() {
   local PACKAGE_VERSION=$(echo $line | sed -n 's/.*"@aztec\/aztec\.js": "\([0-9.]*\)".*/\1/p')
 
   # extract the toml file version
-  local TOML_VERSION=$(grep -oE 'aztec-packages-v[0-9]+\.[0-9]+\.[0-9]+' src/contracts/Nargo.toml | head -n 1 | sed -E 's/aztec-packages-v([0-9]+\.[0-9]+\.[0-9]+)/\1/')
+  local TOML_VERSION=$(grep -oE 'aztec-packages-v[0-9]+\.[0-9]+\.[0-9]+' contracts/Nargo.toml | head -n 1 | sed -E 's/aztec-packages-v([0-9]+\.[0-9]+\.[0-9]+)/\1/')
 
   # sync toml version with package version when different
   if [[ "$PACKAGE_VERSION" != "$TOML_VERSION" ]]; then
-    sed -i "s/aztec-packages-v$TOML_VERSION/aztec-packages-v$PACKAGE_VERSION/g" src/contracts/Nargo.toml
+    sed -i "s/aztec-packages-v$TOML_VERSION/aztec-packages-v$PACKAGE_VERSION/g" contracts/Nargo.toml
   fi
 
   if [[ "$PACKAGE_VERSION" == "$INSTALL_VERSION" ]]; then
