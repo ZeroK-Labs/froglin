@@ -1,4 +1,4 @@
-import { MapCoordinates } from "types";
+import { MapCoordinates } from "../../common/types";
 
 type Froglin = {
   id: number | string;

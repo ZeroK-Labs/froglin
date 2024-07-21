@@ -2,7 +2,7 @@ import { Map, MapRef } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 
 import { MAP_VIEWS } from "enums";
-import { RevealingCircleStateProvider, useRealEventState, useLocation } from "stores";
+import { RevealingCircleStateProvider, useGameEvent, useLocation } from "stores";
 import { VIEW } from "settings";
 import {
   CanvasOverlay,
@@ -27,7 +27,7 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
   const [map, setMap] = useState<mapboxgl.Map>();
 
   const location = useLocation();
-  const { getEventBounds, interestPoints, revealedFroglins } = useRealEventState();
+  const { getEventBounds, interestPoints, revealedFroglins } = useGameEvent();
 
   function mapCallback(node: MapRef) {
     if (!node) return;

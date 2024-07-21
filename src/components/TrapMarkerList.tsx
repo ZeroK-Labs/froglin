@@ -1,5 +1,5 @@
+import { MapCoordinates } from "../../common/types";
 import { TrapMarker } from "components";
-import { MapCoordinates } from "types";
 
 type Props = {
   traps: MapCoordinates[];

@@ -3,7 +3,7 @@ import * as R3F from "@react-three/fiber";
 import { Layer, useMap } from "react-map-gl";
 import { PropsWithChildren, useEffect, useState } from "react";
 
-import MapCoordinates from "types/MapCoordinates";
+import MapCoordinates from "../../common/types/MapCoordinates";
 import { getMatrixTransformForCoordinate } from "../../common/utils/map";
 
 interface BaseCanvasProps

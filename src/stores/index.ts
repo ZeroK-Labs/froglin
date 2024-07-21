@@ -1,6 +1,5 @@
 export { default as StoreFactory } from "./StoreFactory";
-export { DemoEventStateProvider, useDemoEventState } from "./GameEventState";
-export { RealEventStateProvider, useRealEventState } from "./RealGameEventState";
+export { GameEventProvider, useGameEvent } from "./GameEvent";
 export { LocationProvider, useLocation } from "./Location";
 export { PXEClientProvider, usePXEClient } from "./PXE";
 export {

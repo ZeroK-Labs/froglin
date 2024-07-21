@@ -1,5 +1,5 @@
 import { lazy, useEffect, useState } from "react";
-import { RealEventStateProvider, usePXEClient } from "stores";
+import { GameEventProvider, usePXEClient } from "stores";
 
 import { useTutorialState, useViewState } from "hooks";
 import { SingleKeyAccountContract } from "@aztec/accounts/single_key";
@@ -49,7 +49,7 @@ function AppWithUser() {
 
   return (
     <>
-      <RealEventStateProvider>
+      <GameEventProvider>
         <Map view={view} />
         <InfoBarsContainer
           view={view}
@@ -69,7 +69,7 @@ function AppWithUser() {
           view={view}
           setView={setView}
         />
-      </RealEventStateProvider>
+      </GameEventProvider>
     </>
   );
 }

@@ -1,7 +1,7 @@
 import { lazy } from "react";
 
 import SignInScreen from "./SignInScreen";
-import { RealEventStateProvider } from "stores";
+import { GameEventProvider } from "stores";
 import { useTutorialState, useViewState } from "hooks";
 
 const InfoBarsContainer = lazy(() => import("components/InfoBarsContainer"));
@@ -15,7 +15,7 @@ function AppWithoutUser({ setUser }: { setUser: (a: boolean) => void }) {
 
   return (
     <>
-      <RealEventStateProvider>
+      <GameEventProvider>
         <Map view={view} />
         <InfoBarsContainer
           view={view}
@@ -31,7 +31,7 @@ function AppWithoutUser({ setUser }: { setUser: (a: boolean) => void }) {
           setView={setView}
         />
         <SignInScreen setUser={setUser} />
-      </RealEventStateProvider>
+      </GameEventProvider>
     </>
   );
 }

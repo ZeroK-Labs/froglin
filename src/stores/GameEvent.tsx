@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 
-import { Froglin, GameEventState, InterestPoint } from "types";
-import { LngLatBoundsLike } from "mapbox-gl";
-import { StoreFactory } from "stores";
-import { ServerGameEventState } from "../../backend/GameEventState";
 import { CLIENT_SOCKET } from "utils/sockets";
+import { Froglin, GameEvent } from "types";
+import { InterestPoint } from "../../common/types";
+import { LngLatBoundsLike } from "mapbox-gl";
+import { ServerGameEvent } from "../../backend/types";
+import { StoreFactory } from "stores";
 
-function createState(): GameEventState {
-  // console.log("GameEventState createState");
+function createState(): GameEvent {
+  // console.log("GameEvent createState");
 
   const [bounds, setBounds] = useState<GeoJSON.Position[][]>([
     [
@@ -67,7 +68,7 @@ function createState(): GameEventState {
     try {
       const response = await fetch(`${process.env.BACKEND_URL}/game`);
 
-      const event: ServerGameEventState = await response.json();
+      const event: ServerGameEvent = await response.json();
 
       setBounds(event.bounds);
       setEpochCount(event.epochCount);
@@ -120,5 +121,5 @@ function createState(): GameEventState {
   };
 }
 
-export const { Provider: RealEventStateProvider, useProvider: useRealEventState } =
-  StoreFactory<GameEventState>(createState);
+export const { Provider: GameEventProvider, useProvider: useGameEvent } =
+  StoreFactory<GameEvent>(createState);

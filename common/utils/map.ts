@@ -3,7 +3,7 @@ import { Quaternion, Euler, Vector3, Matrix4 } from "three";
 
 import { AngleToRadian, MinusHalfPI } from "./math";
 import { EVENT } from "../../src/settings";
-import { MapCoordinates } from "types";
+import { MapCoordinates } from "../../common/types";
 
 // radius of Earth in kilometers; 3956 for miles
 export const METERS_IN_EARTH_RADIUS = 6_371_000;

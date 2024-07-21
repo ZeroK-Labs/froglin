@@ -1,6 +1,6 @@
 // import { TimerIcon } from "components/svg";
 import { CountDownTimer } from "components";
-import { useRealEventState } from "stores";
+import { useGameEvent } from "stores";
 
 type Props = {
   visible: boolean;
@@ -8,7 +8,7 @@ type Props = {
 
 export default function EventViewInfoBar({ visible }: Props) {
   const { epochCount, epochDuration, capturedFroglins, interestPoints } =
-    useRealEventState();
+    useGameEvent();
 
   return (
     <>

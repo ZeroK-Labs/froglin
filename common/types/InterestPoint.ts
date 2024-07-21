@@ -1,4 +1,4 @@
-import { MapCoordinates } from "types";
+import { MapCoordinates } from "../types";
 
 type InterestPoint = {
   id: number | string;

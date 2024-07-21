@@ -2,11 +2,12 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { Marker } from "react-map-gl";
 
 import { FROGLIN, PLAYER } from "settings";
-import { Froglin, InterestPoint, MapCoordinates } from "types";
+import { Froglin } from "types";
+import { InterestPoint, MapCoordinates } from "../../common/types";
 import { MAP_VIEWS } from "enums";
 import { PlayerMarkerImage, TrapMarkerList } from "components";
 import { inRange, inTriangle } from "../../common/utils/map";
-import { useRealEventState, useRevealingCircleState, useLocation } from "stores";
+import { useGameEvent, useRevealingCircleState, useLocation } from "stores";
 
 type Props = {
   view: MAP_VIEWS;
@@ -34,7 +35,7 @@ export default function PlayerMarker({ view }: Props) {
     setInterestPoints,
     revealFroglins,
     captureFroglins,
-  } = useRealEventState();
+  } = useGameEvent();
 
   const cssMenuButton = `${open ? "" : "opacity-0"} menu-item`;
 

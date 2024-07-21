@@ -1,8 +1,9 @@
 import { LngLatBoundsLike } from "mapbox-gl";
 
-import { Froglin, InterestPoint } from "types";
+import { Froglin } from "types";
+import { InterestPoint } from "../../common/types";
 
-type GameEventState = {
+type GameEvent = {
   bounds: GeoJSON.Position[][];
   setBounds: React.Dispatch<React.SetStateAction<GeoJSON.Position[][]>>;
   getEventBounds: () => LngLatBoundsLike;
@@ -26,4 +27,4 @@ type GameEventState = {
   captureFroglins: (froglinIds: Froglin["id"][]) => void;
 };
 
-export default GameEventState;
+export default GameEvent;

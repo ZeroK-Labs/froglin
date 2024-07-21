@@ -1,20 +1,8 @@
-import { EVENT } from "../src/settings";
-import { InterestPoint, MapCoordinates, TimeoutId } from "types";
-import { getInterestPoints, getBoundsForCoordinate } from "../common/utils/map";
-import { broadcastMessage } from "./sockets";
-
-export type ServerGameEventState = {
-  location: MapCoordinates;
-  bounds: GeoJSON.Position[][];
-  epochCount: number;
-  epochDuration: number;
-  epochStartTime: number;
-  interestPoints: InterestPoint[];
-
-  start: () => void;
-  advanceEpoch: () => void;
-  revealInterestPoints: (interestPointIds: InterestPoint["id"][]) => void;
-};
+import { EVENT } from "../../src/settings";
+import { InterestPoint, MapCoordinates, TimeoutId } from "../../common/types";
+import { getInterestPoints, getBoundsForCoordinate } from "../../common/utils/map";
+import { broadcastMessage } from "../sockets";
+import { ServerGameEvent } from "../types";
 
 function getFarInterestPoints(coords: MapCoordinates, count: number) {
   return getInterestPoints(coords, count, EVENT.FAR_RANGE.FROM, EVENT.FAR_RANGE.TO);
@@ -30,15 +18,15 @@ function getCloseInterestPoints(coords: MapCoordinates, count: number) {
 
 function getInitialInterestPoints() {
   return Array.from({ length: EVENT.MARKER_COUNT }, (_, i) => ({
-    id: "_" + i, // used by React
+    id: "_" + i, // frontend React needs a string id
     coordinates: { longitude: 0, latitude: 0 },
   }));
 }
 
-export function createGameEvent(center: MapCoordinates): ServerGameEventState {
+export function createGameEvent(center: MapCoordinates): ServerGameEvent {
   let epochIntervalId: TimeoutId;
 
-  const event: ServerGameEventState = {
+  const event: ServerGameEvent = {
     location: center,
     bounds: getBoundsForCoordinate(center),
     epochCount: 0,

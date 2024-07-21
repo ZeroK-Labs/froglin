@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import { createGameEvent } from "../GameEventState";
+import { createGameEvent } from "../stores/GameEvent";
 
 const event = createGameEvent({
   latitude: 51.440086,

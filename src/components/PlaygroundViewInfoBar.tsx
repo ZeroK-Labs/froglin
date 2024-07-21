@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { CountDownTimer, CapturedFroglinList } from "components";
 import { BatteryIcon, StopwatchIcon, MapPinIcon } from "assets/svg";
-import { TimeoutId } from "types";
-import { useRealEventState, useLocation } from "stores";
+import { TimeoutId } from "../../common/types";
+import { useGameEvent, useLocation } from "stores";
 
 type Props = {
   visible: boolean;
@@ -13,7 +13,7 @@ export default function PlaygroundViewInfoBar({ visible }: Props) {
   const epochTickerRef = useRef<TimeoutId>();
   const [secondsLeft, setSecondsLeft] = useState(0);
 
-  const { epochDuration, epochStartTime } = useRealEventState();
+  const { epochDuration, epochStartTime } = useGameEvent();
   const { metersTravelled } = useLocation();
 
   useEffect(
