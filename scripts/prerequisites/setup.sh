@@ -61,4 +61,5 @@ for pkg in curl unzip nvm node bun docker aztec-sandbox; do
 done
 
 # install package dependecies
+echo ""
 bun i
