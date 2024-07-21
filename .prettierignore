@@ -1,18 +1,13 @@
 # ignore all files and folders
 /*
 
-# keep src and tests folders
+# folders to keep
 !backend/
 !common/
 !src/
+!scripts/
 !tests/
 
-# keep .json and .ts files in src/contracts and its sub-folders
-!src/contracts/**/*.json
-!src/contracts/**/*.ts
-
-!scripts/loadenv.js
-
-# keep root .js(on) files
+# root files to keep
 !*.js
 !*.json
