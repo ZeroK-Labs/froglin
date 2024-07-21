@@ -1,7 +1,7 @@
 #!/bin/bash
 
-printf Cleaning...
+printf "\nCleaning... "
 scripts/aztec/clean.sh
-echo done
+echo "done"
 
 scripts/aztec/prep.sh
