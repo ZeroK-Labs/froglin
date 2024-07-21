@@ -20,7 +20,6 @@ export function createPXEServer(): Promise<string> {
 
       console.log("PXE created successfully!");
 
-      // TODO: this only allows HTTP under HTTPS for localhost, for server we need certificates
       resolve(`http://localhost:${port}`);
     });
 
