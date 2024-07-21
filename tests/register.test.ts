@@ -3,12 +3,8 @@ import { createPXEClient } from "@aztec/aztec.js";
 
 import { createWallet } from "../common/WalletManager";
 import { FroglinContract } from "contracts/artifacts/Froglin";
-import {
-  AccountWithContract,
-  createPXEServer,
-  destroyPXEServer,
-  stringToBigInt,
-} from "./utils";
+import { AccountWithContract, createPXEServer, destroyPXEServer } from "./utils";
+import { stringToBigInt } from "../common/utils/bigint";
 
 describe("Registration Tests", () => {
   const timeout = 40_000;

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
+import { stringToBigInt } from "../../common/utils/bigint";
 import { usePXEClient } from "stores";
-import { stringToBigInt } from "../../common/utils/math";
 
 const INPUT_KEY_LENGTH = 100;
 const INPUT_TIMEOUT = 250;
