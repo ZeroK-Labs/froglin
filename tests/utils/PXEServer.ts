@@ -1,18 +1,7 @@
-import { AccountWallet, PXE } from "@aztec/aztec.js";
-
-import { FroglinContract } from "contracts/artifacts/Froglin";
 import {
   createPXEServiceProcess,
   destroyPXEServiceProcess,
-} from "../common/PXEManager";
-
-export type AccountWithContract = {
-  secret: bigint;
-  pxe: PXE;
-  pxe_url: string;
-  contract: FroglinContract;
-  wallet: AccountWallet;
-};
+} from "../../common/PXEManager";
 
 export function createPXEServer(): Promise<string> {
   return new Promise<string>((resolve, reject) => {

@@ -1,9 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { createPXEClient } from "@aztec/aztec.js";
 
-import { createWallet } from "../common/WalletManager";
+import { AccountWithContract } from "./types";
 import { FroglinContract } from "contracts/artifacts/Froglin";
-import { AccountWithContract, createPXEServer, destroyPXEServer } from "./utils";
+import { createPXEServer, destroyPXEServer } from "./utils/PXEServer";
+import { createWallet } from "../common/WalletManager";
 import { stringToBigInt } from "../common/utils/bigint";
 
 describe("Registration Tests", () => {

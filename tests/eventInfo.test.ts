@@ -1,10 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { createPXEClient, Fr } from "@aztec/aztec.js";
 
-import { createWallet } from "../common/WalletManager";
+import { AccountWithContract } from "./types";
 import { FroglinContract } from "contracts/artifacts/Froglin";
+import { createPXEServer, destroyPXEServer } from "./utils/PXEServer";
+import { createWallet } from "../common/WalletManager";
 import { stringToBigInt } from "../common/utils/bigint";
-import { AccountWithContract, createPXEServer, destroyPXEServer } from "./utils";
 
 describe("EventInfo Tests", () => {
   const timeout = 60_000;
