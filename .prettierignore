@@ -6,7 +6,7 @@
 !common/
 !contracts/
 !src/
-!scripts/
+!settings/
 !tests/
 
 # root files to keep

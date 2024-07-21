@@ -8,9 +8,9 @@ import path from "path";
 import webpack from "webpack";
 // import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
 
-import loadenv from "./scripts/loadenv.js";
+import loadenv from "./common/loadenv.js";
 
-export default () => {
+export default async () => {
   // extract mode from command-line args
   let index = 0;
   const serving = process.argv[2] === "serve";
@@ -21,7 +21,7 @@ export default () => {
 
   // prepare environment
   const mode = process.argv.slice(index)[0].split("=")[1];
-  loadenv(mode);
+  await loadenv(mode);
 
   const development = mode === "dev";
   const production = !development;

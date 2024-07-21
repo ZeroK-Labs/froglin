@@ -28,7 +28,9 @@
   "include": [
     "backend/**/*.ts",
     "common/**/*.ts",
-    "contracts/target/**/*.ts",
+    "common/loadenv.js",
+    "contracts/artifacts/**/*.ts",
+    "contracts/target/**/*.json",
     "src/**/*.ts*",
     "tests/**/*.ts"
   ],

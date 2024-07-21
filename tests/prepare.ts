@@ -1,3 +1,3 @@
-import loadenv from "../scripts/loadenv";
+import loadenv from "../common/loadenv";
 
-loadenv();
+await loadenv();

@@ -1,3 +1,3 @@
-import loadenv from "../scripts/loadenv";
+import loadenv from "../common/loadenv";
 
-loadenv(process.argv.slice(2)[0]);
+await loadenv(process.argv.slice(2)[0]);
