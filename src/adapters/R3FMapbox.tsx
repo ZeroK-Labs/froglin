@@ -1,10 +1,11 @@
 import * as THREE from "three";
 import * as R3F from "@react-three/fiber";
+import { MercatorCoordinate } from "mapbox-gl";
 import { Layer, useMap } from "react-map-gl";
 import { PropsWithChildren, useEffect, useState } from "react";
 
 import MapCoordinates from "../../common/types/MapCoordinates";
-import { getMatrixTransformForCoordinate } from "../../common/utils/map";
+import { MinusHalfPI } from "../../common/utils/math";
 
 interface BaseCanvasProps
   extends Omit<R3F.RenderProps<HTMLCanvasElement>, "dpr">,
@@ -31,10 +32,14 @@ const DOM_EVENTS = {
 
 type DOMEventNames = keyof typeof DOM_EVENTS;
 
+const euler = new THREE.Euler();
+const quaternion = new THREE.Quaternion();
 const originMx = new THREE.Matrix4();
 const projViewMx = new THREE.Matrix4();
 const projViewInvMx = new THREE.Matrix4();
+const position = new THREE.Vector3();
 const forwardV = new THREE.Vector3(0, 0, 1);
+const scaleV = new THREE.Vector3();
 
 let canvas: HTMLCanvasElement;
 let r3fRoot: R3F.ReconcilerRoot<HTMLCanvasElement>;
@@ -157,6 +162,29 @@ function syncCamera(
   camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
 
   camera.userData.projViewInvMx = projViewInvMx;
+}
+
+function getMatrixTransformForCoordinate(
+  {
+    longitude,
+    latitude,
+    altitude = 0,
+    rotation = [MinusHalfPI, 0, 0],
+    scale = [1, 1, 1],
+  }: MapCoordinates & {
+    rotation?: [number, number, number];
+    scale?: [number, number, number];
+  },
+  matrix4 = new THREE.Matrix4(), // specify existing instance or allocate
+): THREE.Matrix4 {
+  const center = MercatorCoordinate.fromLngLat([longitude, latitude], altitude);
+  const scaleUnit = center.meterInMercatorCoordinateUnits();
+
+  position.set(center.x, center.y, center.z || 0);
+  scaleV.set(scaleUnit * scale[0], -scaleUnit * scale[1], scaleUnit * scale[2]);
+  quaternion.setFromEuler(euler.set(rotation[0], rotation[1], rotation[2]));
+
+  return matrix4.compose(position, quaternion, scaleV);
 }
 
 export function Canvas({ id = "3d", center, children, ...props }: CanvasProps) {

@@ -1,33 +1,23 @@
-import { LngLat, MercatorCoordinate } from "mapbox-gl";
-import { Quaternion, Euler, Vector3, Matrix4 } from "three";
-
-import { AngleToRadian, MinusHalfPI } from "./math";
+import { AngleToRadian } from "./math";
 import { EVENT } from "../../src/settings";
 import { MapCoordinates } from "../../common/types";
 
 // radius of Earth in kilometers; 3956 for miles
-export const METERS_IN_EARTH_RADIUS = 6_371_000;
+export const METERS_IN_EARTH_RADIUS = 6_371_008.8;
 export const METERS_PER_DEGREE_LATITUDE = 111_139;
 export const RADIANS_PER_METER_LATITUDE = 0.000008983;
 
 // for fast(er) math
 const INVERSE_METERS_PER_DEGREE_LATITUDE = 1 / METERS_PER_DEGREE_LATITUDE;
 
-const coordinate1 = new LngLat(0, 0);
-const coordinate2 = new LngLat(0, 0);
+export function getDistance(lng1: number, lng2: number, lat1: number, lat2: number) {
+  const n = lat1 * AngleToRadian;
+  const r = lat2 * AngleToRadian;
+  const i =
+    Math.sin(r) * Math.sin(n) +
+    Math.cos(r) * Math.cos(n) * Math.cos((lng2 - lng1) * AngleToRadian);
 
-export function getDistance(
-  lng1: number,
-  lng2: number,
-  lat1: number,
-  lat2: number,
-): number {
-  coordinate1.lng = lng1;
-  coordinate1.lat = lat1;
-  coordinate2.lng = lng2;
-  coordinate2.lat = lat2;
-
-  return coordinate1.distanceTo(coordinate2);
+  return METERS_IN_EARTH_RADIUS * Math.acos(Math.min(i, 1));
 }
 
 export function inRange(
@@ -108,34 +98,6 @@ export function getBoundsForCoordinate(location: MapCoordinates): GeoJSON.Positi
       [box.NW.longitude, box.NW.latitude], // close polygon by repeating first vertex
     ],
   ];
-}
-
-const quaternion = new Quaternion();
-const euler = new Euler();
-const position = new Vector3();
-const scaleVector = new Vector3();
-
-export function getMatrixTransformForCoordinate(
-  {
-    longitude,
-    latitude,
-    altitude = 0,
-    rotation = [MinusHalfPI, 0, 0],
-    scale = [1, 1, 1],
-  }: MapCoordinates & {
-    rotation?: [number, number, number];
-    scale?: [number, number, number];
-  },
-  matrix4 = new Matrix4(), // specify existing instance or allocate
-): Matrix4 {
-  const center = MercatorCoordinate.fromLngLat([longitude, latitude], altitude);
-  const scaleUnit = center.meterInMercatorCoordinateUnits();
-
-  position.set(center.x, center.y, center.z || 0);
-  scaleVector.set(scaleUnit * scale[0], -scaleUnit * scale[1], scaleUnit * scale[2]);
-  quaternion.setFromEuler(euler.set(rotation[0], rotation[1], rotation[2]));
-
-  return matrix4.compose(position, quaternion, scaleVector);
 }
 
 export function getInterestPoints(
