@@ -1,10 +1,7 @@
 import { ChildProcess } from "child_process";
 import { WebSocketServer, ServerOptions } from "ws";
 
-import {
-  createPXEServiceProcess,
-  destroyPXEServiceProcess,
-} from "../common/PXEManager";
+import { createPXEService, destroyPXEService } from "../common/PXEManager";
 
 let ws_server: WebSocketServer;
 
@@ -22,7 +19,7 @@ export function createSocketServer(options?: ServerOptions) {
     const sessionId = request.headers["sec-websocket-key"];
     if (!sessionId) throw "Socket connection error: missing request sec-websocket-key";
 
-    const [port, pxe] = createPXEServiceProcess();
+    const [port, pxe] = createPXEService();
 
     PXEies[sessionId] = pxe;
 
@@ -33,7 +30,7 @@ export function createSocketServer(options?: ServerOptions) {
     socket.on("close", () => {
       console.log("Client disconnected");
 
-      destroyPXEServiceProcess(port);
+      destroyPXEService(port);
     });
 
     // pxe.stderr!.on("data", (data) => {

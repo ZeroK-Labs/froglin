@@ -3,7 +3,7 @@ import { createPXEClient } from "@aztec/aztec.js";
 
 import { AccountWithContract } from "./types";
 import { FroglinContract } from "contracts/artifacts/Froglin";
-import { createPXEServer, destroyPXEServer } from "./utils/PXEServer";
+import { createPXE, destroyPXE } from "./utils/PXE";
 import { createWallet } from "../common/WalletManager";
 import { stringToBigInt } from "../common/utils/bigint";
 
@@ -42,13 +42,13 @@ describe("Registration Tests", () => {
 
     // create PXE servers
     let promises: Promise<any>[] = [
-      createPXEServer().then((url) => {
+      createPXE().then((url) => {
         alice.pxe_url = url;
       }),
-      createPXEServer().then((url) => {
+      createPXE().then((url) => {
         bob.pxe_url = url;
       }),
-      createPXEServer().then((url) => {
+      createPXE().then((url) => {
         charlie.pxe_url = url;
       }),
     ];
@@ -97,9 +97,9 @@ describe("Registration Tests", () => {
   });
 
   afterAll(() => {
-    destroyPXEServer(alice.pxe_url);
-    destroyPXEServer(bob.pxe_url);
-    destroyPXEServer(charlie.pxe_url);
+    destroyPXE(alice.pxe_url);
+    destroyPXE(bob.pxe_url);
+    destroyPXE(charlie.pxe_url);
   });
 
   it(

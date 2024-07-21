@@ -3,7 +3,7 @@ import { createPXEClient, Fr } from "@aztec/aztec.js";
 
 import { AccountWithContract } from "./types";
 import { FroglinContract } from "contracts/artifacts/Froglin";
-import { createPXEServer, destroyPXEServer } from "./utils/PXEServer";
+import { createPXE, destroyPXE } from "./utils/PXE";
 import { createWallet } from "../common/WalletManager";
 import { stringToBigInt } from "../common/utils/bigint";
 
@@ -40,10 +40,10 @@ describe("EventInfo Tests", () => {
 
     // create PXE servers
     let promises: Promise<any>[] = [
-      createPXEServer().then((url) => {
+      createPXE().then((url) => {
         alice.pxe_url = url;
       }),
-      createPXEServer().then((url) => {
+      createPXE().then((url) => {
         bob.pxe_url = url;
       }),
     ];
@@ -96,8 +96,8 @@ describe("EventInfo Tests", () => {
   });
 
   afterAll(() => {
-    destroyPXEServer(alice.pxe_url);
-    destroyPXEServer(bob.pxe_url);
+    destroyPXE(alice.pxe_url);
+    destroyPXE(bob.pxe_url);
   });
 
   it("fails when non-owner account tries to create event info note", () => {

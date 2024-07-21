@@ -1,13 +1,10 @@
-import {
-  createPXEServiceProcess,
-  destroyPXEServiceProcess,
-} from "../../common/PXEManager";
+import { createPXEService, destroyPXEService } from "../../common/PXEManager";
 
-export function createPXEServer(): Promise<string> {
+export function createPXE(): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     console.log("Creating PXE...");
 
-    const [port, pxe] = createPXEServiceProcess();
+    const [port, pxe] = createPXEService();
 
     // pxe.stderr!.on("data", (data) => {
     //   process.stderr.write(data);
@@ -32,6 +29,6 @@ export function createPXEServer(): Promise<string> {
   });
 }
 
-export function destroyPXEServer(url: string) {
-  destroyPXEServiceProcess(Number(url.split(":")[2]));
+export function destroyPXE(url: string) {
+  destroyPXEService(Number(url.split(":")[2]));
 }

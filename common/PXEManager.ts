@@ -25,7 +25,7 @@ const allocatedPorts: number[] = [];
 // TODO: cannot access sandbox using localhost, need specific IP
 const HOST = process.env.SANDBOX_URL!.replace("localhost", getLocalIP());
 
-export function createPXEServiceProcess(): [number, ChildProcess] {
+export function createPXEService(): [number, ChildProcess] {
   // generate a port
   let port: number;
   do {
@@ -46,7 +46,7 @@ export function createPXEServiceProcess(): [number, ChildProcess] {
   ];
 }
 
-export function destroyPXEServiceProcess(port: number) {
+export function destroyPXEService(port: number) {
   const index = allocatedPorts.indexOf(port);
   if (index === -1) {
     console.log(`Failed to destroy PXE service: port ${port} is missing from registry`);
