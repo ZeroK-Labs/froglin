@@ -4,6 +4,7 @@
 # folders to keep
 !backend/
 !common/
+!contracts/
 !src/
 !scripts/
 !tests/
