@@ -1,3 +1,5 @@
 #!/bin/bash
 
-${AZTEC_BUILDER:-aztec-builder} codegen contracts/target -o contracts/artifacts
+cd contracts
+
+${AZTEC_BUILDER:-aztec-builder} codegen target -o artifacts

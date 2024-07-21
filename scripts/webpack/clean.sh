@@ -1,5 +1,3 @@
 #!/bin/bash
 
-rm -rf            \
-build             \
-codegenCache.json
+rm -rf build

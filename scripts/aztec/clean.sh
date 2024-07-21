@@ -1,5 +1,6 @@
 #!/bin/bash
 
-rm -rf              \
-contracts/artifacts \
-contracts/target
+rm -rf                      \
+contracts/artifacts         \
+contracts/target            \
+contracts/codegenCache.json
