@@ -1,8 +1,11 @@
 #!/bin/bash
 
 if command -v apache2 &>/dev/null || command -v httpd &>/dev/null; then
-  echo "ProxyPassReverse /pxe http://localhost:$1" >> "/etc/apache2/sites-available/froglin.proxy.conf"
-  apachectl graceful
+  CONFIG_FILE_PATH="/etc/apache2/sites-available/froglin.proxy.conf"
+  if [ -f "$CONFIG_FILE_PATH" ]; then
+    echo "ProxyPassReverse /pxe http://localhost:$1" >> "/etc/apache2/sites-available/froglin.proxy.conf"
+    apachectl graceful
+  fi
 fi;
 
 docker run                    \
