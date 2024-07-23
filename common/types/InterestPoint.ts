@@ -1,7 +1,7 @@
 import { MapCoordinates } from "../types";
 
 type InterestPoint = {
-  id: number | string;
+  id: string;
   coordinates: MapCoordinates;
   visible?: boolean;
 };

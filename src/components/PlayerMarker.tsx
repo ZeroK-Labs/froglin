@@ -23,9 +23,13 @@ export default function PlayerMarker({ view }: Props) {
   const navRef = useRef<HTMLDivElement>(null);
   const revealingRef = useRef(false);
 
+  const username = localStorage.getItem("username");
+
   const [trapPoints, setTrapPoints] = useState<MapCoordinates[]>([]);
   const [duplicateTrapIndex, setDuplicateTrapIndex] = useState<number | null>(null);
   const [open, setOpen] = useState<boolean>(false);
+  const [hiddenInterestPointsIds, setHiddenInterestPointsIds] = useState<string[]>([]);
+  const [revealComplete, setRevealComplete] = useState<boolean>(false);
 
   const { coordinates, lost } = useLocation();
   const { setVisible, setSize } = useRevealingCircleState();
@@ -38,6 +42,23 @@ export default function PlayerMarker({ view }: Props) {
   } = useGameEvent();
 
   const cssMenuButton = `${open ? "" : "opacity-0"} menu-item`;
+
+  useEffect(
+    () => {
+      if (!revealComplete || hiddenInterestPointsIds.length === 0 || !username) return;
+
+      fetch(`${process.env.BACKEND_URL}/reveal`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, hiddenInterestPointsIds }),
+      });
+
+      setRevealComplete(false);
+    }, //
+    [revealComplete],
+  );
 
   function handleMenuStateChange(ev: ChangeEvent<HTMLInputElement>) {
     setOpen(ev.target.checked);
@@ -56,6 +77,7 @@ export default function PlayerMarker({ view }: Props) {
 
       // hide the point to start fade out animation
       point.visible = false;
+      setHiddenInterestPointsIds((old) => [...old, point.id]);
 
       // send some goblins to the void
       const gone = Math.random();
@@ -67,7 +89,6 @@ export default function PlayerMarker({ view }: Props) {
         type: getRandomInRange(2, 7),
       });
     }
-
     // hide interest points
     setInterestPoints(interestPointsHidden);
 
@@ -82,7 +103,7 @@ export default function PlayerMarker({ view }: Props) {
 
     if (revealingRef.current) return;
     revealingRef.current = true;
-
+    setHiddenInterestPointsIds([]);
     // create animation for circle
     const duration = 1_000;
     const loops = 8;
@@ -100,7 +121,10 @@ export default function PlayerMarker({ view }: Props) {
 
         doReveal(radius);
 
-        if (++i === loops) clearInterval(id);
+        if (++i === loops) {
+          setRevealComplete(true);
+          clearInterval(id);
+        }
       },
       Math.floor(duration / loops),
     );

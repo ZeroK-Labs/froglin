@@ -1,5 +1,5 @@
 import { EVENT } from "../../src/settings";
-import { InterestPoint, MapCoordinates, TimeoutId } from "../../common/types";
+import { MapCoordinates, TimeoutId } from "../../common/types";
 import { getInterestPoints, getBoundsForCoordinate } from "../../common/utils/map";
 import { broadcastMessage } from "../sockets";
 import { ServerGameEvent } from "../types";
@@ -74,19 +74,12 @@ export function createGameEvent(center: MapCoordinates): ServerGameEvent {
       }
     },
 
-    revealInterestPoints: function (interestPointIds: InterestPoint["id"][]) {
-      for (let i = 0; i !== event.interestPoints.length; ++i) {
-        const interestPointId = event.interestPoints[i].id;
+    revealInterestPoints: function (interestPointIds: string[]) {
+      const filteredInterestPoints = event.interestPoints.filter(
+        (interestPoint) => !interestPointIds.includes(interestPoint.id),
+      );
 
-        for (let j = 0; j !== interestPointIds.length; ++j) {
-          if (interestPointId !== interestPointIds[j]) continue;
-
-          interestPointIds.splice(j, 1);
-          event.interestPoints.splice(i, 1);
-
-          break;
-        }
-      }
+      event.interestPoints = filteredInterestPoints;
     },
   };
 

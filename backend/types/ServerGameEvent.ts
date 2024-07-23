@@ -10,7 +10,7 @@ type ServerGameEvent = {
 
   start: () => void;
   advanceEpoch: () => void;
-  revealInterestPoints: (interestPointIds: InterestPoint["id"][]) => void;
+  revealInterestPoints: (interestPointIds: string[]) => void;
 };
 
 export default ServerGameEvent;

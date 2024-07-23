@@ -1,7 +1,7 @@
 import { MapCoordinates } from "../../common/types";
 
 type Froglin = {
-  id: number | string;
+  id: string;
   coordinates: MapCoordinates;
   type: number;
 };

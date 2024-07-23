@@ -9,6 +9,7 @@ import { execSync } from "child_process";
 
 import { getGame } from "./endpoints/game";
 import { getLeaderboard } from "./endpoints/leaderboard";
+import { revealFroglins } from "./endpoints/reveal";
 import { createSocketServer, destroySocketServer } from "./sockets";
 
 // graceful shutdown on Ctrl+C
@@ -31,10 +32,12 @@ const app = express();
 
 // apply cors
 app.use(cors());
+app.use(express.json());
 
 // endpoints
 app.get("/game", getGame);
 app.get("/leaderboard", getLeaderboard);
+app.post("/reveal", revealFroglins);
 
 // HTML SERVER
 const options = {
