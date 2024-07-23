@@ -5,10 +5,11 @@ import { Froglin, GameEvent } from "types";
 import { InterestPoint } from "../../common/types";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { ServerGameEvent } from "../../backend/types";
-import { StoreFactory } from "stores";
+import { StoreFactory, useLocation } from "stores";
 
 function createState(): GameEvent {
-  // console.log("GameEvent createState");
+  const location = useLocation();
+  const username = localStorage.getItem("username");
 
   const [bounds, setBounds] = useState<GeoJSON.Position[][]>([
     [
@@ -65,8 +66,22 @@ function createState(): GameEvent {
   }
 
   async function fetchData() {
+    if (
+      !location.coordinates.latitude ||
+      !location.coordinates.longitude ||
+      !username
+    ) {
+      return;
+    }
     try {
-      const response = await fetch(`${process.env.BACKEND_URL}/game`);
+      const options = {
+        username: username,
+        latitude: location.coordinates.latitude.toString(),
+        longitude: location.coordinates.longitude.toString(),
+      };
+      const query = new URLSearchParams(options).toString();
+
+      const response = await fetch(`${process.env.BACKEND_URL}/game?${query}`);
 
       const event: ServerGameEvent = await response.json();
 
@@ -87,6 +102,7 @@ function createState(): GameEvent {
 
   useEffect(
     () => {
+      if (!location.coordinates.latitude || !location.coordinates.longitude) return;
       function handleServerEpochUpdate(event: MessageEvent<any>) {
         if (event.data === "newEpoch") fetchData();
       }
@@ -99,7 +115,7 @@ function createState(): GameEvent {
         CLIENT_SOCKET.removeEventListener("message", handleServerEpochUpdate);
       };
     }, //
-    [],
+    [location],
   );
 
   return {
