@@ -14,6 +14,7 @@ const LineMenu = lazy(() => import("components/LineMenu"));
 const Map = lazy(() => import("components/Map"));
 const Tutorial = lazy(() => import("components/Tutorial"));
 const LeaderBoard = lazy(() => import("components/LeaderBoard"));
+const CapturedFroglinList = lazy(() => import("components/CapturedFroglinList"));
 
 function AppWithUser() {
   const [leaderBoard, setLeaderBoard] = useState<boolean>(false);
@@ -51,6 +52,7 @@ function AppWithUser() {
     <>
       <GameEventProvider>
         <Map view={view} />
+        <CapturedFroglinList />
         <InfoBarsContainer
           view={view}
           visible={!tutorial && !leaderBoard}

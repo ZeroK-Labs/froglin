@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { CountDownTimer, CapturedFroglinList } from "components";
+import { CountDownTimer } from "components";
 import { BatteryIcon, StopwatchIcon, MapPinIcon } from "assets/svg";
 import { TimeoutId } from "../../common/types";
 import { useGameEvent, useLocation } from "stores";
@@ -60,8 +60,6 @@ export default function PlaygroundViewInfoBar({ visible }: Props) {
           <MapPinIcon className="h-6 w-6" />
         </div>
       </div>
-
-      <CapturedFroglinList />
     </>
   );
 }
