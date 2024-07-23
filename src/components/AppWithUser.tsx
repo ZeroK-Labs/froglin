@@ -53,7 +53,7 @@ function AppWithUser() {
         <Map view={view} />
         <InfoBarsContainer
           view={view}
-          visible={!tutorial}
+          visible={!tutorial && !leaderBoard}
         />
         <Tutorial
           tutorial={tutorial}

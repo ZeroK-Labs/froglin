@@ -25,6 +25,8 @@ export function LineMenuPopupList({
     setOpen(false);
   }
 
+  const isUser: boolean = !!localStorage.getItem("user");
+
   function toggleView() {
     setTimeout(
       setView,
@@ -76,10 +78,12 @@ export function LineMenuPopupList({
           text="📖"
           onClick={handleTutorialClick}
         />
-        <LineMenuPopupListItem
-          text="🏆"
-          onClick={handleLeaderBoardClick}
-        />
+        {isUser ? (
+          <LineMenuPopupListItem
+            text="🏆"
+            onClick={handleLeaderBoardClick}
+          />
+        ) : null}
       </ul>
     </nav>
   );
