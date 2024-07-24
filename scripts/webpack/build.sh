@@ -25,7 +25,4 @@ fi
 # create ssl certificates
 if ! scripts/webpack/create_keys.sh; then exit $?; fi
 
-# compile contracts
-if ! scripts/aztec/prep.sh; then exit $?; fi
-
 webpack --env mode=$arg
