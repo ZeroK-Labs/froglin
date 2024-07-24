@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import { useRef, useEffect, RefObject } from "react";
 
 import { LineMenuButtonElement } from "components/LineMenuButtonElement";
@@ -25,6 +26,11 @@ export function LineMenuButton({
 
   function handleButtonClick() {
     setOpen(!open);
+
+    toast("Hello World", {
+      duration: 14000,
+      icon: "👏",
+    });
   }
 
   function handlePointerMove() {

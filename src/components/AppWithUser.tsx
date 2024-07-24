@@ -16,6 +16,7 @@ import {
   Map,
   Tutorial,
 } from "components";
+import toast from "react-hot-toast";
 
 // import { lazy } from "react";
 
@@ -37,7 +38,7 @@ function AppWithUser() {
     () => {
       if (!pxeClient) return;
 
-      async function registerAccount() {
+      function initializeWallet() {
         if (!pxeClient) return;
 
         const secretString = localStorage.getItem("user");
@@ -51,10 +52,20 @@ function AppWithUser() {
         const accountContract = new SingleKeyAccountContract(encryptionPrivateKey);
         const accountManager = new AccountManager(pxeClient, keyFr, accountContract);
 
-        await accountManager.register();
+        // await accountManager.register();
+
+        toast.promise(accountManager.register(), {
+          loading: "Initializing wallet...",
+          success: "Wallet initialized!",
+          // (wallet) => {
+          //   console.log("wallet ready", wallet.getAddress().toString());
+          //   return "Wallet initialized!";
+          // },
+          error: (err) => `This just happened: ${err.toString()}`,
+        });
       }
 
-      registerAccount();
+      initializeWallet();
     }, //
     [pxeClient],
   );

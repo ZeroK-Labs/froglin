@@ -3,6 +3,8 @@ import { useEffect, useState, useRef } from "react";
 
 import { CLIENT_SOCKET } from "utils/sockets";
 import { StoreFactory } from "stores";
+import toast from "react-hot-toast";
+import { TimeoutId } from "../../common/types";
 
 type PXEState = {
   connected: boolean;
@@ -19,9 +21,9 @@ function createSandboxClient() {
 function createState(): PXEState {
   const checkingRef = useRef(false);
 
-  const [connected, setConnected] = useState<boolean>(false);
   const [sandboxClient] = useState<PXE>(createSandboxClient);
   const [pxeClient, setPXEClient] = useState<PXE | null>(null);
+  const [connected, setConnected] = useState<boolean>(false);
 
   async function checkConnection() {
     if (checkingRef.current) return;
@@ -29,12 +31,15 @@ function createState(): PXEState {
     checkingRef.current = true;
 
     try {
-      await sandboxClient.getBlockNumber();
+      await sandboxClient.getPXEInfo();
 
       setConnected(true);
       //
     } catch (e: unknown) {
-      if ((e as TypeError).message === "Failed to fetch") setConnected(false);
+      if ((e as TypeError).message === "Failed to fetch") {
+        setConnected(false);
+        toast.error(`Sandbox host ${process.env.SANDBOX_URL} is offline`);
+      }
     }
 
     checkingRef.current = false;
@@ -42,28 +47,47 @@ function createState(): PXEState {
 
   useEffect(
     () => {
-      async function handlePXEReady(event: MessageEvent<string>) {
-        if (event.data.includes("ready ")) {
-          const url = event.data.split(" ")[1];
-          const pxe = createPXEClient(url);
-          try {
-            await pxe.getPXEInfo(); // wait until PXE is connected
-            setPXEClient(pxe);
-            //
-          } catch (err) {
-            console.error(`Failed to create PXE client @ ${url}`);
-            console.error(err);
-          }
-        }
-      }
+      let timerPXEId: TimeoutId;
+      let url = "";
 
-      CLIENT_SOCKET.addEventListener("message", handlePXEReady);
+      let handlePXEReady: (event: MessageEvent<string>) => void;
+
+      toast.promise(
+        new Promise((resolve, reject) => {
+          if (CLIENT_SOCKET.readyState !== WebSocket.OPEN) {
+            reject("Socket is closed");
+            return;
+          }
+
+          handlePXEReady = async (event: MessageEvent<string>) => {
+            if (event.data.includes("pxe ")) {
+              url = event.data.split(" ")[1];
+
+              const pxe = createPXEClient(url);
+              await pxe.getPXEInfo();
+
+              setPXEClient(pxe);
+
+              resolve("");
+            }
+          };
+
+          CLIENT_SOCKET.addEventListener("message", handlePXEReady);
+          CLIENT_SOCKET.send("which pxe");
+        }),
+        {
+          loading: "Waiting for PXE",
+          success: "PXE available",
+          error: "PXE unavailable",
+        },
+      );
 
       checkConnection();
-      const timer = setInterval(checkConnection, TIMEOUT);
+      const intervalConnectionId = setInterval(checkConnection, TIMEOUT);
 
       return () => {
-        clearInterval(timer);
+        clearTimeout(timerPXEId);
+        clearInterval(intervalConnectionId);
 
         CLIENT_SOCKET.removeEventListener("message", handlePXEReady);
       };

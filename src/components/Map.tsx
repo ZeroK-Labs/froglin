@@ -36,7 +36,6 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
       const map = node.getMap();
       setMapFog(map);
       setMap(map);
-
       return;
     }
 

@@ -1,19 +1,47 @@
 import { useState } from "react";
+import { ToastBar, Toaster } from "react-hot-toast";
 
-import AppWithoutUser from "components/AppWithoutUser";
 import AppWithUser from "components/AppWithUser";
+import AppWithoutUser from "components/AppWithoutUser";
 import { LocationProvider, PXEClientProvider } from "stores";
-import PXEStatusView from "components/PXEStatusView";
 
 export default function App() {
   const [user, setUser] = useState(false);
 
   return (
     <>
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          duration: 6_000,
+          style: {
+            flexDirection: "row-reverse",
+            background: "#363636",
+            color: "#fff",
+            fontSize: "16pt",
+            zIndex: "9999",
+          },
+          success: {
+            duration: 2_000,
+          },
+        }}
+      >
+        {(t) => (
+          <div className={t.visible ? "animate-fade-in" : "animate-fade-out"}>
+            <ToastBar
+              toast={t}
+              // style={{
+              //   ...t.style,
+              //   animation: "",
+              // }}
+            />
+          </div>
+        )}
+      </Toaster>
+      ;
       <LocationProvider>
         <PXEClientProvider>
           {user ? <AppWithUser /> : <AppWithoutUser setUser={setUser} />}
-          <PXEStatusView />
         </PXEClientProvider>
       </LocationProvider>
     </>
