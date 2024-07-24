@@ -65,51 +65,47 @@ function createState(): GameEvent {
     });
   }
 
-  async function fetchData() {
-    if (
-      !location.coordinates.latitude ||
-      !location.coordinates.longitude ||
-      !username
-    ) {
-      return;
-    }
-    try {
-      const options = {
-        username: username,
-        latitude: location.coordinates.latitude.toString(),
-        longitude: location.coordinates.longitude.toString(),
-      };
-      const query = new URLSearchParams(options).toString();
-
-      const response = await fetch(`${process.env.BACKEND_URL}/game?${query}`);
-
-      const event: ServerGameEvent = await response.json();
-
-      setBounds(event.bounds);
-      setEpochCount(event.epochCount);
-      setEpochDuration(event.epochDuration);
-      setEpochStartTime(event.epochStartTime);
-
-      for (let i = 0; i !== event.interestPoints.length; ++i) {
-        event.interestPoints[i].visible = true;
-      }
-      setInterestPoints(event.interestPoints);
-      //
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
   useEffect(
     () => {
       if (!location.coordinates.latitude || !location.coordinates.longitude) return;
+
+      async function fetchData() {
+        if (!username) return;
+
+        try {
+          const options = {
+            username: username,
+            latitude: location.coordinates.latitude.toString(),
+            longitude: location.coordinates.longitude.toString(),
+          };
+          const query = new URLSearchParams(options).toString();
+
+          const response = await fetch(`${process.env.BACKEND_URL}/game?${query}`);
+
+          const event: ServerGameEvent = await response.json();
+
+          setBounds(event.bounds);
+          setEpochCount(event.epochCount);
+          setEpochDuration(event.epochDuration);
+          setEpochStartTime(event.epochStartTime);
+
+          for (let i = 0; i !== event.interestPoints.length; ++i) {
+            event.interestPoints[i].visible = true;
+          }
+          setInterestPoints(event.interestPoints);
+          //
+        } catch (err) {
+          console.log(err);
+        }
+      }
+
       function handleServerEpochUpdate(event: MessageEvent<any>) {
         if (event.data === "newEpoch") fetchData();
       }
 
-      CLIENT_SOCKET.addEventListener("message", handleServerEpochUpdate);
-
       fetchData();
+
+      CLIENT_SOCKET.addEventListener("message", handleServerEpochUpdate);
 
       return () => {
         CLIENT_SOCKET.removeEventListener("message", handleServerEpochUpdate);
