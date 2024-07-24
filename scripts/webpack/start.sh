@@ -32,9 +32,6 @@ trap 'cleanup' INT
 # create ssl certificates
 if ! scripts/webpack/create_keys.sh; then exit $?; fi
 
-# compile contracts
-if ! scripts/aztec/prep.sh; then exit $?; fi
-
 # kill previous webpack instances
 xvg=$(pgrep -f webpack)
 IFS=$'\n' read -r -d '' -a PIDS <<< "$xvg"
