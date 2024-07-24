@@ -1,4 +1,3 @@
-import CompressionPlugin from "compression-webpack-plugin";
 import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
@@ -85,14 +84,6 @@ export default async () => {
         },
       }),
       new MiniCssExtractPlugin(),
-      production &&
-        new CompressionPlugin({
-          filename: "[path][base].gz[query]",
-          algorithm: "gzip",
-          test: /\.[cjmt]sx?$|\.css$|\.html?$/,
-          threshold: 0,
-          minRatio: 0.8,
-        }),
     ],
     //
     // https://webpack.js.org/configuration/module
