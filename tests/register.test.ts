@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { createPXEClient } from "@aztec/aztec.js";
 
-import { AccountWithContract } from "./types";
-import { FroglinContract } from "../contracts/artifacts/Froglin";
+import { AccountWithContracts } from "./types";
+import { FroglinGatewayContract } from "../aztec/contracts/gateway/artifact/FroglinGateway";
 import { createPXE, destroyPXE } from "./utils/PXE";
 import { createWallet } from "../common/WalletManager";
 import { stringToBigInt } from "../common/utils/bigint";
@@ -10,10 +10,10 @@ import { stringToBigInt } from "../common/utils/bigint";
 describe("Registration Tests", () => {
   const timeout = 40_000;
 
-  const game_master = {} as AccountWithContract;
-  const alice = {} as AccountWithContract;
-  const bob = {} as AccountWithContract;
-  const charlie = {} as AccountWithContract;
+  const game_master = { contracts: {} } as AccountWithContracts;
+  const alice = { contracts: {} } as AccountWithContracts;
+  const bob = { contracts: {} } as AccountWithContracts;
+  const charlie = { contracts: {} } as AccountWithContracts;
 
   beforeAll(async () => {
     console.log("Creating deployment account...");
@@ -27,11 +27,13 @@ describe("Registration Tests", () => {
 
     console.log("Deploying contract...");
 
-    game_master.contract = await FroglinContract.deploy(game_master.wallet)
+    game_master.contracts.gateway = await FroglinGatewayContract.deploy(
+      game_master.wallet,
+    )
       .send()
       .deployed();
 
-    expect(game_master.contract.instance).not.toBeNull();
+    expect(game_master.contracts.gateway).not.toBeNull();
 
     // initialize test accounts
 
@@ -76,24 +78,26 @@ describe("Registration Tests", () => {
     // register deployed contract in each PXE
     promises = [
       alice.pxe.registerContract({
-        instance: game_master.contract.instance,
-        artifact: game_master.contract.artifact,
+        instance: game_master.contracts.gateway.instance,
+        artifact: game_master.contracts.gateway.artifact,
       }),
       bob.pxe.registerContract({
-        instance: game_master.contract.instance,
-        artifact: game_master.contract.artifact,
+        instance: game_master.contracts.gateway.instance,
+        artifact: game_master.contracts.gateway.artifact,
       }),
       charlie.pxe.registerContract({
-        instance: game_master.contract.instance,
-        artifact: game_master.contract.artifact,
+        instance: game_master.contracts.gateway.instance,
+        artifact: game_master.contracts.gateway.artifact,
       }),
     ];
     await Promise.all(promises);
 
     // create a contract instance per wallet
-    alice.contract = game_master.contract.withWallet(alice.wallet);
-    bob.contract = game_master.contract.withWallet(bob.wallet);
-    charlie.contract = game_master.contract.withWallet(charlie.wallet);
+    alice.contracts.gateway = game_master.contracts.gateway.withWallet(alice.wallet);
+    bob.contracts.gateway = game_master.contracts.gateway.withWallet(bob.wallet);
+    charlie.contracts.gateway = game_master.contracts.gateway.withWallet(
+      charlie.wallet,
+    );
   });
 
   afterAll(() => {
@@ -107,25 +111,9 @@ describe("Registration Tests", () => {
     async () => {
       const nameAsField = stringToBigInt("alice");
 
-      await alice.contract.methods.register(nameAsField).send().wait();
+      await alice.contracts.gateway.methods.register(nameAsField).send().wait();
 
-      const storedNameAsField = await alice.contract.methods
-        .view_name(alice.wallet.getAddress())
-        .simulate();
-
-      expect(nameAsField).toBe(storedNameAsField);
-    },
-    timeout,
-  );
-
-  it(
-    "updates player with expected name",
-    async () => {
-      const nameAsField = stringToBigInt("alice in wonderland");
-
-      await alice.contract.methods.update_name(nameAsField).send().wait();
-
-      const storedNameAsField = await alice.contract.methods
+      const storedNameAsField = await alice.contracts.gateway.methods
         .view_name(alice.wallet.getAddress())
         .simulate();
 
@@ -136,26 +124,28 @@ describe("Registration Tests", () => {
 
   it("fails when an un-registered account tries to read its name", () => {
     expect(
-      bob.contract.methods.view_name(bob.wallet.getAddress()).simulate(),
+      bob.contracts.gateway.methods.view_name(bob.wallet.getAddress()).simulate(),
     ).rejects.toThrow("Assertion failed: method callable only by registered players");
   });
 
   it("fails when an un-registered account tries to read the name of a registered account", () => {
     expect(
-      bob.contract.methods.view_name(alice.wallet.getAddress()).simulate(),
+      bob.contracts.gateway.methods.view_name(alice.wallet.getAddress()).simulate(),
     ).rejects.toThrow("Assertion failed: Attempted to read past end of BoundedVec");
   });
 
   it(
-    "fails when a registered account tries to read the name of a different registered account",
+    "updates player with expected name",
     async () => {
-      const nameAsField = stringToBigInt("charlie");
+      const nameAsField = stringToBigInt("alice in wonderland");
 
-      await charlie.contract.methods.register(nameAsField).send().wait();
+      await alice.contracts.gateway.methods.update_name(nameAsField).send().wait();
 
-      expect(
-        charlie.contract.methods.view_name(alice.wallet.getAddress()).simulate(),
-      ).rejects.toThrow("Assertion failed: Attempted to read past end of BoundedVec");
+      const storedNameAsField = await alice.contracts.gateway.methods
+        .view_name(alice.wallet.getAddress())
+        .simulate();
+
+      expect(nameAsField).toBe(storedNameAsField);
     },
     timeout,
   );
@@ -163,8 +153,24 @@ describe("Registration Tests", () => {
   it("fails when an un-registered account tries to update its name in the registry", () => {
     const nameAsField = stringToBigInt("bob in wonderland");
 
-    expect(bob.contract.methods.update_name(nameAsField).send().wait()).rejects.toThrow(
-      "Assertion failed: method callable only by registered players",
-    );
+    expect(
+      bob.contracts.gateway.methods.update_name(nameAsField).send().wait(),
+    ).rejects.toThrow("Assertion failed: method callable only by registered players");
   });
+
+  it(
+    "fails when a registered account tries to read the name of a different registered account",
+    async () => {
+      const nameAsField = stringToBigInt("charlie");
+
+      await charlie.contracts.gateway.methods.register(nameAsField).send().wait();
+
+      expect(
+        charlie.contracts.gateway.methods
+          .view_name(alice.wallet.getAddress())
+          .simulate(),
+      ).rejects.toThrow("Assertion failed: Attempted to read past end of BoundedVec");
+    },
+    timeout,
+  );
 });

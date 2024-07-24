@@ -1,15 +1,13 @@
-mod public_keys;
-
-contract Froglin {
+contract FroglinEvent {
     use dep::authwit::{auth::assert_current_call_valid_authwit};
     use dep::value_note::value_note::ValueNote;
     use dep::aztec::{
         encrypted_logs::encrypted_note_emission::encode_and_encrypt_note_with_keys,
-        prelude::{AztecAddress, Map, NoteGetterOptions}, state_vars::{PrivateMutable, SharedImmutable},
-        oracle::debug_log::{debug_log, debug_log_format}
+        prelude::{AztecAddress, Map}, state_vars::{PrivateImmutable, PrivateMutable, SharedImmutable}
     };
 
-    use crate::public_keys::PublicKeys;
+    use dep::zkl_froglin::FroglinGateway;
+    use dep::zkl_utils::public_keys::PublicKeys;
 
     #[aztec(storage)]
     struct Storage {
@@ -17,18 +15,7 @@ contract Froglin {
         epoch_count: PrivateMutable<ValueNote>,
         players: Map<AztecAddress, PrivateMutable<ValueNote>>,
         event_info_notes: Map<AztecAddress, PrivateMutable<ValueNote>>,
-    }
-
-    // "Modifiers"
-
-    #[aztec(internal)]
-    unconstrained fn _check_registration(account: AztecAddress) {
-        assert(storage.players.at(account).is_initialized(), "method callable only by registered players");
-    }
-
-    #[aztec(internal)]
-    unconstrained fn _check_authorization(account: AztecAddress) {
-        assert_eq(storage.owner.read_public(), account, "method callable only by owner");
+        gateway: PrivateImmutable<ValueNote>,
     }
 
     #[aztec(internal)]
@@ -39,35 +26,36 @@ contract Froglin {
 
     #[aztec(initializer)]
     #[aztec(private)]
-    fn construct_private() {
+    fn construct_private(gateway: AztecAddress) {
         let owner = context.msg_sender();
         let keys = PublicKeys::from_private_context(&mut context, owner);
 
         let mut epoch_count_note = ValueNote::new(21, keys.npk_hash);
         storage.epoch_count.initialize(&mut epoch_count_note).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk));
 
-        Froglin::at(context.this_address()).construct_public(owner).enqueue(&mut context);
+        let mut gateway_as_field_note = ValueNote::new(gateway.to_field(), keys.npk_hash);
+        storage.gateway.initialize(&mut gateway_as_field_note).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk));
+
+        FroglinEvent::at(context.this_address()).construct_public(owner).enqueue(&mut context);
     }
 
+    #[aztec(internal)]
     #[aztec(private)]
-    fn register(name: Field) {
-        let keys = PublicKeys::from_private_context(&mut context, context.msg_sender());
-
-        let players = storage.players;
-        let mut player_name_note = ValueNote::new(name, keys.npk_hash);
-        players.at(context.msg_sender()).initialize(&mut player_name_note).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk));
+    fn check_registration(player: AztecAddress) {
+        FroglinGateway::at(AztecAddress::from_field(storage.gateway.get_note().value)).check_registration(player).call(&mut context);
     }
 
-    #[aztec(private)]
-    fn update_name(name: Field) {
-        let player = context.msg_sender();
-        _check_registration(player);
+    // #[aztec(internal)]
+    // unconstrained fn check_registration(player: AztecAddress) {
+    //     assert(
+    //         FroglinGateway::at(AztecAddress::from_field(storage.gateway.view_note().value)).storage.accounts.at(player).is_initialized(), "method callable only by registered players"
+    //     );
+    // }
 
-        let keys = PublicKeys::from_private_context(&mut context, context.msg_sender());
-
-        let players = storage.players;
-        let mut new_player_name = ValueNote::new(name, keys.npk_hash);
-        players.at(context.msg_sender()).replace(&mut new_player_name).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk));
+    #[aztec(internal)]
+    #[aztec(view)]
+    unconstrained fn _check_authorization(account: AztecAddress) {
+        assert_eq(storage.owner.read_public(), account, "method callable only by owner");
     }
 
     #[aztec(private)]
@@ -75,7 +63,7 @@ contract Froglin {
         let owner = context.msg_sender();
 
         _check_authorization(owner);
-        _check_registration(player);
+        FroglinEvent::at(context.this_address()).check_registration(player).call(&mut context);
 
         let owner_keys = PublicKeys::from_private_context(&mut context, owner);
         let player_keys = PublicKeys::from_private_context(&mut context, player);
@@ -89,8 +77,6 @@ contract Froglin {
         storage.event_info_notes.at(player).initialize(&mut event_info_note).emit(encode_and_encrypt_note_with_keys(&mut context, player_keys.ovpk, player_keys.ivpk));
     }
 
-    // front-end viewing functions
-
     unconstrained fn view_owner() -> pub AztecAddress {
         storage.owner.read_public()
     }
@@ -99,15 +85,9 @@ contract Froglin {
         storage.epoch_count.view_note().value
     }
 
-    unconstrained fn view_name(player: AztecAddress) -> pub Field {
-        _check_registration(player);
-
-        storage.players.at(player).view_note().value
-    }
-
     unconstrained fn view_event_info(player: AztecAddress) -> pub ValueNote {
-        _check_registration(player);
-
+        // _check_registration(player);
+        FroglinEvent::at(context.this_address()).check_registration(player);
         storage.event_info_notes.at(player).view_note()
     }
 }

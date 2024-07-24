@@ -29,8 +29,8 @@
     "backend/**/*.ts",
     "common/**/*.ts",
     "common/loadenv.js",
-    "contracts/artifacts/**/*.ts",
-    "contracts/target/**/*.json",
+    "aztec/contracts/**/artifact/*.ts",
+    "aztec/contracts/**/target/*.json",
     "src/**/*.ts*",
     "tests/**/*.ts"
   ],

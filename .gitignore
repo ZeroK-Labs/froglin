@@ -33,8 +33,8 @@ build
 dist
 
 # Noir
-contracts/artifacts
-contracts/target
+aztec/contracts/**/artifact
+aztec/contracts/**/target
 codegenCache.json
 
 # tailwind

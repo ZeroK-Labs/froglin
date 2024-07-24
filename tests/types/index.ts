@@ -1,1 +1,1 @@
-export type { default as AccountWithContract } from "./AccountWithContract";
+export type { default as AccountWithContracts } from "./AccountWithContracts";
