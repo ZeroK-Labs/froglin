@@ -1,13 +1,15 @@
-import { lazy } from "react";
-
 import SignInScreen from "./SignInScreen";
 import { GameEventProvider } from "stores";
 import { useTutorialState, useViewState } from "hooks";
 
-const InfoBarsContainer = lazy(() => import("components/InfoBarsContainer"));
-const LineMenu = lazy(() => import("components/LineMenu"));
-const Map = lazy(() => import("components/Map"));
-const Tutorial = lazy(() => import("components/Tutorial"));
+import { Map, InfoBarsContainer, LineMenu, Tutorial } from "components";
+
+// import { lazy } from "react";
+
+// const InfoBarsContainer = lazy(() => import("components/InfoBarsContainer"));
+// const LineMenu = lazy(() => import("components/LineMenu"));
+// const Map = lazy(() => import("components/Map"));
+// const Tutorial = lazy(() => import("components/Tutorial"));
 
 function AppWithoutUser({ setUser }: { setUser: (a: boolean) => void }) {
   const { tutorial, setTutorial } = useTutorialState();
