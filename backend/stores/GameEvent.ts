@@ -51,12 +51,13 @@ export function createGameEvent(center: MapCoordinates): ServerGameEvent {
         return;
       }
 
-      broadcastMessage("newEpoch");
-
       event.epochStartTime = Date.now();
 
       const totalCount = event.interestPoints.length;
-      if (totalCount === 0) return;
+      if (totalCount === 0) {
+        broadcastMessage("newEpoch");
+        return;
+      }
 
       // generate new coordinates for the interest points
       const nearCount = Math.floor(Math.random() * 12) + 3;
@@ -72,6 +73,8 @@ export function createGameEvent(center: MapCoordinates): ServerGameEvent {
       for (let i = 0; i !== totalCount; ++i) {
         event.interestPoints[i].coordinates = coordinates[i];
       }
+
+      broadcastMessage("newEpoch");
     },
 
     revealInterestPoints: function (interestPointIds: string[]) {
