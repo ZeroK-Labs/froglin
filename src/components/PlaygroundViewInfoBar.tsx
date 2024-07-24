@@ -19,13 +19,16 @@ export default function PlaygroundViewInfoBar({ visible }: Props) {
   useEffect(
     () => {
       let timeLeft = epochDuration - (Date.now() - epochStartTime);
-      setSecondsLeft(Math.floor(timeLeft * 0.001 + 0.5));
+      setSecondsLeft(Math.floor(timeLeft * 0.001));
 
       epochTickerRef.current = setInterval(
         () => {
           timeLeft -= 1_000;
-          if (timeLeft > 0) setSecondsLeft(Math.floor(timeLeft * 0.001 + 0.5));
-          else clearInterval(epochTickerRef.current);
+          if (timeLeft > 0) setSecondsLeft(Math.floor(timeLeft * 0.001));
+          else {
+            setSecondsLeft(0);
+            clearInterval(epochTickerRef.current);
+          }
         }, //
         1_000,
       );
