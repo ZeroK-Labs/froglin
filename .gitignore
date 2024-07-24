@@ -61,6 +61,7 @@ src/styles/global.css
 ### SETTINGS ###
 ################
 
+backend/gateway_address
 .env
 settings
 
