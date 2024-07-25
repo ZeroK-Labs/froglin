@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 
 import { PlayerMarkerImage } from "components";
 import { VIEW } from "settings";
-import { disableMapActions, enableMapActionsPlayground } from "utils/mapbox";
 import { useLocation } from "stores";
 
 export default function LocationRestoreButton({ map }: { map: mapboxgl.Map }) {
@@ -14,18 +13,16 @@ export default function LocationRestoreButton({ map }: { map: mapboxgl.Map }) {
     if (map.isBusy()) return;
 
     setContained(true);
-    disableMapActions(map);
 
+    map.disableActions();
+    map.off("idle", map.enablePlaygroundActions);
+    map.once("idle", map.enablePlaygroundActions);
     map.flyTo({
       center: [coordinates.longitude, coordinates.latitude],
       zoom: VIEW.PLAYGROUND.ZOOM,
       pitch: VIEW.PLAYGROUND.PITCH,
       bearing: VIEW.PLAYGROUND.BEARING,
       duration: VIEW.VIEW_ANIMATION_DURATION,
-    });
-
-    map.once("moveend", () => {
-      enableMapActionsPlayground(map);
     });
   }
 
@@ -49,7 +46,7 @@ export default function LocationRestoreButton({ map }: { map: mapboxgl.Map }) {
 
   return contained ? null : (
     <button
-      className="fixed bottom-5 right-5 rounded-md"
+      className="fixed z-[9999] bottom-5 right-5 rounded-md"
       onClick={handleClick}
     >
       <PlayerMarkerImage size="40px" />

@@ -24,7 +24,7 @@ export default function LineMenu({
   return (
     <div
       ref={divRef}
-      className="fixed bottom-6 left-6"
+      className="fixed z-[9999] bottom-6 left-6"
     >
       <LineMenuButton
         open={open}
