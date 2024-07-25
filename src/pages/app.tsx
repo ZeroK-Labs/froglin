@@ -27,7 +27,7 @@ export default function App() {
         }}
       >
         {(t) => (
-          <div className={t.visible ? "animate-fade-in" : "animate-fade-out"}>
+          <div className={t.visible ? "animate-toast-in" : "animate-toast-out"}>
             <ToastBar toast={t} />
           </div>
         )}

@@ -68,6 +68,8 @@ export function createSocketServer(options?: ServerOptions) {
 export function broadcastMessage(text: string) {
   if (!ws_server) return;
 
+  console.log(`broadcasting ${text}`);
+
   for (const client of ws_server.clients) {
     if (client.readyState === WebSocket.OPEN) client.send(text);
   }

@@ -13,19 +13,19 @@ export default {
       },
       animation: {
         "fade-in-out": "fade-in-out 2s infinite",
-        "fade-in": "fade-in 1s ease",
-        "fade-out": "fade-out 1s ease",
+        "toast-in": "toast-in 1s ease",
+        "toast-out": "toast-out 1s ease",
       },
       keyframes: {
         "fade-in-out": {
           "0%, 100%": { opacity: 0 },
           "50%": { opacity: 1 },
         },
-        "fade-in": {
+        "toast-in": {
           from: { opacity: 0, transform: "translate(10rem)" },
           to: { opacity: 1, transform: "translate(0)" },
         },
-        "fade-out": {
+        "toast-out": {
           from: { opacity: 1, transform: "translate(0)" },
           to: { opacity: 0, transform: "translate(10rem)" },
         },
