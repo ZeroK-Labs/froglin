@@ -19,7 +19,6 @@ export default function App() {
             background: "#363636",
             color: "#fff",
             fontSize: "16pt",
-            zIndex: "9999",
           },
           success: {
             duration: 2_000,
@@ -32,7 +31,7 @@ export default function App() {
           </div>
         )}
       </Toaster>
-      ;
+
       <LocationProvider>
         <PXEClientProvider>
           {user ? <AppWithUser /> : <AppWithoutUser setUser={setUser} />}
