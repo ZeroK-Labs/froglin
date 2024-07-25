@@ -4,13 +4,6 @@ import { useTutorialState, useViewState } from "hooks";
 
 import { Map, InfoBarsContainer, LineMenu, Tutorial } from "components";
 
-// import { lazy } from "react";
-
-// const InfoBarsContainer = lazy(() => import("components/InfoBarsContainer"));
-// const LineMenu = lazy(() => import("components/LineMenu"));
-// const Map = lazy(() => import("components/Map"));
-// const Tutorial = lazy(() => import("components/Tutorial"));
-
 function AppWithoutUser({ setUser }: { setUser: (a: boolean) => void }) {
   const { tutorial, setTutorial } = useTutorialState();
   const { view, setView } = useViewState();

@@ -18,15 +18,6 @@ import {
 } from "components";
 import toast from "react-hot-toast";
 
-// import { lazy } from "react";
-
-// const InfoBarsContainer = lazy(() => import("components/InfoBarsContainer"));
-// const LineMenu = lazy(() => import("components/LineMenu"));
-// const Map = lazy(() => import("components/Map"));
-// const Tutorial = lazy(() => import("components/Tutorial"));
-// const LeaderBoard = lazy(() => import("components/LeaderBoard"));
-// const CapturedFroglinList = lazy(() => import("components/CapturedFroglinList"));
-
 function AppWithUser() {
   const [leaderBoard, setLeaderBoard] = useState<boolean>(false);
 
@@ -52,15 +43,12 @@ function AppWithUser() {
         const accountContract = new SingleKeyAccountContract(encryptionPrivateKey);
         const accountManager = new AccountManager(pxeClient, keyFr, accountContract);
 
-        // await accountManager.register();
-
         toast.promise(accountManager.register(), {
           loading: "Initializing wallet...",
-          success: "Wallet initialized!",
-          // (wallet) => {
-          //   console.log("wallet ready", wallet.getAddress().toString());
-          //   return "Wallet initialized!";
-          // },
+          success: (wallet) => {
+            console.log("wallet ready", wallet.getAddress().toString());
+            return "Wallet initialized!";
+          },
           error: (err) => `This just happened: ${err.toString()}`,
         });
       }
