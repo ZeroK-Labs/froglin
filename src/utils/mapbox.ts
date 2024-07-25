@@ -6,51 +6,57 @@ import { mobileClient } from "./window";
 declare module "mapbox-gl" {
   interface Map {
     isBusy: () => boolean;
+    disableActions: () => void;
+    enablePlaygroundActions: () => void;
+    enableEventActions: () => void;
   }
 }
+
+mapboxgl.Map.prototype.isBusy = isBusy;
+mapboxgl.Map.prototype.disableActions = disableActions;
+mapboxgl.Map.prototype.enablePlaygroundActions = enablePlaygroundActions;
+mapboxgl.Map.prototype.enableEventActions = enableEventActions;
 
 function isBusy(this: mapboxgl.Map) {
   return this.isEasing() || this.isZooming() || this.isMoving() || this.isRotating();
 }
 
-mapboxgl.Map.prototype.isBusy = isBusy;
-
-export function disableMapActions(map: mapboxgl.Map) {
-  map.setMinPitch(0);
-  map.setMaxPitch(85);
-  map.setMinZoom(1);
-  map.setMaxZoom(22);
-  map.dragPan.disable();
-  map.dragRotate.disable();
-  map.scrollZoom.disable();
-  map.touchPitch.disable();
-  map.touchZoomRotate.disable();
-  map.doubleClickZoom.disable();
+function disableActions(this: mapboxgl.Map) {
+  this.setMinPitch(0);
+  this.setMaxPitch(85);
+  this.setMinZoom(1);
+  this.setMaxZoom(22);
+  this.dragPan.disable();
+  this.dragRotate.disable();
+  this.scrollZoom.disable();
+  this.touchPitch.disable();
+  this.touchZoomRotate.disable();
+  this.doubleClickZoom.disable();
 }
 
-export function enableMapActionsPlayground(map: mapboxgl.Map) {
-  map.setMinPitch(20);
-  map.setMaxPitch(80);
-  map.setMinZoom(VIEW.PLAYGROUND.ZOOM - 2);
-  map.setMaxZoom(VIEW.PLAYGROUND.ZOOM);
-  map.dragPan.enable();
-  map.dragRotate.enable();
-  map.scrollZoom.enable();
-  map.touchPitch.enable();
-  map.touchZoomRotate.enable();
-  if (mobileClient) map.doubleClickZoom.enable();
+function enablePlaygroundActions(this: mapboxgl.Map) {
+  this.setMinPitch(20);
+  this.setMaxPitch(80);
+  this.setMinZoom(VIEW.PLAYGROUND.ZOOM - 2);
+  this.setMaxZoom(VIEW.PLAYGROUND.ZOOM);
+  this.dragPan.enable();
+  this.dragRotate.enable();
+  this.scrollZoom.enable();
+  this.touchPitch.enable();
+  this.touchZoomRotate.enable();
+  if (mobileClient) this.doubleClickZoom.enable();
 }
 
-export function enableMapActionsEvent(map: mapboxgl.Map) {
-  map.setMinPitch(10);
-  map.setMaxPitch(45);
-  map.setMinZoom(VIEW.EVENT.ZOOM - 1);
-  map.setMaxZoom(VIEW.EVENT.ZOOM);
-  map.dragRotate.enable();
-  map.scrollZoom.enable();
-  map.touchPitch.enable();
-  map.touchZoomRotate.enable();
-  if (mobileClient) map.doubleClickZoom.enable();
+function enableEventActions(this: mapboxgl.Map) {
+  this.setMinPitch(10);
+  this.setMaxPitch(45);
+  this.setMinZoom(VIEW.EVENT.ZOOM - 1);
+  this.setMaxZoom(VIEW.EVENT.ZOOM);
+  this.dragRotate.enable();
+  this.scrollZoom.enable();
+  this.touchPitch.enable();
+  this.touchZoomRotate.enable();
+  if (mobileClient) this.doubleClickZoom.enable();
 }
 
 // work-around to counteract the sky being black after loading

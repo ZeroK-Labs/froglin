@@ -12,17 +12,13 @@ import {
   LocationRestoreButton,
   PlayerMarker,
 } from "components";
-import {
-  disableMapActions,
-  enableMapActionsEvent,
-  enableMapActionsPlayground,
-  setMapFog,
-} from "utils/mapbox";
+import { setMapFog } from "utils/mapbox";
 
 export default function MapScreen({ view }: { view: MAP_VIEWS }) {
-  const enableMapActionsRef = useRef<() => void>(() => {});
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
   const durationRef = useRef(VIEW.FIRST_FLIGHT_ANIMATION_DURATION);
+  const lastViewChangeTimeRef = useRef(0);
+  const firstLoadRef = useRef(true);
 
   const [map, setMap] = useState<mapboxgl.Map>();
 
@@ -36,16 +32,25 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
       const map = node.getMap();
       setMapFog(map);
       setMap(map);
+      map.once("idle", () => {
+        firstLoadRef.current = false;
+      });
       return;
     }
 
     if (viewLevelRef.current === view || location.disabled) return;
 
     viewLevelRef.current = view;
-    disableMapActions(map);
+    lastViewChangeTimeRef.current = Date.now();
 
-    let enableMapActions: (map: mapboxgl.Map) => void;
+    map.disableActions();
+
+    // ensure only one handler is subscribed
+    map.off("idle", map.enablePlaygroundActions);
+    map.off("idle", map.enableEventActions);
+
     if (view === MAP_VIEWS.PLAYGROUND) {
+      map.once("idle", map.enablePlaygroundActions);
       map.flyTo({
         center: [location.coordinates.longitude, location.coordinates.latitude],
         zoom: VIEW.PLAYGROUND.ZOOM,
@@ -57,25 +62,17 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
         //   return -(Math.cos(Math.PI * x) - 1) / 2;
         // },
       });
-      enableMapActions = enableMapActionsPlayground;
       durationRef.current = VIEW.VIEW_ANIMATION_DURATION;
     } //
     else if (view === MAP_VIEWS.EVENT) {
+      map.once("idle", map.enableEventActions);
       map.fitBounds(getEventBounds(), {
         zoom: VIEW.EVENT.ZOOM - 0.5,
         pitch: VIEW.EVENT.PITCH,
         bearing: VIEW.EVENT.BEARING,
         duration: VIEW.VIEW_ANIMATION_DURATION,
       });
-      enableMapActions = enableMapActionsEvent;
     }
-
-    // ensure only one handler is subscribed
-    map.off("idle", enableMapActionsRef.current);
-    enableMapActionsRef.current = () => {
-      enableMapActions(map!);
-    };
-    map.once("idle", enableMapActionsRef.current);
   }
 
   // map camera follows player
@@ -83,70 +80,86 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
     () => {
       // console.log("map - location change", location);
 
-      if (location.disabled || !map || map!.isBusy()) return;
+      if (!map || firstLoadRef.current) return;
 
-      setTimeout(
+      if (view !== MAP_VIEWS.PLAYGROUND || location.disabled) return;
+
+      // wait for view switch animation to complete
+      let diff =
+        VIEW.VIEW_ANIMATION_DURATION - (Date.now() - lastViewChangeTimeRef.current);
+      if (diff > 0) return;
+
+      const timerId = setTimeout(
         () => {
-          map!.flyTo({
+          map.disableActions();
+          map.off("idle", map.enablePlaygroundActions);
+          map.flyTo({
             center: [location.coordinates.longitude, location.coordinates.latitude],
             duration: VIEW.LOCATION_FOLLOW_ANIMATION_DURATION,
           });
+          map.once("idle", map.enablePlaygroundActions);
         }, //
         VIEW.LOCATION_FOLLOW_ANIMATION_DELAY,
       );
+
+      return () => {
+        if (view !== MAP_VIEWS.PLAYGROUND || location.disabled) clearTimeout(timerId);
+      };
     }, //
-    [location.coordinates.longitude, location.coordinates.latitude],
+    [view, location.coordinates.longitude, location.coordinates.latitude],
   );
 
   return (
-    <div className="fixed inset-0 h-dvh w-dvw">
-      <Map
-        reuseMaps
-        ref={mapCallback}
-        mapStyle="mapbox://styles/mapbox/dark-v11"
-        // disable right-bottom information
-        attributionControl={false}
-        // @ts-expect-error - make all animations essential
-        respectPrefersReducedMotion={false}
-        projection={{ name: "globe" }}
-        // initialViewState={
-        //   {
-        //     // zoom: 2.77, // fit the globe vertically in view (without any padding/margin)
-        //     // zoom: 1,
-        //     // pitch: 0,
-        //     // bearing: 50,
-        //   }
-        // }
-      >
-        {interestPoints.map((point) => (
-          <InterestPointMarker
-            key={point.id}
-            point={point}
-          />
-        ))}
-
-        {revealedFroglins.map((froglin) =>
-          isNaN(froglin.coordinates.longitude) ? null : (
-            <FroglinMarker
-              key={froglin.id}
-              froglin={froglin}
+    <>
+      <div className="fixed inset-0 h-dvh w-dvw">
+        <Map
+          reuseMaps
+          ref={mapCallback}
+          mapStyle="mapbox://styles/mapbox/dark-v11"
+          // disable right-bottom information
+          attributionControl={false}
+          // @ts-expect-error - make all animations essential
+          respectPrefersReducedMotion={false}
+          projection={{ name: "globe" }}
+          // initialViewState={
+          //   {
+          //     // zoom: 2.77, // fit the globe vertically in view (without any padding/margin)
+          //     // zoom: 1,
+          //     // pitch: 0,
+          //     // bearing: 50,
+          //   }
+          // }
+        >
+          {interestPoints.map((point) => (
+            <InterestPointMarker
+              key={point.id}
+              point={point}
             />
-          ),
-        )}
+          ))}
 
-        <GameEventView visible={view === MAP_VIEWS.EVENT} />
+          {revealedFroglins.map((froglin) =>
+            isNaN(froglin.coordinates.longitude) ? null : (
+              <FroglinMarker
+                key={froglin.id}
+                froglin={froglin}
+              />
+            ),
+          )}
 
-        {!map || location.disabled ? null : (
-          <>
-            <RevealingCircleStateProvider>
-              <CanvasOverlay />
-              <PlayerMarker view={view} />
-            </RevealingCircleStateProvider>
+          <GameEventView visible={view === MAP_VIEWS.EVENT} />
 
-            <LocationRestoreButton map={map} />
-          </>
-        )}
-      </Map>
-    </div>
+          {!map || location.disabled ? null : (
+            <>
+              <RevealingCircleStateProvider>
+                <CanvasOverlay />
+                <PlayerMarker view={view} />
+              </RevealingCircleStateProvider>
+            </>
+          )}
+        </Map>
+      </div>
+
+      {!map || location.disabled ? null : <LocationRestoreButton map={map} />}
+    </>
   );
 }
