@@ -3,6 +3,8 @@ import { WebSocketServer, ServerOptions } from "ws";
 
 import { createPXEService, destroyPXEService } from "../common/PXEManager";
 import { parse } from "url";
+import { createPXEClient } from "@aztec/aztec.js";
+import { BACKEND_WALLET } from "./aztec";
 
 let ws_server: WebSocketServer;
 
@@ -44,12 +46,17 @@ export function createSocketServer(options?: ServerOptions) {
     //   process.stderr.write(data);
     // });
 
-    pxe.stdout!.on("data", (data) => {
+    pxe.stdout!.on("data", async (data) => {
       // process.stdout.write(data);
 
       if (!data.includes(`Aztec Server listening on port ${port}`)) return;
 
       url = `${HOST}${port}`;
+      const pxeClient = createPXEClient(url);
+      await pxeClient.registerContract({
+        instance: BACKEND_WALLET.contracts.gateway.instance,
+        artifact: BACKEND_WALLET.contracts.gateway.artifact,
+      });
       socket.send(`pxe ${url}`);
       console.log("PXE ready", url);
     });
