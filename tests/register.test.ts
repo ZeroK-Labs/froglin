@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { createPXEClient } from "@aztec/aztec.js";
+import { createPXEClient, TxStatus } from "@aztec/aztec.js";
 
 import { AccountWithContracts } from "./types";
 import { FroglinGatewayContract } from "../aztec/contracts/gateway/artifact/FroglinGateway";
@@ -112,15 +112,35 @@ describe("Registration Tests", () => {
   it(
     "registers player with expected name",
     async () => {
-      const nameAsField = stringToBigInt("alice");
+      const expectedNameAsBigInt = stringToBigInt("alice");
 
-      await alice.contracts.gateway.methods.register(nameAsField).send().wait();
+      const tx = await alice.contracts.gateway.methods
+        .register(expectedNameAsBigInt)
+        .send()
+        .wait();
 
-      const storedNameAsField = await alice.contracts.gateway.methods
+      expect(tx.status).toEqual(TxStatus.SUCCESS);
+    },
+    timeout,
+  );
+
+  it("fails when trying to register the same player twice", () => {
+    const nameAsField = stringToBigInt("alice");
+    expect(
+      alice.contracts.gateway.methods.register(nameAsField).send().wait(),
+    ).rejects.toThrow("Assertion failed: player is already registered");
+  });
+
+  it(
+    "reads expected name for a registered player",
+    async () => {
+      const expectedNameAsBigInt = stringToBigInt("alice");
+
+      const storedNameAsBigInt = await alice.contracts.gateway.methods
         .view_name(alice.wallet.getAddress())
         .simulate();
 
-      expect(nameAsField).toBe(storedNameAsField);
+      expect(expectedNameAsBigInt).toBe(storedNameAsBigInt);
     },
     timeout,
   );
@@ -136,6 +156,22 @@ describe("Registration Tests", () => {
       bob.contracts.gateway.methods.view_name(alice.wallet.getAddress()).simulate(),
     ).rejects.toThrow("Assertion failed: Attempted to read past end of BoundedVec");
   });
+
+  it(
+    "fails when a registered account tries to read the name of a different registered account",
+    async () => {
+      const nameAsField = stringToBigInt("charlie");
+
+      await charlie.contracts.gateway.methods.register(nameAsField).send().wait();
+
+      expect(
+        charlie.contracts.gateway.methods
+          .view_name(alice.wallet.getAddress())
+          .simulate(),
+      ).rejects.toThrow("Assertion failed: Attempted to read past end of BoundedVec");
+    },
+    timeout,
+  );
 
   it(
     "updates player with expected name",
@@ -160,20 +196,4 @@ describe("Registration Tests", () => {
       bob.contracts.gateway.methods.update_name(nameAsField).send().wait(),
     ).rejects.toThrow("Assertion failed: method callable only by registered players");
   });
-
-  it(
-    "fails when a registered account tries to read the name of a different registered account",
-    async () => {
-      const nameAsField = stringToBigInt("charlie");
-
-      await charlie.contracts.gateway.methods.register(nameAsField).send().wait();
-
-      expect(
-        charlie.contracts.gateway.methods
-          .view_name(alice.wallet.getAddress())
-          .simulate(),
-      ).rejects.toThrow("Assertion failed: Attempted to read past end of BoundedVec");
-    },
-    timeout,
-  );
 });

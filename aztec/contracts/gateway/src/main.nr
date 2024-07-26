@@ -16,9 +16,16 @@ contract FroglinGateway {
     #[aztec(private)]
     fn construct_private() {}
 
+    #[aztec(view)]
     #[aztec(internal)]
     unconstrained fn _check_registration(player: AztecAddress) {
         assert(storage.accounts.at(player).is_initialized(), "method callable only by registered players");
+    }
+
+    #[aztec(view)]
+    #[aztec(internal)]
+    unconstrained fn _check_new(player: AztecAddress) {
+        assert(!storage.accounts.at(player).is_initialized(), "player is already registered");
     }
 
     #[aztec(private)]
@@ -26,16 +33,11 @@ contract FroglinGateway {
         _check_registration(player);
     }
 
-    #[aztec(view)]
-    unconstrained fn view_name(player: AztecAddress) -> pub Field {
-        _check_registration(player);
-
-        storage.accounts.at(player).view_note().value
-    }
-
     #[aztec(private)]
     fn register(name: Field) {
         let player = context.msg_sender();
+        _check_new(player);
+
         let keys = PublicKeys::from_private_context(&mut context, player);
 
         let mut player_name_note = ValueNote::new(name, keys.npk_hash);
@@ -51,5 +53,17 @@ contract FroglinGateway {
 
         let mut new_player_name = ValueNote::new(name, keys.npk_hash);
         storage.accounts.at(context.msg_sender()).replace(&mut new_player_name).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk, player));
+    }
+
+    #[aztec(view)]
+    unconstrained fn registered(player: AztecAddress) -> pub bool {
+        storage.accounts.at(player).is_initialized()
+    }
+
+    #[aztec(view)]
+    unconstrained fn view_name(player: AztecAddress) -> pub Field {
+        _check_registration(player);
+
+        storage.accounts.at(player).view_note().value
     }
 }
