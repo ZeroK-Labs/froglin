@@ -59,7 +59,7 @@ export default async () => {
         path: false,
         stream: false,
         tty: false,
-        util: path.resolve("util"),
+        util: false,
       },
     },
     //
