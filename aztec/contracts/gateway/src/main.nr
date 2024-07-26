@@ -35,10 +35,11 @@ contract FroglinGateway {
 
     #[aztec(private)]
     fn register(name: Field) {
-        let keys = PublicKeys::from_private_context(&mut context, context.msg_sender());
+        let player = context.msg_sender();
+        let keys = PublicKeys::from_private_context(&mut context, player);
 
         let mut player_name_note = ValueNote::new(name, keys.npk_hash);
-        storage.accounts.at(context.msg_sender()).initialize(&mut player_name_note).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk));
+        storage.accounts.at(context.msg_sender()).initialize(&mut player_name_note).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk, player));
     }
 
     #[aztec(private)]
@@ -49,6 +50,6 @@ contract FroglinGateway {
         let keys = PublicKeys::from_private_context(&mut context, context.msg_sender());
 
         let mut new_player_name = ValueNote::new(name, keys.npk_hash);
-        storage.accounts.at(context.msg_sender()).replace(&mut new_player_name).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk));
+        storage.accounts.at(context.msg_sender()).replace(&mut new_player_name).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk, player));
     }
 }

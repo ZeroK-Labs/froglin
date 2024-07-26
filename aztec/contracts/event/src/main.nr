@@ -31,10 +31,10 @@ contract FroglinEvent {
         let keys = PublicKeys::from_private_context(&mut context, owner);
 
         let mut epoch_count_note = ValueNote::new(21, keys.npk_hash);
-        storage.epoch_count.initialize(&mut epoch_count_note).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk));
+        storage.epoch_count.initialize(&mut epoch_count_note).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk, owner));
 
         let mut gateway_as_field_note = ValueNote::new(gateway.to_field(), keys.npk_hash);
-        storage.gateway.initialize(&mut gateway_as_field_note).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk));
+        storage.gateway.initialize(&mut gateway_as_field_note).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk, owner));
 
         FroglinEvent::at(context.this_address()).construct_public(owner).enqueue(&mut context);
     }
@@ -71,10 +71,10 @@ contract FroglinEvent {
         let epoch_count = storage.epoch_count.get_note().note.value;
 
         let mut epoch_count_note = ValueNote::new(epoch_count, owner_keys.npk_hash);
-        storage.epoch_count.replace(&mut epoch_count_note).emit(encode_and_encrypt_note_with_keys(&mut context, owner_keys.ovpk, owner_keys.ivpk));
+        storage.epoch_count.replace(&mut epoch_count_note).emit(encode_and_encrypt_note_with_keys(&mut context, owner_keys.ovpk, owner_keys.ivpk, owner));
 
         let mut event_info_note = ValueNote::new(epoch_count, player_keys.npk_hash);
-        storage.event_info_notes.at(player).initialize(&mut event_info_note).emit(encode_and_encrypt_note_with_keys(&mut context, player_keys.ovpk, player_keys.ivpk));
+        storage.event_info_notes.at(player).initialize(&mut event_info_note).emit(encode_and_encrypt_note_with_keys(&mut context, player_keys.ovpk, player_keys.ivpk, player));
     }
 
     unconstrained fn view_owner() -> pub AztecAddress {
