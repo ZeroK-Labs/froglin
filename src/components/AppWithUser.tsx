@@ -1,12 +1,11 @@
+import toast from "react-hot-toast";
+import { AztecAddress, Contract } from "@aztec/aztec.js";
 import { useEffect, useState } from "react";
-import { SingleKeyAccountContract } from "@aztec/accounts/single_key";
-import {
-  Fr,
-  deriveMasterIncomingViewingSecretKey,
-  AccountManager,
-} from "@aztec/aztec.js";
 
+import { FroglinGatewayContract } from "../../aztec/contracts/gateway/artifact/FroglinGateway";
 import { GameEventProvider, usePXEClient } from "stores";
+import { bigIntToString, stringToBigInt } from "../../common/utils/bigint";
+import { createWallet } from "../../common/WalletManager";
 import { useTutorialState, useViewState } from "hooks";
 import {
   CapturedFroglinList,
@@ -16,10 +15,10 @@ import {
   Map,
   Tutorial,
 } from "components";
-import toast from "react-hot-toast";
 
 function AppWithUser() {
   const [leaderBoard, setLeaderBoard] = useState<boolean>(false);
+  const [gatewayAddress, setGatewayAddress] = useState<string>("");
 
   const { tutorial, setTutorial } = useTutorialState();
   const { view, setView } = useViewState();
@@ -27,9 +26,29 @@ function AppWithUser() {
 
   useEffect(
     () => {
+      async function fetchGatewayAddress() {
+        try {
+          const response = await fetch(`${process.env.BACKEND_URL}/gateway`);
+          const data = await response.json();
+
+          // TODO: this could load slower than (or after) the PXEClient
+          setGatewayAddress(data);
+          //
+        } catch (error) {
+          console.error("Failed to fetch gateway address", error);
+        }
+      }
+
+      fetchGatewayAddress();
+    }, //
+    [],
+  );
+
+  useEffect(
+    () => {
       if (!pxeClient) return;
 
-      function initializeWallet() {
+      async function initializeWallet() {
         if (!pxeClient) return;
 
         const secretString = localStorage.getItem("user");
@@ -37,20 +56,42 @@ function AppWithUser() {
           throw "Failed to get secret: key 'user' missing from localStorage";
         }
 
-        const keyFr = new Fr(BigInt(secretString));
-        const encryptionPrivateKey = deriveMasterIncomingViewingSecretKey(keyFr);
-
-        const accountContract = new SingleKeyAccountContract(encryptionPrivateKey);
-        const accountManager = new AccountManager(pxeClient, keyFr, accountContract);
-
-        toast.promise(accountManager.register(), {
+        const promise = createWallet(secretString, pxeClient);
+        toast.promise(promise, {
           loading: "Initializing wallet...",
-          success: (wallet) => {
-            console.log("wallet ready", wallet.getAddress().toString());
-            return "Wallet initialized!";
-          },
+          success: "Wallet initialized!",
           error: (err) => `This just happened: ${err.toString()}`,
         });
+
+        const wallet = await promise;
+
+        const contract = await Contract.at(
+          AztecAddress.fromString(gatewayAddress),
+          FroglinGatewayContract.artifact,
+          wallet,
+        );
+
+        let name = localStorage.getItem("username") || "abc";
+        try {
+          const registered = await contract.methods
+            .registered(wallet.getAddress())
+            .simulate();
+
+          if (!registered) {
+            const nameAsField = stringToBigInt(name);
+            await contract.methods.register(nameAsField).send().wait();
+          }
+
+          const nameAsField = await contract.methods
+            .view_name(wallet.getAddress())
+            .simulate();
+          name = bigIntToString(nameAsField);
+
+          console.log(name);
+          //
+        } catch (err) {
+          console.log(err);
+        }
       }
 
       initializeWallet();
