@@ -18,7 +18,7 @@ describe("Registration Tests", () => {
   beforeAll(async () => {
     console.log("Creating deployment account...");
 
-    game_master.secret = 0x123n;
+    game_master.secret = "0x123";
     game_master.pxe_url = process.env.SANDBOX_URL!;
     game_master.pxe = createPXEClient(game_master.pxe_url);
     game_master.wallet = await createWallet(game_master.secret, game_master.pxe);
@@ -38,9 +38,9 @@ describe("Registration Tests", () => {
     // initialize test accounts
 
     // create secrets
-    alice.secret = 0xabcn;
-    bob.secret = 0xdefn;
-    charlie.secret = 0xabcdefn;
+    alice.secret = "0xabc";
+    bob.secret = "0xdef";
+    charlie.secret = "0xabcdef";
 
     // create PXE servers
     let promises: Promise<any>[] = [
@@ -93,7 +93,10 @@ describe("Registration Tests", () => {
     await Promise.all(promises);
 
     // create a contract instance per wallet
-    alice.contracts.gateway = game_master.contracts.gateway.withWallet(alice.wallet);
+    alice.contracts.gateway = await FroglinGatewayContract.at(
+      game_master.contracts.gateway.address,
+      alice.wallet,
+    );
     bob.contracts.gateway = game_master.contracts.gateway.withWallet(bob.wallet);
     charlie.contracts.gateway = game_master.contracts.gateway.withWallet(
       charlie.wallet,

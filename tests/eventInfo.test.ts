@@ -18,7 +18,7 @@ describe("EventInfo Tests", () => {
   beforeAll(async () => {
     console.log("Creating deployment account...");
 
-    game_master.secret = 0x123n;
+    game_master.secret = "0x123";
     game_master.pxe_url = process.env.SANDBOX_URL!;
     game_master.pxe = createPXEClient(game_master.pxe_url);
     game_master.wallet = await createWallet(game_master.secret, game_master.pxe);
@@ -47,8 +47,8 @@ describe("EventInfo Tests", () => {
     // initialize test accounts
 
     // create secrets
-    alice.secret = 0xabcn;
-    bob.secret = 0xdefn;
+    alice.secret = "0xabc";
+    bob.secret = "0xdef";
 
     // create PXE servers
     let promises: Promise<any>[] = [
@@ -108,11 +108,11 @@ describe("EventInfo Tests", () => {
     // register player accounts in deployment account PXE for note emission
     promises = [
       game_master.pxe.registerAccount(
-        new Fr(alice.secret),
+        new Fr(BigInt(alice.secret)),
         alice.wallet.getCompleteAddress().partialAddress,
       ),
       game_master.pxe.registerAccount(
-        new Fr(bob.secret),
+        new Fr(BigInt(bob.secret)),
         bob.wallet.getCompleteAddress().partialAddress,
       ),
     ];

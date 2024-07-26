@@ -6,7 +6,7 @@ import { createWallet } from "../common/WalletManager";
 import { AccountWithContracts } from "../tests/types";
 
 export const BACKEND_WALLET = {
-  secret: process.env.BACKEND_WALLET_SECRET! as unknown as bigint,
+  secret: process.env.BACKEND_WALLET_SECRET!,
   pxe_url: process.env.SANDBOX_URL!,
   contracts: {},
 } as AccountWithContracts;
