@@ -1,10 +1,9 @@
+import toast from "react-hot-toast";
 import { PXE, createPXEClient } from "@aztec/aztec.js";
 import { useEffect, useState, useRef } from "react";
 
 import { CLIENT_SOCKET } from "utils/sockets";
 import { StoreFactory } from "stores";
-import toast from "react-hot-toast";
-import { TimeoutId } from "../../common/types";
 
 type PXEState = {
   connected: boolean;
@@ -47,18 +46,17 @@ function createState(): PXEState {
 
   useEffect(
     () => {
-      let timerPXEId: TimeoutId;
       let url = "";
 
       let handlePXEReady: (event: MessageEvent<string>) => void;
 
-      toast.promise(
-        new Promise((resolve, reject) => {
-          if (CLIENT_SOCKET.readyState !== WebSocket.OPEN) {
-            reject("Socket is closed");
-            return;
-          }
+      if (CLIENT_SOCKET.readyState !== WebSocket.OPEN) {
+        toast.error("Socket is closed");
+        return;
+      }
 
+      toast.promise(
+        new Promise((resolve) => {
           handlePXEReady = async (event: MessageEvent<string>) => {
             if (event.data.includes("pxe ")) {
               url = event.data.split(" ")[1];
@@ -78,7 +76,10 @@ function createState(): PXEState {
         {
           loading: "Waiting for PXE",
           success: "PXE available",
-          error: "PXE unavailable",
+          error: (err) => {
+            console.log(err);
+            return "PXE unavailable";
+          },
         },
       );
 
@@ -86,7 +87,6 @@ function createState(): PXEState {
       const intervalConnectionId = setInterval(checkConnection, TIMEOUT);
 
       return () => {
-        clearTimeout(timerPXEId);
         clearInterval(intervalConnectionId);
 
         CLIENT_SOCKET.removeEventListener("message", handlePXEReady);
