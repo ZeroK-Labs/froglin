@@ -1,13 +1,25 @@
-const maxBits = 254; // Noir Field data type is 254 bits wide
-const maxBigInt = (1n << BigInt(maxBits)) - 1n; // 2^254 - 1
+const CHAR_BITS = 8n;
 
 export function stringToBigInt(str: string): bigint {
-  let hash = 0n;
+  let bigInt = 0n;
 
-  for (let i = 0; i < str.length; i++) {
-    const char = BigInt(str.charCodeAt(i));
-    hash = (hash << 5n) - hash + char;
-    hash &= maxBigInt; // Ensure hash is within 254 bits
+  for (let i = 0; i !== str.length; ++i) {
+    bigInt += BigInt(str.charCodeAt(i));
+    bigInt <<= CHAR_BITS;
   }
-  return hash;
+
+  return bigInt;
+}
+
+export function bigIntToString(bigInt: bigint): string {
+  let str = "";
+  let temp = bigInt;
+
+  while (temp !== 0n) {
+    const charCode = Number(temp & 0xffn);
+    str = String.fromCharCode(charCode) + str;
+    temp >>= CHAR_BITS;
+  }
+
+  return str;
 }
