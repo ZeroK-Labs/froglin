@@ -12,10 +12,10 @@ for contract in "${contracts[@]}"; do
   cd "$contract" || { echo "Failed to find contract '$contract'"; exit 1; }
 
   printf "\nCompiling '$contract'...\n"
-  ${AZTEC_NARGO:-aztec-nargo} compile --silence-warnings || { exit 1; }
+  aztec-nargo compile --silence-warnings || { exit 1; }
 
   printf "Generating '$contract' ABI...\n"
-  ${AZTEC_BUILDER:-aztec-builder} codegen target -o artifact || { exit 1; }
+  aztec codegen target -o artifact || { exit 1; }
 
   cd - > /dev/null || { echo "Failed to change back to previous directory"; exit 1; }
 done
