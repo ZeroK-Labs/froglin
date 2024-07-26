@@ -4,7 +4,7 @@ import { FroglinEventContract } from "../../aztec/contracts/event/artifact/Frogl
 import { FroglinGatewayContract } from "../../aztec/contracts/gateway/artifact/FroglinGateway";
 
 type AccountWithContracts = {
-  secret: bigint;
+  secret: string;
   pxe: PXE;
   pxe_url: string;
   wallet: AccountWallet;
