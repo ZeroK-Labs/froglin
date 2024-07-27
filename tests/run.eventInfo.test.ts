@@ -1,31 +1,23 @@
-import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { createPXEClient, Fr } from "@aztec/aztec.js";
+import { beforeAll, describe, expect, test } from "bun:test";
+import { Fr } from "@aztec/aztec.js";
 
-import { AccountWithContracts } from "./types";
-import { FroglinGatewayContract } from "../aztec/contracts/gateway/artifact/FroglinGateway";
+import AccountWithContracts from "../common/types/AccountWithContracts";
 import { FroglinEventContract } from "../aztec/contracts/event/artifact/FroglinEvent";
-import { createPXE, destroyPXE } from "./utils/PXE";
-import { createWallet } from "../common/WalletManager";
+import { FroglinGatewayContract } from "../aztec/contracts/gateway/artifact/FroglinGateway";
+import { getDeploymentAccount, getPlayerAccount } from "./accounts";
 import { stringToBigInt } from "../common/utils/bigint";
 
 describe("EventInfo Tests", () => {
   const timeout = 60_000;
 
-  const game_master = { contracts: {} } as AccountWithContracts;
-  const alice = { contracts: {} } as AccountWithContracts;
-  const bob = { contracts: {} } as AccountWithContracts;
+  let game_master: AccountWithContracts;
+  let alice: AccountWithContracts;
+  let bob: AccountWithContracts;
 
   beforeAll(async () => {
-    console.log("Creating deployment account...");
-
-    game_master.secret = "0x123";
-    game_master.pxe_url = process.env.SANDBOX_URL!;
-    game_master.pxe = createPXEClient(game_master.pxe_url);
-    game_master.wallet = await createWallet(game_master.secret, game_master.pxe);
-
-    console.log("Deployment account created successfully!");
-
-    console.log("Deploying contracts...");
+    game_master = await getDeploymentAccount();
+    alice = await getPlayerAccount("alice");
+    bob = await getPlayerAccount("bob");
 
     game_master.contracts.gateway = await FroglinGatewayContract.deploy(
       game_master.wallet,
@@ -44,40 +36,8 @@ describe("EventInfo Tests", () => {
 
     expect(game_master.contracts.event.instance).not.toBeNull();
 
-    // initialize test accounts
-
-    // create secrets
-    alice.secret = "0xabc";
-    bob.secret = "0xdef";
-
-    // create PXE servers
-    let promises: Promise<any>[] = [
-      createPXE().then((url) => {
-        alice.pxe_url = url;
-      }),
-      createPXE().then((url) => {
-        bob.pxe_url = url;
-      }),
-    ];
-    await Promise.all(promises);
-
-    // create PXE clients
-    alice.pxe = createPXEClient(alice.pxe_url);
-    bob.pxe = createPXEClient(bob.pxe_url);
-
-    // instantiate wallet per each PXE
-    promises = [
-      createWallet(alice.secret, alice.pxe).then((wallet) => {
-        alice.wallet = wallet;
-      }),
-      createWallet(bob.secret, bob.pxe).then((wallet) => {
-        bob.wallet = wallet;
-      }),
-    ];
-    await Promise.all(promises);
-
     // register deployed contract in each PXE
-    promises = [
+    let promises: Promise<any>[] = [
       alice.pxe.registerContract({
         instance: game_master.contracts.gateway.instance,
         artifact: game_master.contracts.gateway.artifact,
@@ -119,12 +79,7 @@ describe("EventInfo Tests", () => {
     await Promise.all(promises);
   });
 
-  afterAll(() => {
-    destroyPXE(alice.pxe_url);
-    destroyPXE(bob.pxe_url);
-  });
-
-  it("fails when non-owner account tries to create event info note", () => {
+  test("fails when non-owner account tries to create event info note", () => {
     expect(
       alice.contracts
         .event!.methods.create_event_info_note(alice.wallet.getAddress())
@@ -133,7 +88,7 @@ describe("EventInfo Tests", () => {
     ).rejects.toThrow("Assertion failed: method callable only by owner");
   });
 
-  it("fails when owner tries to create event info note for an un-registered account", () => {
+  test("fails when owner tries to create event info note for an un-registered account", () => {
     expect(
       game_master.contracts
         .event!.methods.create_event_info_note(bob.wallet.getAddress())
@@ -142,7 +97,7 @@ describe("EventInfo Tests", () => {
     ).rejects.toThrow("Assertion failed: method callable only by registered players");
   });
 
-  it(
+  test(
     "creates event info note when called by owner for a registered account",
     async () => {
       await alice.contracts.gateway.methods
@@ -160,7 +115,7 @@ describe("EventInfo Tests", () => {
     timeout,
   );
 
-  it("fails when an un-registered account tries to read its own event info note", () => {
+  test("fails when an un-registered account tries to read its own event info note", () => {
     expect(
       bob.contracts.event!.methods.view_event_info(bob.wallet.getAddress()).simulate(),
     ).rejects.toThrow(
@@ -171,7 +126,7 @@ describe("EventInfo Tests", () => {
     //).rejects.toThrow("Assertion failed: method callable only by registered players");
   });
 
-  it("fails when an un-registered account tries to read the event info note of a registered account", () => {
+  test("fails when an un-registered account tries to read the event info note of a registered account", () => {
     expect(
       bob.contracts
         .event!.methods.view_event_info(alice.wallet.getAddress())
@@ -179,7 +134,7 @@ describe("EventInfo Tests", () => {
     ).rejects.toThrow("Assertion failed: Attempted to read past end of BoundedVec");
   });
 
-  it(
+  test(
     "reads the event info note when the called by the corresponding registered account",
     async () => {
       const gameMasterEpochCount = await game_master.contracts
@@ -195,7 +150,7 @@ describe("EventInfo Tests", () => {
     timeout,
   );
 
-  it(
+  test(
     "fails when a registered account tries to read event info note belonging to a different registered account",
     async () => {
       await bob.contracts.gateway.methods.register(stringToBigInt("bob")).send().wait();

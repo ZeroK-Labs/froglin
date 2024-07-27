@@ -1,7 +1,3 @@
 [test]
 # scripts to run before `bun run`-ing a file or script
-# register plugins by adding them to this list
-preload = ["./tests/prepare.ts"]
-
-# files = ["tests/**/*.test.ts"]
-# files = ["tests/register.test.ts"]
+preload = ["./tests/setup.ts"]
