@@ -12,7 +12,8 @@ import {
 
 export async function createWallet(secret: string, pxe: PXE): Promise<AccountWallet> {
   const bigNumber = BigInt(secret);
-  const secretKey = new Fr(bigNumber);
+  const reducedSecret = bigNumber % Fr.MODULUS;
+  const secretKey = new Fr(reducedSecret);
   const signingPrivateKey = deriveMasterIncomingViewingSecretKey(secretKey);
   const contract = new SingleKeyAccountContract(signingPrivateKey);
   const account = new AccountManager(pxe, secretKey, contract, Fr.ZERO);

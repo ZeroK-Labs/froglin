@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-import { stringToBigInt } from "../../common/utils/bigint";
-import { usePXEClient } from "stores";
+import { usePXEClient, useAccountWithContracts } from "stores";
 
 const INPUT_KEY_LENGTH = 100;
 const INPUT_TIMEOUT = 250;
@@ -36,15 +35,19 @@ function getPercentageColor(percentage: number) {
   return "#15c621";
 }
 
-export default function SignInScreen({ setUser }: { setUser: (a: boolean) => void }) {
+export default function SignInScreen() {
   const lastInputTime = useRef(0);
   const inputDisabled = useRef(true);
 
   const [inputKey, setInputKey] = useState("");
-  const [username, setUsername] = useState("");
   const [visible, setVisible] = useState(false);
+  const [error, setError] = useState("");
+  const [user, setUser] = useState<string>("");
 
   const { pxeClient } = usePXEClient();
+  const { setIsFormReady, setUsername } = useAccountWithContracts();
+
+  const isSecret: boolean = !!localStorage.getItem("user");
 
   const completionPercentage = Math.floor((inputKey.length / INPUT_KEY_LENGTH) * 100);
 
@@ -81,19 +84,27 @@ export default function SignInScreen({ setUser }: { setUser: (a: boolean) => voi
   }
 
   function handleUsernameChanged(ev: React.ChangeEvent<HTMLInputElement>) {
-    setUsername(ev.target.value);
+    const newValue = ev.target.value;
+    if (!/^[a-zA-Z0-9]*$/.test(newValue)) {
+      setError("Username must contain only letters and digits.");
+    } else if (user.length > 31) {
+      setError("Username must be max 32 long.");
+    } else {
+      setError("");
+      setUser(newValue);
+    }
   }
 
-  useEffect(
-    () => {
-      const secretString = localStorage.getItem("user");
-      if (!secretString) return;
+  // useEffect(
+  //   () => {
+  //     const secretString = localStorage.getItem("user");
+  //     if (!secretString) return;
 
-      setUser(true);
-      console.log("User loaded from localStorage");
-    }, //
-    [],
-  );
+  //     setUser(true);
+  //     console.log("User loaded from localStorage");
+  //   }, //
+  //   [],
+  // );
 
   useEffect(
     () => {
@@ -103,13 +114,13 @@ export default function SignInScreen({ setUser }: { setUser: (a: boolean) => voi
 
         return;
       }
+      if (!pxeClient) return;
 
-      const secretKey = stringToBigInt(inputKey);
+      // const secretKey = stringToBigInt(inputKey);
 
-      localStorage.setItem("user", secretKey.toString());
-      localStorage.setItem("username", username);
-
-      setUser(true);
+      localStorage.setItem("user", inputKey.toString());
+      setUsername(user);
+      setIsFormReady(true);
     }, //
     [inputKey],
   );
@@ -118,18 +129,20 @@ export default function SignInScreen({ setUser }: { setUser: (a: boolean) => voi
     <>
       {visible ? (
         <div className="fixed left-3 top-[10vh] bg-[#6c5ce7] border-4 border-purple-950 rounded-sm right-4 p-2 flex flex-col items-center z-[10000]">
-          <div className="mb-4">
-            <label className="block text-white text-sm font-bold mb-2">Sign In</label>
+          <div className="flex flex-col items-center mb-4">
+            <label className="text-white text-sm font-bold mb-2">Sign In</label>
 
             <input
               type="text"
-              className="block w-56 p-2 mb-2 text-gray-700 border rounded text-sm"
+              className="w-56 p-2 mb-2 text-gray-700 border rounded text-sm"
               placeholder="Username (min 3 characters)"
               onChange={handleUsernameChanged}
+              value={user}
             />
+            <label className="text-xs text-red-500 min-h-5">{error}</label>
           </div>
 
-          {username.length > 2 ? (
+          {user.length > 2 ? (
             <>
               <div
                 className="w-56 h-56 bg-blue-500"
@@ -157,22 +170,10 @@ export default function SignInScreen({ setUser }: { setUser: (a: boolean) => voi
               </div>
             </>
           ) : null}
-          {/*
-          {loading ? (
-            <>
-              <br />
-              <div>Creating Wallet and registering new player with username</div>
-              <code>{username}</code>
-              <div>
-                in contract <code>storage</code> as a
-              </div>
-              <code>{"PrivateMutable<ValueNote>"}</code>
-            </>
-          ) : null} */}
         </div>
       ) : null}
 
-      {pxeClient ? (
+      {pxeClient && !isSecret ? (
         <div className="fixed bottom-24 left-0 right-0 mx-auto flex justify-center">
           <button
             type="button"

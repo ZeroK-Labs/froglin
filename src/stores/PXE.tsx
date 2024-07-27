@@ -9,6 +9,7 @@ type PXEState = {
   connected: boolean;
   sandboxClient: PXE;
   pxeClient: PXE | null;
+  gatewayAddress: string;
 };
 
 const TIMEOUT = 5_000;
@@ -23,6 +24,29 @@ function createState(): PXEState {
   const [sandboxClient] = useState<PXE>(createSandboxClient);
   const [pxeClient, setPXEClient] = useState<PXE | null>(null);
   const [connected, setConnected] = useState<boolean>(false);
+  const [gatewayAddress, setGatewayAddress] = useState<string>("");
+
+  // save username here and create wallet when
+
+  useEffect(
+    () => {
+      async function fetchGatewayAddress() {
+        try {
+          const response = await fetch(`${process.env.BACKEND_URL}/gateway`);
+          const data = await response.json();
+
+          // TODO: this could load slower than (or after) the PXEClient
+          setGatewayAddress(data);
+          //
+        } catch (error) {
+          console.error("Failed to fetch gateway address", error);
+        }
+      }
+
+      fetchGatewayAddress();
+    }, //
+    [],
+  );
 
   async function checkConnection() {
     if (checkingRef.current) return;
@@ -99,6 +123,7 @@ function createState(): PXEState {
     connected,
     pxeClient,
     sandboxClient,
+    gatewayAddress,
   };
 }
 

@@ -3,6 +3,7 @@ import React, { Dispatch, SetStateAction, useEffect } from "react";
 import { LineMenuPopupListItem } from "components/LineMenuPopupListItem";
 import { MAP_VIEWS } from "enums";
 import { VIEW } from "settings";
+import { useAccountWithContracts } from "stores";
 
 type Props = {
   open: boolean;
@@ -21,11 +22,10 @@ export function LineMenuPopupList({
   setView,
   setLeaderBoard,
 }: Props) {
+  const { isSignedIn } = useAccountWithContracts();
   function handleNavClick() {
     setOpen(false);
   }
-
-  const isUser: boolean = !!localStorage.getItem("user");
 
   function toggleView() {
     setTimeout(
@@ -78,7 +78,7 @@ export function LineMenuPopupList({
           text="📖"
           onClick={handleTutorialClick}
         />
-        {isUser ? (
+        {isSignedIn ? (
           <LineMenuPopupListItem
             text="🏆"
             onClick={handleLeaderBoardClick}

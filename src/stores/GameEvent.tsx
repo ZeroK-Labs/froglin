@@ -5,11 +5,11 @@ import { Froglin, GameEvent } from "types";
 import { InterestPoint } from "../../common/types";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { ServerGameEvent } from "../../backend/types";
-import { StoreFactory, useLocation } from "stores";
+import { StoreFactory, useAccountWithContracts, useLocation } from "stores";
 
 function createState(): GameEvent {
   const location = useLocation();
-  const username = localStorage.getItem("username");
+  const { username } = useAccountWithContracts();
 
   const [bounds, setBounds] = useState<GeoJSON.Position[][]>([
     [

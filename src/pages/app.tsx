@@ -1,13 +1,14 @@
-import { useState } from "react";
 import { ToastBar, Toaster } from "react-hot-toast";
 
-import AppWithUser from "components/AppWithUser";
-import AppWithoutUser from "components/AppWithoutUser";
-import { LocationProvider, PXEClientProvider } from "stores";
+import App from "components/App";
 
-export default function App() {
-  const [user, setUser] = useState(false);
+import {
+  AccountWithContractsProvider,
+  LocationProvider,
+  PXEClientProvider,
+} from "stores";
 
+export default function Home() {
   return (
     <>
       <Toaster
@@ -34,7 +35,9 @@ export default function App() {
 
       <LocationProvider>
         <PXEClientProvider>
-          {user ? <AppWithUser /> : <AppWithoutUser setUser={setUser} />}
+          <AccountWithContractsProvider>
+            <App />
+          </AccountWithContractsProvider>
         </PXEClientProvider>
       </LocationProvider>
     </>

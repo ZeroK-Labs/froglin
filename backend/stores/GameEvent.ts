@@ -55,6 +55,7 @@ export function createGameEvent(center: MapCoordinates): ServerGameEvent {
 
       const totalCount = event.interestPoints.length;
       if (totalCount === 0) {
+        console.error("No interest points to update");
         broadcastMessage("newEpoch");
         return;
       }
@@ -73,7 +74,7 @@ export function createGameEvent(center: MapCoordinates): ServerGameEvent {
       for (let i = 0; i !== totalCount; ++i) {
         event.interestPoints[i].coordinates = coordinates[i];
       }
-
+      console.log("New epoch", event.epochCount);
       broadcastMessage("newEpoch");
     },
 
