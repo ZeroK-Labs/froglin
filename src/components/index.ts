@@ -15,7 +15,7 @@ export { default as Map } from "./Map";
 export { default as PlayerMarker } from "./PlayerMarker";
 export { default as PlayerMarkerImage } from "./PlayerMarkerImage";
 export { default as PlaygroundViewInfoBar } from "./PlaygroundViewInfoBar";
-export { default as SignInScreen } from "./SignInScreen";
+export { default as AccountModal } from "./AccountModal";
 export { default as TrapMarker } from "./TrapMarker";
 export { default as TrapMarkerList } from "./TrapMarkerList";
 export { default as Tutorial } from "./Tutorial";

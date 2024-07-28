@@ -28,6 +28,7 @@ function Modal({ isOpen, setIsOpen, children, borderColor = "#000764" }: ModalPr
     if (!isOpen) return;
 
     document.addEventListener("click", handleClose);
+    console.log("caca");
 
     return () => {
       document.removeEventListener("click", handleClose);

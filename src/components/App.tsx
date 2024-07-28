@@ -3,12 +3,12 @@ import { useState } from "react";
 import { GameEventProvider, usePlayer } from "stores";
 import { useTutorialState, useViewState } from "hooks";
 import {
+  AccountModal,
   CapturedFroglinList,
   InfoBarsContainer,
   LeaderBoard,
   LineMenu,
   Map,
-  SignInScreen,
   Tutorial,
 } from "components";
 
@@ -46,7 +46,7 @@ export default function App() {
             />
           </>
         ) : (
-          <SignInScreen />
+          <AccountModal />
         )}
       </GameEventProvider>
     </>

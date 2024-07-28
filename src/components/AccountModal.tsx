@@ -38,7 +38,7 @@ function getPercentageColor(percentage: number) {
   return "#15c621";
 }
 
-export default function SignInScreen() {
+export default function AccountModal() {
   const divRef = useRef<HTMLDivElement>(null);
   const errorTimerIdRef = useRef<TimeoutId>();
   const lastInputTimeRef = useRef(0);
