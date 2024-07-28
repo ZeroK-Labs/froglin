@@ -4,8 +4,8 @@ export function stringToBigInt(str: string): bigint {
   let bigInt = 0n;
 
   for (let i = 0; i !== str.length; ++i) {
-    bigInt += BigInt(str.charCodeAt(i));
     bigInt <<= CHAR_BITS;
+    bigInt += BigInt(str.charCodeAt(i));
   }
 
   return bigInt;
