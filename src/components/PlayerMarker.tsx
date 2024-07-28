@@ -28,7 +28,7 @@ export default function PlayerMarker({ view }: Props) {
   const [trapPoints, setTrapPoints] = useState<MapCoordinates[]>([]);
   const [duplicateTrapIndex, setDuplicateTrapIndex] = useState<number | null>(null);
   const [open, setOpen] = useState<boolean>(false);
-  const [hiddenInterestPointsIds, setHiddenInterestPointsIds] = useState<string[]>([]);
+  const [hiddenInterestPointIds, setHiddenInterestPointIds] = useState<string[]>([]);
   const [revealComplete, setRevealComplete] = useState<boolean>(false);
 
   const { coordinates, lost } = useLocation();
@@ -45,14 +45,14 @@ export default function PlayerMarker({ view }: Props) {
 
   useEffect(
     () => {
-      if (!revealComplete || hiddenInterestPointsIds.length === 0 || !username) return;
+      if (!revealComplete || hiddenInterestPointIds.length === 0 || !username) return;
 
       fetch(`${process.env.BACKEND_URL}/reveal`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, hiddenInterestPointsIds }),
+        body: JSON.stringify({ username, hiddenInterestPointIds }),
       });
 
       setRevealComplete(false);
@@ -77,7 +77,7 @@ export default function PlayerMarker({ view }: Props) {
 
       // hide the point to start fade out animation
       point.visible = false;
-      setHiddenInterestPointsIds((old) => [...old, point.id]);
+      setHiddenInterestPointIds((old) => [...old, point.id]);
 
       // send some goblins to the void
       const gone = Math.random();
@@ -103,7 +103,7 @@ export default function PlayerMarker({ view }: Props) {
 
     if (revealingRef.current) return;
     revealingRef.current = true;
-    setHiddenInterestPointsIds([]);
+    setHiddenInterestPointIds([]);
     // create animation for circle
     const duration = 1_000;
     const loops = 8;
