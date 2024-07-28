@@ -7,6 +7,7 @@ import {
   addSocketEventHandler,
   CLIENT_SOCKET,
   removeSocketEventHandler,
+  getPXEReadyMessage,
 } from "utils/sockets";
 
 type PXEState = {
@@ -124,7 +125,9 @@ function createState(): PXEState {
       addSocketEventHandler("close", handleSocketClose);
       addSocketEventHandler("message", handlePXEReady);
 
-      if (CLIENT_SOCKET.readyState === WebSocket.OPEN) handleSocketOpen();
+      handleSocketOpen();
+      const ready = getPXEReadyMessage();
+      if (ready) handlePXEReady(ready);
 
       return () => {
         removeSocketEventHandler("message", handlePXEReady);

@@ -66,6 +66,12 @@ export function removeSocketEventHandler(
   if (index !== -1) handlerArray.splice(index, 1);
 }
 
+// TODO: handle late subscription of event handlers for "message"
+let server_pxe_url: MessageEvent<string> | null;
+export function getPXEReadyMessage() {
+  return server_pxe_url;
+}
+
 export function createSocketClient() {
   if (
     CLIENT_SOCKET &&
@@ -81,11 +87,38 @@ export function createSocketClient() {
     for (const handler of handlers["error"]) handler(ev);
   }
 
+  function handleMessage(ev: MessageEvent<string>) {
+    console.log(`Received ${ev.data}`);
+
+    for (const handler of handlers["message"]) handler(ev);
+  }
+
+  // TODO: handle late subscription of event handlers for "message"
+  function handleMessageWrapper(ev: MessageEvent<string>) {
+    if (!ev.data.includes("pxe ")) {
+      console.log(`Received ${ev.data}`);
+
+      return;
+    }
+
+    handleMessage(ev);
+
+    const url = ev.data.split(" ")[1];
+    if (!url) return;
+
+    server_pxe_url = ev;
+
+    CLIENT_SOCKET.removeEventListener("message", handleMessageWrapper);
+    CLIENT_SOCKET.addEventListener("message", handleMessage);
+  }
+
   function handleOpen(ev: Event) {
     console.log("WebSocket connection established");
 
     CLIENT_SOCKET.addEventListener("error", handleError);
+    CLIENT_SOCKET.addEventListener("message", handleMessageWrapper);
 
+    server_pxe_url = null;
     retries = 0;
     closed = false;
 
@@ -99,6 +132,7 @@ export function createSocketClient() {
     CLIENT_SOCKET.removeEventListener("open", handleOpen);
     CLIENT_SOCKET.removeEventListener("close", handleClose);
     CLIENT_SOCKET.removeEventListener("message", handleMessage);
+    CLIENT_SOCKET.removeEventListener("message", handleMessageWrapper);
 
     if (retries === 0) toast.error("Socket server offline");
 
@@ -114,17 +148,10 @@ export function createSocketClient() {
     for (const handler of handlers["close"]) handler(ev);
   }
 
-  function handleMessage(ev: MessageEvent<string>) {
-    console.log(`Received ${ev.data}`);
-
-    for (const handler of handlers["message"]) handler(ev);
-  }
-
   CLIENT_SOCKET = new WebSocket(url);
 
   CLIENT_SOCKET.addEventListener("open", handleOpen);
   CLIENT_SOCKET.addEventListener("close", handleClose);
-  CLIENT_SOCKET.addEventListener("message", handleMessage);
 }
 
 export { CLIENT_SOCKET, PLAYER_ID };
