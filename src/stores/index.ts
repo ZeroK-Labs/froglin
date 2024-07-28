@@ -1,8 +1,5 @@
 export { default as StoreFactory } from "./StoreFactory";
-export {
-  AccountWithContractsProvider,
-  useAccountWithContracts,
-} from "./AccountWithContracts";
+export { PlayerProvider, usePlayer } from "./Player";
 export { GameEventProvider, useGameEvent } from "./GameEvent";
 export { LocationProvider, useLocation } from "./Location";
 export { PXEClientProvider, usePXEClient } from "./PXE";

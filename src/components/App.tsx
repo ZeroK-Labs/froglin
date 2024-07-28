@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { GameEventProvider, useAccountWithContracts } from "stores";
+import { GameEventProvider, usePlayer } from "stores";
 import { useTutorialState, useViewState } from "hooks";
 import {
   CapturedFroglinList,
@@ -8,13 +8,14 @@ import {
   LeaderBoard,
   LineMenu,
   Map,
+  SignInScreen,
   Tutorial,
 } from "components";
-import SignInScreen from "./SignInScreen";
 
-function App() {
+export default function App() {
   const [leaderBoard, setLeaderBoard] = useState<boolean>(false);
-  const { isSignedIn } = useAccountWithContracts();
+
+  const { hasSecret } = usePlayer();
   const { tutorial, setTutorial } = useTutorialState();
   const { view, setView } = useViewState();
 
@@ -30,23 +31,24 @@ function App() {
           tutorial={tutorial}
           setTutorial={setTutorial}
         />
-        {isSignedIn ? <CapturedFroglinList /> : null}
-        {isSignedIn ? (
-          <LeaderBoard
-            leaderBoard={leaderBoard}
-            setLeaderBoard={setLeaderBoard}
-          />
-        ) : null}
         <LineMenu
           setLeaderBoard={setLeaderBoard}
           setTutorial={setTutorial}
           view={view}
           setView={setView}
         />
-        {!isSignedIn ? <SignInScreen /> : null}
+        {hasSecret ? (
+          <>
+            <CapturedFroglinList />
+            <LeaderBoard
+              leaderBoard={leaderBoard}
+              setLeaderBoard={setLeaderBoard}
+            />
+          </>
+        ) : (
+          <SignInScreen />
+        )}
       </GameEventProvider>
     </>
   );
 }
-
-export default App;

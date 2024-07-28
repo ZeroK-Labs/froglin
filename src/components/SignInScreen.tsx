@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
-import { usePXEClient, useAccountWithContracts } from "stores";
+import { usePXEClient, usePlayer } from "stores";
+import { TimeoutId } from "../../common/types";
 
 const INPUT_KEY_LENGTH = 100;
 const INPUT_TIMEOUT = 250;
@@ -36,36 +37,34 @@ function getPercentageColor(percentage: number) {
 }
 
 export default function SignInScreen() {
-  const lastInputTime = useRef(0);
-  const inputDisabled = useRef(true);
+  const errorTimerIdRef = useRef<TimeoutId>();
+  const lastInputTimeRef = useRef(0);
+  const inputDisabledRef = useRef(true);
 
   const [inputKey, setInputKey] = useState("");
-  const [visible, setVisible] = useState(false);
   const [error, setError] = useState("");
-  const [user, setUser] = useState<string>("");
+  const [visible, setVisible] = useState(false);
 
   const { pxeClient } = usePXEClient();
-  const { setIsFormReady, setUsername } = useAccountWithContracts();
-
-  const isSecret: boolean = !!localStorage.getItem("user");
+  const { setSecret, username, setUsername } = usePlayer();
 
   const completionPercentage = Math.floor((inputKey.length / INPUT_KEY_LENGTH) * 100);
 
   function handlePointerDown() {
-    inputDisabled.current = false;
+    inputDisabledRef.current = false;
   }
 
   function handlePointerUp() {
-    inputDisabled.current = true;
+    inputDisabledRef.current = true;
   }
 
   function handlePointerMove(ev: React.MouseEvent) {
-    if (inputDisabled.current) return;
+    if (inputDisabledRef.current) return;
 
     if (inputKey.length >= INPUT_KEY_LENGTH) return;
 
     const now = Date.now();
-    if (now - lastInputTime.current < INPUT_TIMEOUT) return;
+    if (now - lastInputTimeRef.current < INPUT_TIMEOUT) return;
 
     if (ev.clientX == null || ev.clientY == null) return;
 
@@ -76,7 +75,7 @@ export default function SignInScreen() {
     if (inputKey.includes(y)) return;
 
     setInputKey((prevCoords) => prevCoords + x + y);
-    lastInputTime.current = now;
+    lastInputTimeRef.current = now;
   }
 
   function handleSignInClick() {
@@ -84,27 +83,15 @@ export default function SignInScreen() {
   }
 
   function handleUsernameChanged(ev: React.ChangeEvent<HTMLInputElement>) {
-    const newValue = ev.target.value;
-    if (!/^[a-zA-Z0-9]*$/.test(newValue)) {
-      setError("Username must contain only letters and digits.");
-    } else if (user.length > 31) {
-      setError("Username must be max 32 long.");
-    } else {
-      setError("");
-      setUser(newValue);
-    }
+    const name = ev.target.value;
+
+    if (!/^[a-zA-Z0-9]*$/.test(name)) setError("Only letters and digits");
+    else if (name.length > 31) setError("Max 32 characters");
+    else setUsername(name);
+
+    clearTimeout(errorTimerIdRef.current);
+    errorTimerIdRef.current = setTimeout(setError, 3_000, "");
   }
-
-  // useEffect(
-  //   () => {
-  //     const secretString = localStorage.getItem("user");
-  //     if (!secretString) return;
-
-  //     setUser(true);
-  //     console.log("User loaded from localStorage");
-  //   }, //
-  //   [],
-  // );
 
   useEffect(
     () => {
@@ -114,13 +101,8 @@ export default function SignInScreen() {
 
         return;
       }
-      if (!pxeClient) return;
 
-      // const secretKey = stringToBigInt(inputKey);
-
-      localStorage.setItem("user", inputKey.toString());
-      setUsername(user);
-      setIsFormReady(true);
+      setSecret(inputKey);
     }, //
     [inputKey],
   );
@@ -128,24 +110,24 @@ export default function SignInScreen() {
   return (
     <>
       {visible ? (
-        <div className="fixed left-3 top-[10vh] bg-[#6c5ce7] border-4 border-purple-950 rounded-sm right-4 p-2 flex flex-col items-center z-[10000]">
+        <div className="z-[9999] fixed left-4 right-4 p-2 top-[10vh] border-4 border-purple-950 rounded-sm flex flex-col items-center bg-[#6c5ce7]">
           <div className="flex flex-col items-center mb-4">
             <label className="text-white text-sm font-bold mb-2">Sign In</label>
 
             <input
               type="text"
-              className="w-56 p-2 mb-2 text-gray-700 border rounded text-sm"
+              className="w-56 p-2 mb-2 text-gray-800 border rounded text-sm"
               placeholder="Username (min 3 characters)"
               onChange={handleUsernameChanged}
-              value={user}
+              value={username}
             />
             <label className="text-xs text-red-500 min-h-5">{error}</label>
           </div>
 
-          {user.length > 2 ? (
+          {username.length > 2 ? (
             <>
               <div
-                className="w-56 h-56 bg-blue-500"
+                className="w-56 h-56 p-2 bg-blue-500"
                 onPointerDown={handlePointerDown}
                 onPointerUp={handlePointerUp}
                 onPointerMove={handlePointerMove}
@@ -173,7 +155,7 @@ export default function SignInScreen() {
         </div>
       ) : null}
 
-      {pxeClient && !isSecret ? (
+      {pxeClient ? (
         <div className="fixed bottom-24 left-0 right-0 mx-auto flex justify-center">
           <button
             type="button"

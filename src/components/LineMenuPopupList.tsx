@@ -3,7 +3,7 @@ import React, { Dispatch, SetStateAction, useEffect } from "react";
 import { LineMenuPopupListItem } from "components/LineMenuPopupListItem";
 import { MAP_VIEWS } from "enums";
 import { VIEW } from "settings";
-import { useAccountWithContracts } from "stores";
+import { usePlayer } from "stores";
 
 type Props = {
   open: boolean;
@@ -22,7 +22,8 @@ export function LineMenuPopupList({
   setView,
   setLeaderBoard,
 }: Props) {
-  const { isSignedIn } = useAccountWithContracts();
+  const player = usePlayer();
+
   function handleNavClick() {
     setOpen(false);
   }
@@ -78,7 +79,7 @@ export function LineMenuPopupList({
           text="📖"
           onClick={handleTutorialClick}
         />
-        {isSignedIn ? (
+        {player.aztec ? (
           <LineMenuPopupListItem
             text="🏆"
             onClick={handleLeaderBoardClick}

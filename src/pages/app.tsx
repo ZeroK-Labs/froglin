@@ -1,12 +1,7 @@
 import { ToastBar, Toaster } from "react-hot-toast";
 
 import App from "components/App";
-
-import {
-  AccountWithContractsProvider,
-  LocationProvider,
-  PXEClientProvider,
-} from "stores";
+import { PlayerProvider, LocationProvider, PXEClientProvider } from "stores";
 
 export default function Home() {
   return (
@@ -35,9 +30,9 @@ export default function Home() {
 
       <LocationProvider>
         <PXEClientProvider>
-          <AccountWithContractsProvider>
+          <PlayerProvider>
             <App />
-          </AccountWithContractsProvider>
+          </PlayerProvider>
         </PXEClientProvider>
       </LocationProvider>
     </>
