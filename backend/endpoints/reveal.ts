@@ -1,15 +1,33 @@
 import { Request, Response } from "express";
-import { gameEventsByUser } from "./game";
+import { CLIENT_SESSION_DATA } from "../sockets";
 
 export function revealFroglins(req: Request, res: Response) {
-  const { username, hiddenInterestPointsIds } = req.body;
-  const gameEvent = gameEventsByUser.get(username);
+  res.setHeader("content-type", "text/json");
+
+  // pre-emptively set status to error
+  res.statusCode = 400;
+
+  const { playerId, hiddenInterestPointIds } = req.body;
+
+  if (!playerId) {
+    res.json("Missing playerId");
+    return;
+  }
+
+  if (!hiddenInterestPointIds) {
+    res.json("Missing hiddenInterestPointIds");
+    return;
+  }
+
+  const gameEvent = CLIENT_SESSION_DATA[playerId].GameEvent;
 
   if (!gameEvent) {
-    throw new Error("Game event not found");
+    res.json("Missing game event");
+    return;
   }
-  gameEvent.revealInterestPoints(hiddenInterestPointsIds);
 
-  res.setHeader("content-type", "text/json");
+  gameEvent.revealInterestPoints(hiddenInterestPointIds);
+
+  res.statusCode = 200;
   res.json("Reveal complete");
 }

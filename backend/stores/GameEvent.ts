@@ -1,8 +1,8 @@
 import { EVENT } from "../../src/settings";
 import { MapCoordinates, TimeoutId } from "../../common/types";
 import { getInterestPoints, getBoundsForCoordinate } from "../../common/utils/map";
-import { broadcastMessage } from "../sockets";
 import { ServerGameEvent } from "../types";
+import { CLIENT_SESSION_DATA } from "../sockets";
 
 function getFarInterestPoints(coords: MapCoordinates, count: number) {
   return getInterestPoints(coords, count, EVENT.FAR_RANGE.FROM, EVENT.FAR_RANGE.TO);
@@ -16,47 +16,80 @@ function getCloseInterestPoints(coords: MapCoordinates, count: number) {
   return getInterestPoints(coords, count, EVENT.CLOSE_RANGE.FROM, EVENT.CLOSE_RANGE.TO);
 }
 
-function getInitialInterestPoints() {
-  return Array.from({ length: EVENT.MARKER_COUNT }, (_, i) => ({
-    id: "_" + i, // frontend React needs a string id
-    coordinates: { longitude: 0, latitude: 0 },
-  }));
+function notifyNewEpoch(playerId: string) {
+  const socket = CLIENT_SESSION_DATA[playerId].Socket;
+  if (socket && socket.readyState === WebSocket.OPEN) socket.send("newEpoch");
 }
 
-export function createGameEvent(center: MapCoordinates): ServerGameEvent {
-  let epochIntervalId: TimeoutId;
+function sessionAlive(playerId: string, contextInfo: string) {
+  const socket = CLIENT_SESSION_DATA[playerId].Socket;
 
+  if (socket && socket.readyState === WebSocket.OPEN) return true;
+
+  console.error(
+    `Failed to ${contextInfo} game event: client socket connection required`,
+  );
+  return false;
+}
+
+export function createGameEvent(
+  playerId: string,
+  location: MapCoordinates,
+): ServerGameEvent | null {
+  if (!sessionAlive(playerId, "create")) return null;
+
+  let epochIntervalId: TimeoutId;
   const event: ServerGameEvent = {
-    location: center,
-    bounds: getBoundsForCoordinate(center),
+    location,
+    bounds: getBoundsForCoordinate(location),
     epochCount: 0,
     epochDuration: EVENT.EPOCH_DURATION,
     epochStartTime: 0,
-    interestPoints: getInitialInterestPoints(),
+    interestPoints: [],
 
     start: function () {
-      clearInterval(epochIntervalId);
-      epochIntervalId = setInterval(event.advanceEpoch, event.epochDuration);
+      if (event.epochCount !== 0 && event.epochStartTime !== 0) {
+        console.error("Failed to start event: already in progress");
 
-      event.epochCount = EVENT.EPOCH_COUNT + 1;
-      event.interestPoints = getInitialInterestPoints();
-
-      event.advanceEpoch();
-    },
-
-    advanceEpoch: function () {
-      event.epochCount -= 1;
-      if (event.epochCount === 0) {
-        event.start();
         return;
       }
 
+      if (!sessionAlive(playerId, "start")) {
+        CLIENT_SESSION_DATA[playerId].GameEvent = null;
+
+        return;
+      }
+
+      console.log(playerId, "newGame");
+
+      event.epochCount = EVENT.EPOCH_COUNT;
+      event.interestPoints = Array.from({ length: EVENT.MARKER_COUNT }, (_, i) => ({
+        id: "_" + i, // frontend React needs a string id
+        coordinates: { longitude: 0, latitude: 0 },
+      }));
+
+      event.advanceEpoch();
+      epochIntervalId = setInterval(event.advanceEpoch, event.epochDuration);
+    },
+
+    advanceEpoch: function () {
+      if (event.epochCount === 0) {
+        clearInterval(epochIntervalId);
+
+        event.start();
+
+        return;
+      }
+
+      console.log(playerId, "epoch", event.epochCount);
+
+      event.epochCount -= 1;
       event.epochStartTime = Date.now();
 
       const totalCount = event.interestPoints.length;
       if (totalCount === 0) {
-        console.error("No interest points to update");
-        broadcastMessage("newEpoch");
+        notifyNewEpoch(playerId);
+
         return;
       }
 
@@ -74,8 +107,8 @@ export function createGameEvent(center: MapCoordinates): ServerGameEvent {
       for (let i = 0; i !== totalCount; ++i) {
         event.interestPoints[i].coordinates = coordinates[i];
       }
-      console.log("New epoch", event.epochCount);
-      broadcastMessage("newEpoch");
+
+      notifyNewEpoch(playerId);
     },
 
     revealInterestPoints: function (interestPointIds: string[]) {
