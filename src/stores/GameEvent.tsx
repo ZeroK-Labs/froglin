@@ -98,7 +98,7 @@ function createState(): GameEvent {
         const query = new URLSearchParams(options);
 
         try {
-          const response = await fetch(`${process.env.BACKEND_URL}/gameEvent?${query}`);
+          const response = await fetch(`${process.env.BACKEND_URL}/game?${query}`);
           const event: ServerGameEvent = await response.json();
 
           setBounds(event.bounds);
