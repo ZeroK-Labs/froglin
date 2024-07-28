@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 
-import { usePXEClient, usePlayer } from "stores";
+import Modal from "components/Modal";
 import { TimeoutId } from "../../common/types";
+import { VIEW } from "settings";
+import { usePXEClient, usePlayer } from "stores";
 
 const INPUT_KEY_LENGTH = 100;
 const INPUT_TIMEOUT = 250;
@@ -37,6 +39,7 @@ function getPercentageColor(percentage: number) {
 }
 
 export default function SignInScreen() {
+  const divRef = useRef<HTMLDivElement>(null);
   const errorTimerIdRef = useRef<TimeoutId>();
   const lastInputTimeRef = useRef(0);
   const inputDisabledRef = useRef(true);
@@ -78,19 +81,43 @@ export default function SignInScreen() {
     lastInputTimeRef.current = now;
   }
 
-  function handleSignInClick() {
-    setVisible(!visible);
+  function handleCreateButtonClick(ev: React.MouseEvent) {
+    setVisible(true);
+    ev.stopPropagation();
   }
 
   function handleUsernameChanged(ev: React.ChangeEvent<HTMLInputElement>) {
     const name = ev.target.value;
 
-    if (!/^[a-zA-Z0-9]*$/.test(name)) setError("Only letters and digits");
-    else if (name.length > 31) setError("Max 32 characters");
+    let error = "";
+    if (!/^[a-zA-Z0-9]*$/.test(name)) error = "Only letters and digits";
+    else if (name.length > 31) error = "Max 32 characters";
     else setUsername(name);
 
+    if (!error) return;
+
+    setError(error);
     clearTimeout(errorTimerIdRef.current);
-    errorTimerIdRef.current = setTimeout(setError, 3_000, "");
+
+    errorTimerIdRef.current = setTimeout(
+      () => {
+        setError("");
+        errorTimerIdRef.current = undefined;
+      }, //
+      3_000,
+    );
+  }
+
+  function handleClose(ev: MouseEvent | React.BaseSyntheticEvent) {
+    if (
+      !(ev.target instanceof HTMLButtonElement) &&
+      divRef.current &&
+      divRef.current.contains(ev.target as Node)
+    ) {
+      return;
+    }
+
+    setVisible(false);
   }
 
   useEffect(
@@ -107,27 +134,35 @@ export default function SignInScreen() {
     [inputKey],
   );
 
+  if (!pxeClient) return null;
+
   return (
     <>
-      {visible ? (
-        <div className="z-[9999] fixed left-4 right-4 p-2 top-[10vh] border-4 border-purple-950 rounded-sm flex flex-col items-center bg-[#6c5ce7]">
-          <div className="flex flex-col items-center mb-4">
-            <label className="text-white text-sm font-bold mb-2">Sign In</label>
+      <Modal
+        isOpen={visible}
+        setIsOpen={setVisible}
+      >
+        <div className="z-[9999] fixed left-4 right-4 p-2 top-[10vh] border-4 rounded-sm flex flex-col items-center border-main-purple bg-[#6c5ce7]">
+          <button
+            className="absolute right-3 top-1 text-xl fa-solid fa-xmark drop-shadow-md shadow-gray-600 cursor-pointer"
+            onClick={handleClose}
+          />
 
-            <input
-              type="text"
-              className="w-56 p-2 mb-2 text-gray-800 border rounded text-sm"
-              placeholder="Username (min 3 characters)"
-              onChange={handleUsernameChanged}
-              value={username}
-            />
-            <label className="text-xs text-red-500 min-h-5">{error}</label>
-          </div>
+          <label className="mb-4 text-md font-bold text-white">Create Account</label>
+
+          <input
+            type="text"
+            className="w-56 p-2 mb-2 border rounded text-sm text-gray-800"
+            placeholder="Enter a name (min 3 characters)"
+            onChange={handleUsernameChanged}
+            value={username}
+          />
+          {error ? <label className="text-sm text-red-700">{error}</label> : null}
 
           {username.length > 2 ? (
             <>
               <div
-                className="w-56 h-56 p-2 bg-blue-500"
+                className="w-56 h-56 p-2 mt-2 bg-blue-500"
                 onPointerDown={handlePointerDown}
                 onPointerUp={handlePointerUp}
                 onPointerMove={handlePointerMove}
@@ -153,19 +188,24 @@ export default function SignInScreen() {
             </>
           ) : null}
         </div>
-      ) : null}
+      </Modal>
 
-      {pxeClient ? (
-        <div className="fixed bottom-24 left-0 right-0 mx-auto flex justify-center">
-          <button
-            type="button"
-            className={`rounded-md w-28 px-2.5 py-2 text-lg font-semibold shadow-sm bg-indigo-500 text-white`}
-            onClick={handleSignInClick}
-          >
-            Sign In
-          </button>
-        </div>
-      ) : null}
+      <div
+        className="fixed bottom-24 left-1/2 translate-x-[-50%] flex justify-center transition-opacity"
+        style={{
+          opacity: visible ? 0 : 1,
+          pointerEvents: visible ? "none" : "auto",
+          transitionDuration: `${VIEW.TUTORIAL_FADE_ANIMATION_DURATION}ms`,
+        }}
+      >
+        <button
+          type="button"
+          className={`rounded-md px-2.5 py-2 text-lg font-semibold shadow-sm bg-indigo-500 text-white`}
+          onClick={handleCreateButtonClick}
+        >
+          Create Account
+        </button>
+      </div>
     </>
   );
 }
