@@ -1,15 +1,19 @@
+import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 
-import { CLIENT_SOCKET } from "utils/sockets";
 import { Froglin, GameEvent } from "types";
 import { InterestPoint } from "../../common/types";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { ServerGameEvent } from "../../backend/types";
-import { StoreFactory, useAccountWithContracts, useLocation } from "stores";
+import { StoreFactory, useLocation } from "stores";
+import {
+  PLAYER_ID,
+  addSocketEventHandler,
+  removeSocketEventHandler,
+} from "utils/sockets";
 
 function createState(): GameEvent {
   const location = useLocation();
-  const { username } = useAccountWithContracts();
 
   const [bounds, setBounds] = useState<GeoJSON.Position[][]>([
     [
@@ -67,21 +71,34 @@ function createState(): GameEvent {
 
   useEffect(
     () => {
-      if (!location.coordinates.latitude || !location.coordinates.longitude) return;
+      if (
+        !(
+          location.coordinates.longitude &&
+          isFinite(location.coordinates.longitude) &&
+          location.coordinates.latitude &&
+          isFinite(location.coordinates.latitude)
+        )
+      ) {
+        return;
+      }
 
       async function fetchData() {
-        if (!username) return;
+        if (!PLAYER_ID) {
+          console.error(
+            "Failed to fetch game event data: missing socket connection to backend",
+          );
+          return;
+        }
+
+        const options = {
+          playerId: PLAYER_ID,
+          longitude: location.coordinates.longitude.toString(),
+          latitude: location.coordinates.latitude.toString(),
+        };
+        const query = new URLSearchParams(options);
 
         try {
-          const options = {
-            username: username,
-            latitude: location.coordinates.latitude.toString(),
-            longitude: location.coordinates.longitude.toString(),
-          };
-          const query = new URLSearchParams(options).toString();
-
-          const response = await fetch(`${process.env.BACKEND_URL}/game?${query}`);
-
+          const response = await fetch(`${process.env.BACKEND_URL}/gameEvent?${query}`);
           const event: ServerGameEvent = await response.json();
 
           setBounds(event.bounds);
@@ -94,21 +111,23 @@ function createState(): GameEvent {
           }
           setInterestPoints(event.interestPoints);
           //
-        } catch (err) {
-          console.log(err);
-        }
+        } catch (e) {}
       }
 
       function handleServerEpochUpdate(event: MessageEvent<any>) {
-        if (event.data === "newEpoch") fetchData();
+        if (event.data === "newEpoch") {
+          toast("New epoch", { duration: 3_000, icon: "⌛" });
+
+          fetchData();
+        }
       }
 
       fetchData();
 
-      CLIENT_SOCKET.addEventListener("message", handleServerEpochUpdate);
+      addSocketEventHandler("message", handleServerEpochUpdate);
 
       return () => {
-        CLIENT_SOCKET.removeEventListener("message", handleServerEpochUpdate);
+        removeSocketEventHandler("message", handleServerEpochUpdate);
       };
     }, //
     [location],

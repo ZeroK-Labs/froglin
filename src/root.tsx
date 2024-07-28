@@ -1,8 +1,11 @@
 import { Suspense, lazy } from "react";
 
 import { LoadingFallback } from "components";
+import { createSocketClient } from "utils/sockets";
 
 const App = lazy(() => import("./pages/app"));
+
+createSocketClient();
 
 export default function Root() {
   return (
