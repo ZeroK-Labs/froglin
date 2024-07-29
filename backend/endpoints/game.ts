@@ -15,7 +15,7 @@ export function getGame(req: Request, res: Response) {
     return;
   }
 
-  if (!CLIENT_SESSION_DATA[playerId].Socket) {
+  if (!CLIENT_SESSION_DATA[playerId] || !CLIENT_SESSION_DATA[playerId].Socket) {
     res.json(`Missing socket connection for player ${playerId}`);
     return;
   }
