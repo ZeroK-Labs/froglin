@@ -22,9 +22,13 @@ function notifyNewEpoch(playerId: string) {
 }
 
 function sessionAlive(playerId: string, contextInfo: string) {
-  const socket = CLIENT_SESSION_DATA[playerId].Socket;
-
-  if (socket && socket.readyState === WebSocket.OPEN) return true;
+  if (
+    CLIENT_SESSION_DATA[playerId] &&
+    CLIENT_SESSION_DATA[playerId].Socket &&
+    CLIENT_SESSION_DATA[playerId].Socket.readyState === WebSocket.OPEN
+  ) {
+    return true;
+  }
 
   console.error(
     `Failed to ${contextInfo} game event: client socket connection required`,
