@@ -1,54 +1,79 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { GameEventProvider, usePlayer } from "stores";
-import { useTutorialState, useViewState } from "hooks";
+import { GameEventProvider, usePlayer, usePXEClient } from "stores";
+import { MAP_VIEWS, MODALS } from "enums";
 import {
   AccountModal,
   CapturedFroglinList,
+  CreateAccountButton,
   InfoBarsContainer,
-  LeaderBoard,
+  LeaderBoardModal,
   LineMenu,
   Map,
-  Tutorial,
+  TutorialModal,
 } from "components";
 
 export default function App() {
-  const [leaderBoard, setLeaderBoard] = useState<boolean>(false);
+  const [view, setView] = useState(MAP_VIEWS.PLAYGROUND);
+  const [modal, setModal] = useState(MODALS.NONE);
 
   const { hasSecret } = usePlayer();
-  const { tutorial, setTutorial } = useTutorialState();
-  const { view, setView } = useViewState();
+  const { pxeClient } = usePXEClient();
+
+  // view change on keypress
+  useEffect(
+    () => {
+      function handleKeyPress(ev: KeyboardEvent) {
+        if (ev.key === "1") setView(MAP_VIEWS.PLAYGROUND);
+        else if (ev.key === "2") setView(MAP_VIEWS.EVENT);
+      }
+
+      document.addEventListener("keypress", handleKeyPress);
+
+      return () => {
+        document.removeEventListener("keypress", handleKeyPress);
+      };
+    }, //
+    [],
+  );
 
   return (
-    <>
-      <GameEventProvider>
-        <Map view={view} />
-        <InfoBarsContainer
-          view={view}
-          visible={!tutorial && !leaderBoard}
-        />
-        <Tutorial
-          tutorial={tutorial}
-          setTutorial={setTutorial}
-        />
-        <LineMenu
-          setLeaderBoard={setLeaderBoard}
-          setTutorial={setTutorial}
-          view={view}
-          setView={setView}
-        />
-        {hasSecret ? (
+    <GameEventProvider>
+      <Map view={view} />
+      <InfoBarsContainer
+        view={view}
+        visible={modal !== MODALS.TUTORIAL && modal !== MODALS.LEADERBOARD}
+      />
+      <CapturedFroglinList />
+      <LineMenu
+        modal={modal}
+        setModal={setModal}
+        view={view}
+        setView={setView}
+      />
+      <TutorialModal
+        modal={modal}
+        setModal={setModal}
+      />
+      {pxeClient ? (
+        hasSecret ? (
+          <LeaderBoardModal
+            modal={modal}
+            setModal={setModal}
+          />
+        ) : (
           <>
-            <CapturedFroglinList />
-            <LeaderBoard
-              leaderBoard={leaderBoard}
-              setLeaderBoard={setLeaderBoard}
+            <AccountModal
+              modal={modal}
+              setModal={setModal}
+            />
+            <CreateAccountButton
+              modal={modal}
+              setModal={setModal}
             />
           </>
-        ) : (
-          <AccountModal />
-        )}
-      </GameEventProvider>
-    </>
+        )
+      ) : null}
+    </GameEventProvider>
   );
 }

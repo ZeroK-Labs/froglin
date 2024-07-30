@@ -1,1 +1,2 @@
-export { default as MAP_VIEWS } from "enums/MAP_VIEWS";
+export { default as MAP_VIEWS } from "./MAP_VIEWS";
+export { default as MODALS } from "./MODALS";

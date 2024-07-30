@@ -1,53 +1,93 @@
 import { useEffect, useRef } from "react";
-import { VIEW } from "settings";
 
-type ModalProps = {
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+import { MODALS } from "enums";
+import { VIEW } from "settings";
+import { ModalState } from "types";
+
+type ModalProps = ModalState & {
   children: React.ReactNode;
-  borderColor?: string;
-  backgroundColor?: string;
+  className?: string;
+  icon?: string; // emoji
+  title?: string;
+  visible?: boolean;
 };
 
-function Modal({ isOpen, setIsOpen, children, borderColor = "#000764" }: ModalProps) {
+function Modal({
+  modal,
+  setModal,
+  children,
+  className = "",
+  icon = "",
+  title = "",
+  visible = false,
+}: ModalProps) {
   const divRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  function handleClose(ev: MouseEvent | React.BaseSyntheticEvent) {
+  function handleClose(ev: React.MouseEvent | MouseEvent) {
     if (
-      !(ev.target instanceof HTMLButtonElement) &&
+      ev.target !== buttonRef.current &&
       divRef.current &&
       divRef.current.contains(ev.target as Node)
     ) {
       return;
     }
 
-    setIsOpen(false);
+    setModal(MODALS.NONE);
   }
 
-  useEffect(() => {
-    if (!isOpen) return;
+  // close active Modal on keypress
+  useEffect(
+    () => {
+      if (!visible) return;
 
-    document.addEventListener("click", handleClose);
-    console.log("caca");
+      function handleKeyPress() {
+        setModal(MODALS.NONE);
+      }
 
-    return () => {
-      document.removeEventListener("click", handleClose);
-    };
-  }, [isOpen]);
+      document.addEventListener("click", handleClose);
+      if (modal !== MODALS.ACCOUNT) {
+        document.addEventListener("keypress", handleKeyPress);
+      }
+
+      return () => {
+        document.removeEventListener("keypress", handleKeyPress);
+        document.removeEventListener("click", handleClose);
+      };
+    }, //
+    [visible],
+  );
 
   return (
     <div
       ref={divRef}
-      className={`fixed left-3 p-2 top-[10vh] z-[9999] hide-scrollbar overflow-scroll border-2 bg-[#6c5ce7] transition-all ${isOpen ? "" : "invisible"} `}
+      className={`z-[9999] fixed left-4 right-4 p-2 border-4 rounded-lg flex flex-col items-center text-shadow-default bg-main-purple backdrop-blur-sm border-main-purple-hover ${className}`}
       style={{
-        width: "calc(100% - 1.5rem)",
-        borderColor,
-        opacity: isOpen ? 1 : 0,
-        pointerEvents: isOpen ? "auto" : "none",
+        ...(visible
+          ? { opacity: 1, pointerEvents: "auto" }
+          : { opacity: 0, pointerEvents: "none" }),
+        transitionProperty: "opacity",
         transitionDuration: `${VIEW.TUTORIAL_FADE_ANIMATION_DURATION}ms`,
+        maxHeight: "calc(100dvh - 2rem)",
       }}
     >
-      {children}
+      {icon ? <p className="absolute left-2 top-1 text-xl">{icon}</p> : null}
+      {title ? <p className="mb-3 text-2xl font-bold justify-center">{title}</p> : null}
+      <button
+        ref={buttonRef}
+        className="absolute right-2.5 top-1 text-xl text-shadow-default hover:text-shadow-hover cursor-pointer fa-solid fa-xmark"
+        style={{ transition: "text-shadow 500ms ease" }}
+        onClick={handleClose}
+      />
+
+      <div
+        className="overflow-y-auto hide-scrollbar"
+        style={{
+          maxHeight: "calc(100dvh - 2rem)",
+        }}
+      >
+        {children}
+      </div>
     </div>
   );
 }

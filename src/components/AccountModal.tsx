@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 
-import Modal from "components/Modal";
+import { MODALS } from "enums";
+import { Modal } from "components";
+import { ModalState } from "types";
 import { TimeoutId } from "../../common/types";
-import { VIEW } from "settings";
 import { usePXEClient, usePlayer } from "stores";
 
 const INPUT_KEY_LENGTH = 100;
-const INPUT_TIMEOUT = 250;
+const INPUT_TIMEOUT = 150;
 
 const colors = [
   "#15c621",
@@ -38,15 +39,13 @@ function getPercentageColor(percentage: number) {
   return "#15c621";
 }
 
-export default function AccountModal() {
-  const divRef = useRef<HTMLDivElement>(null);
+export default function AccountModal({ modal, setModal }: ModalState) {
   const errorTimerIdRef = useRef<TimeoutId>();
   const lastInputTimeRef = useRef(0);
   const inputDisabledRef = useRef(true);
 
   const [inputKey, setInputKey] = useState("");
   const [error, setError] = useState("");
-  const [visible, setVisible] = useState(false);
 
   const { pxeClient } = usePXEClient();
   const { setSecret, username, setUsername } = usePlayer();
@@ -69,21 +68,14 @@ export default function AccountModal() {
     const now = Date.now();
     if (now - lastInputTimeRef.current < INPUT_TIMEOUT) return;
 
-    if (ev.clientX == null || ev.clientY == null) return;
+    if (!ev.clientX || !ev.clientY) return;
 
-    const x = Math.floor(ev.clientX).toString();
-    if (inputKey.includes(x)) return;
+    const x = Math.floor(ev.screenX);
+    const y = Math.floor(ev.screenY);
+    const sum = ((x + y) % 1024).toString();
 
-    const y = Math.floor(ev.clientY).toString();
-    if (inputKey.includes(y)) return;
-
-    setInputKey((prevCoords) => prevCoords + x + y);
+    setInputKey((prev) => prev + sum);
     lastInputTimeRef.current = now;
-  }
-
-  function handleCreateButtonClick(ev: React.MouseEvent) {
-    setVisible(true);
-    ev.stopPropagation();
   }
 
   function handleUsernameChanged(ev: React.ChangeEvent<HTMLInputElement>) {
@@ -108,18 +100,7 @@ export default function AccountModal() {
     );
   }
 
-  function handleClose(ev: MouseEvent | React.BaseSyntheticEvent) {
-    if (
-      !(ev.target instanceof HTMLButtonElement) &&
-      divRef.current &&
-      divRef.current.contains(ev.target as Node)
-    ) {
-      return;
-    }
-
-    setVisible(false);
-  }
-
+  // set player's secret
   useEffect(
     () => {
       if (inputKey.length < INPUT_KEY_LENGTH) return;
@@ -130,6 +111,7 @@ export default function AccountModal() {
       }
 
       setSecret(inputKey);
+      setModal(MODALS.NONE);
     }, //
     [inputKey],
   );
@@ -139,73 +121,68 @@ export default function AccountModal() {
   return (
     <>
       <Modal
-        isOpen={visible}
-        setIsOpen={setVisible}
+        modal={modal}
+        setModal={setModal}
+        className="top-[10vh]"
+        icon="🎫" // 🧙‍♂️ 🧝‍♂️ 👨‍💻 👨‍🚀 🦄 🧧 🛎 🎫 🎟 🧿
+        title="Create Account"
+        visible={modal === MODALS.ACCOUNT}
       >
-        <div className="z-[9999] fixed left-4 right-4 p-2 top-[10vh] border-4 rounded-sm flex flex-col items-center border-main-purple bg-[#6c5ce7]">
-          <button
-            className="absolute right-3 top-1 text-xl fa-solid fa-xmark drop-shadow-md shadow-gray-600 cursor-pointer"
-            onClick={handleClose}
-          />
-
-          <label className="mb-4 text-md font-bold text-white">Create Account</label>
-
+        <div className="flex flex-col">
           <input
             type="text"
-            className="w-56 p-2 mb-2 border rounded text-sm text-gray-800"
+            className="w-56 p-2 mt-4 mb-2 border rounded text-sm text-gray-800"
             placeholder="Enter a name (min 3 characters)"
             onChange={handleUsernameChanged}
             value={username}
           />
           {error ? <label className="text-sm text-red-700">{error}</label> : null}
+        </div>
 
-          {username.length > 2 ? (
-            <>
-              <div
-                className="w-56 h-56 p-2 mt-2 bg-blue-500"
-                onPointerDown={handlePointerDown}
-                onPointerUp={handlePointerUp}
-                onPointerMove={handlePointerMove}
-              >
-                Move your finger inside the blue area to generate a random number
-              </div>
+        <div
+          style={{
+            width: "14rem",
+            ...(username.length < 3
+              ? {
+                  height: "0rem",
+                  opacity: 0,
+                }
+              : {
+                  height: "16rem",
+                  opacity: 1,
+                }),
+            transition: "height 500ms ease, opacity 500ms ease",
+          }}
+        >
+          <div
+            className="p-2 mt-3 h-56 flex flex-col bg-blue-500"
+            {...(username.length < 3
+              ? null
+              : {
+                  onPointerDown: handlePointerDown,
+                  onPointerUp: handlePointerUp,
+                  onPointerMove: handlePointerMove,
+                })}
+          >
+            Move your finger randomly inside this blue area to generate a secret number
+          </div>
 
-              <div className="relative w-56 border-b-2 border-transparent border-solid border-gradient-tr-gold-yellow-darkblue overflow-hidden">
-                <div className="absolute bg-radient-ellipse-bl from-black/50 to-transparent w-full h-full" />
+          <div className="relative">
+            <span className="absolute w-full h-6 text-sm font-bold flex justify-center text-white">
+              {completionPercentage} / 100
+            </span>
 
-                <span className="absolute py-2 flex w-full h-full items-center justify-center font-philosopher text-sm text-white font-bold">
-                  {completionPercentage} / 100
-                </span>
-
-                <div
-                  style={{
-                    width: `${completionPercentage}%`,
-                    minHeight: 20,
-                    backgroundColor: getPercentageColor(inputKey.length),
-                  }}
-                />
-              </div>
-            </>
-          ) : null}
+            <div
+              style={{
+                width: `${completionPercentage}%`,
+                height: "1.5rem",
+                backgroundColor: getPercentageColor(inputKey.length),
+                transition: "width 300ms linear, background-color 600ms ease",
+              }}
+            />
+          </div>
         </div>
       </Modal>
-
-      <div
-        className="fixed bottom-24 left-1/2 translate-x-[-50%] flex justify-center transition-opacity"
-        style={{
-          opacity: visible ? 0 : 1,
-          pointerEvents: visible ? "none" : "auto",
-          transitionDuration: `${VIEW.TUTORIAL_FADE_ANIMATION_DURATION}ms`,
-        }}
-      >
-        <button
-          type="button"
-          className={`rounded-md px-2.5 py-2 text-lg font-semibold shadow-sm bg-indigo-500 text-white`}
-          onClick={handleCreateButtonClick}
-        >
-          Create Account
-        </button>
-      </div>
     </>
   );
 }

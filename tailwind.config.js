@@ -1,12 +1,18 @@
 /** @type {import('tailwindcss').Config} */
+
+const colors = {
+  "main-purple": "rgba(88, 28, 135, 0.5)",
+  //[#6c5ce7]
+  "main-purple-hover": "rgba(102, 34, 155, 0.8)",
+  "text-shadow-normal": "rgb(5, 5, 5)",
+  "text-shadow-hover": "rgb(255, 5, 5)",
+};
+
 export default {
   content: ["./src/pages/**/*.{html,ts,tsx}", "./src/components/**/*.{html,ts,tsx}"],
   theme: {
     extend: {
-      colors: {
-        "main-purple": "rgba(88, 28, 135, 0.5)",
-        "main-purple-hover": "rgba(102, 34, 155, 0.8)",
-      },
+      colors,
       grayscale: {
         50: "50%",
         80: "80%",
@@ -32,5 +38,19 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities(
+        {
+          ".text-shadow-default": {
+            textShadow: `${colors["text-shadow-normal"]} 1px 1px 3px`,
+          },
+          ".text-shadow-hover": {
+            textShadow: `${colors["text-shadow-hover"]} 2px 2px 4px`,
+          },
+        },
+        ["responsive", "hover"],
+      );
+    },
+  ],
 };
