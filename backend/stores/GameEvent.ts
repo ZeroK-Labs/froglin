@@ -98,8 +98,8 @@ export function createGameEvent(
       }
 
       // generate new coordinates for the interest points
-      const nearCount = Math.floor(Math.random() * 12) + 3;
-      const closeCount = 5;
+      const nearCount = Math.floor(totalCount * 0.15) ?? 0;
+      const closeCount = Math.floor(totalCount * 0.15) ?? 1;
 
       const coordinates: MapCoordinates[] = [
         ...getFarInterestPoints(event.location, totalCount - nearCount - closeCount),
