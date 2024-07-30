@@ -75,19 +75,26 @@ function createState(): PXEState {
 
       function handleSocketClose() {
         toast.dismiss(toastId);
+
+        setPXEClient(null);
+        setPXEURL("");
       }
 
       let retries = 0;
       function handleRetry() {
+        retries += 1;
+        CLIENT_SOCKET.send("which pxe");
+
+        if (retries === 4) retries = 0;
+      }
+
+      function handlePXEError() {
         if (retries === 0) {
           toast.error("PXE host offline", { id: toastId });
           console.error("Failed to initialize PXE: service offline");
         }
 
-        retries += 1;
-        CLIENT_SOCKET.send("which pxe");
-
-        if (retries === 4) retries = 0;
+        setTimeout(handleRetry, 3_000);
       }
 
       async function handlePXEReady(ev: MessageEvent<string>) {
@@ -96,7 +103,7 @@ function createState(): PXEState {
         const url = ev.data.split(" ")[1];
 
         if (!url) {
-          setTimeout(handleRetry, 3_000);
+          handlePXEError();
 
           return;
         }
@@ -107,10 +114,7 @@ function createState(): PXEState {
           await pxe.getPXEInfo();
           //
         } catch (err) {
-          toast.error("PXE host offline", { id: toastId });
-          console.error("Failed to initialize PXE: service offline");
-
-          setTimeout(handleRetry, 3_000);
+          handlePXEError();
 
           return;
         }
