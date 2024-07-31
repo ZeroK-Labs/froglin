@@ -21,19 +21,18 @@ function getRandomInRange(a: number, b: number): number {
 
 export default function PlayerMarker({ view }: Props) {
   const navRef = useRef<HTMLDivElement>(null);
+  const interestPointsRef = useRef<InterestPoint[]>([]);
+  const epochCountRef = useRef(0);
   const revealingRef = useRef(false);
-
-  const username = localStorage.getItem("username");
 
   const [trapPoints, setTrapPoints] = useState<MapCoordinates[]>([]);
   const [duplicateTrapIndex, setDuplicateTrapIndex] = useState<number | null>(null);
   const [open, setOpen] = useState<boolean>(false);
-  const [hiddenInterestPointIds, setHiddenInterestPointIds] = useState<string[]>([]);
-  const [revealComplete, setRevealComplete] = useState<boolean>(false);
 
   const { coordinates, lost } = useLocation();
   const { setVisible, setSize } = useRevealingCircleState();
   const {
+    epochCount,
     interestPoints,
     revealedFroglins,
     setInterestPoints,
@@ -41,98 +40,111 @@ export default function PlayerMarker({ view }: Props) {
     captureFroglins,
   } = useGameEvent();
 
+  // used to detect new epoch (and rebound from) while rendering flute animation
+  epochCountRef.current = epochCount;
+  interestPointsRef.current = interestPoints;
+
   const cssMenuButton = `${open ? "" : "opacity-0"} menu-item`;
-
-  useEffect(
-    () => {
-      if (!revealComplete || hiddenInterestPointIds.length === 0 || !username) return;
-
-      fetch(`${process.env.BACKEND_URL}/reveal`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, hiddenInterestPointIds }),
-      });
-
-      setRevealComplete(false);
-    }, //
-    [revealComplete],
-  );
 
   function handleMenuStateChange(ev: ChangeEvent<HTMLInputElement>) {
     setOpen(ev.target.checked);
-  }
-
-  function doReveal(radius: number = PLAYER.REVEAL.RADIUS) {
-    // update the state
-    const interestPointsHidden: InterestPoint[] = [];
-    const revealedFroglins: Froglin[] = [];
-
-    for (let i = 0; i !== interestPoints.length; ++i) {
-      const point = interestPoints[i];
-      interestPointsHidden.push(point);
-
-      if (!point.visible || !inRange(point.coordinates, coordinates, radius)) continue;
-
-      // hide the point to start fade out animation
-      point.visible = false;
-      setHiddenInterestPointIds((old) => [...old, point.id]);
-
-      // send some goblins to the void
-      const gone = Math.random();
-      if (gone < 0.25 || gone > 0.75) continue;
-
-      revealedFroglins.push({
-        id: "R" + point.id,
-        coordinates: point.coordinates,
-        type: getRandomInRange(2, 7),
-      });
-    }
-    // hide interest points
-    setInterestPoints(interestPointsHidden);
-
-    if (revealedFroglins.length === 0) return;
-
-    // delay setting the state for fadeout animation to complete
-    setTimeout(revealFroglins, FROGLIN.MARKER.TRANSITION_DURATION, revealedFroglins);
   }
 
   function handleFluteButtonClick() {
     setOpen(false);
 
     if (revealingRef.current) return;
+
     revealingRef.current = true;
-    setHiddenInterestPointIds([]);
+
+    // filter out the revealed points
+    let interestPointsRevealed: InterestPoint[];
+    function revealInterestPoints() {
+      interestPointsRevealed = [];
+      for (let i = 0; i !== interestPointsRef.current.length; ++i) {
+        const point = interestPointsRef.current[i];
+        if (
+          point.visible &&
+          inRange(point.coordinates, coordinates, PLAYER.REVEAL.RADIUS)
+        ) {
+          interestPointsRevealed.push(point);
+        }
+      }
+    }
+
+    revealInterestPoints();
+
     // create animation for circle
     const duration = 1_000;
-    const loops = 8;
-    const increment = PLAYER.REVEAL.RADIUS / loops;
+    const loopCount = 8;
+    const increment = PLAYER.REVEAL.RADIUS / loopCount;
     let radius = increment;
 
     setSize(0);
     setVisible(true);
 
-    let i = 1;
+    let frameIndex = 0;
     const id = setInterval(
       () => {
+        // increase circle size
         radius += increment;
+        if (radius > PLAYER.REVEAL.RADIUS) radius = PLAYER.REVEAL.RADIUS;
         setSize(radius);
 
-        doReveal(radius);
+        // detect epoch change and get updated inteterest points
+        if (epochCount !== epochCountRef.current) revealInterestPoints();
 
-        if (++i === loops) {
-          setRevealComplete(true);
-          clearInterval(id);
+        // reveal Froglins based on current circle size
+        const revealedFroglins: Froglin[] = [];
+
+        for (let i = 0; i !== interestPointsRevealed.length; ++i) {
+          const point = interestPointsRevealed[i];
+
+          if (!point.visible || !inRange(point.coordinates, coordinates, radius)) {
+            continue;
+          }
+
+          // hide the point to start fade out animation
+          point.visible = false;
+
+          // send some Froglins to the void
+          const gone = Math.random();
+          if (gone < 0.25 || gone > 0.75) continue;
+
+          revealedFroglins.push({
+            id: "R" + point.id,
+            coordinates: point.coordinates,
+            type: getRandomInRange(2, 7),
+          });
         }
+
+        if (revealedFroglins.length !== 0) {
+          // hide interest points
+          setInterestPoints((old) => [...old]);
+
+          // delay setting the state for fadeout animation to complete
+          setTimeout(
+            revealFroglins,
+            FROGLIN.MARKER.TRANSITION_DURATION,
+            revealedFroglins,
+          );
+        }
+
+        if (++frameIndex !== loopCount) return;
+
+        setVisible(false);
+        clearInterval(id);
       },
-      Math.floor(duration / loops),
+      Math.floor(duration / loopCount),
     );
 
-    setTimeout(() => {
-      revealingRef.current = false;
-      setVisible(false);
-    }, duration + 50);
+    // prevent spamming of reveal
+    setTimeout(
+      () => {
+        revealingRef.current = false;
+      }, //
+      duration + 1_000,
+    );
   }
 
   function handleTrapButtonClick() {
@@ -143,11 +155,11 @@ export default function PlayerMarker({ view }: Props) {
     setDuplicateTrapIndex(null);
 
     for (let i = 0; i !== trapPoints.length; ++i) {
-      const point = trapPoints[i];
+      const trap = trapPoints[i];
 
       if (
-        point.latitude === coordinates.latitude &&
-        point.longitude === coordinates.longitude
+        trap.latitude === coordinates.latitude &&
+        trap.longitude === coordinates.longitude
       ) {
         // allow repeated shows when the same trap is duplicated by
         // changing the state twice: initially to null, then (again) to the (same) index
@@ -160,6 +172,7 @@ export default function PlayerMarker({ view }: Props) {
     setTrapPoints((old) => [...old, { ...coordinates }]);
   }
 
+  // capture Froglin on location change
   useEffect(
     () => {
       for (let i = 0; i !== revealedFroglins.length; ++i) {
@@ -172,24 +185,29 @@ export default function PlayerMarker({ view }: Props) {
     [coordinates.latitude, coordinates.longitude],
   );
 
+  // capture Froglin on trap placement
   useEffect(
     () => {
       if (trapPoints.length !== 3) return;
 
+      // reset trap points
+      setTimeout(setTrapPoints, FROGLIN.MARKER.TRANSITION_DURATION, []);
+
+      // capture Froglins from inside the trap triangle
       const triangle = trapPoints as [MapCoordinates, MapCoordinates, MapCoordinates];
 
-      const capturedIds: [Froglin["id"]?] = [];
+      const capturedIds: Froglin["id"][] = [];
       for (let i = 0; i !== revealedFroglins.length; ++i) {
         const froglin = revealedFroglins[i];
         if (inTriangle(froglin.coordinates, triangle)) capturedIds.push(froglin.id);
       }
 
-      setTimeout(captureFroglins, 0, capturedIds);
-      setTimeout(setTrapPoints, FROGLIN.MARKER.TRANSITION_DURATION, []);
+      if (capturedIds.length !== 0) captureFroglins(capturedIds);
     }, //
     [trapPoints, revealedFroglins],
   );
 
+  // key shortcuts for Ring Menu actions
   useEffect(
     () => {
       function handleKeyPress(ev: KeyboardEvent) {
@@ -208,6 +226,7 @@ export default function PlayerMarker({ view }: Props) {
     [interestPoints, trapPoints, coordinates.latitude, coordinates.longitude],
   );
 
+  // close Ring Menu when clicking outside its bounds
   useEffect(
     () => {
       function handleDocumentClick(ev: MouseEvent) {

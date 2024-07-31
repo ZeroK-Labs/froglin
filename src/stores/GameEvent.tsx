@@ -3,9 +3,8 @@ import { useEffect, useState } from "react";
 
 import { Froglin, GameEvent } from "types";
 import { InterestPoint, MapCoordinates } from "../../common/types";
-import { LngLatBoundsLike } from "mapbox-gl";
 import { ServerGameEvent } from "../../backend/types";
-import { StoreFactory, useLocation } from "stores";
+import { StoreFactory, useLocation, usePXEClient } from "stores";
 import {
   CLIENT_SOCKET,
   PLAYER_ID,
@@ -31,43 +30,70 @@ function createState(): GameEvent {
   const [initialized, setInitialized] = useState(false);
 
   const location = useLocation();
+  const { pxeClient } = usePXEClient();
 
-  function getEventBounds(): LngLatBoundsLike {
+  function getEventBounds(): [[number, number], [number, number]] {
     const root = bounds[0];
-    return [root[0], root[2]] as LngLatBoundsLike;
+    return [root[0] as [number, number], root[2] as [number, number]];
   }
 
   function revealFroglins(froglins: Froglin[]) {
-    setRevealedFroglins((old) => [...old, ...froglins]);
+    setRevealedFroglins((old) => {
+      for (let i = 0; i !== froglins.length; ++i) {
+        const froglin = froglins[i];
+
+        if (old.find((f) => f.id === froglin.id)) continue;
+
+        old.push(froglin);
+      }
+
+      if (CLIENT_SOCKET.readyState !== WebSocket.OPEN) return [...old];
+
+      try {
+        fetch(`${process.env.BACKEND_URL}/reveal`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            playerId: PLAYER_ID,
+            hiddenInterestPointIds: froglins.map((point) => point.id),
+          }),
+        });
+        //
+      } catch (err) {}
+
+      return [...old];
+    });
   }
 
   function captureFroglins(froglinIds: Froglin["id"][]) {
     setRevealedFroglins((old) => {
-      const capturedFroglins: Froglin[] = [];
-      const revealedFroglins: Froglin[] = [];
+      const capturedFroglinsNew: Froglin[] = [];
+      const revealedFroglinsNew: Froglin[] = [];
 
+      // prettier-ignore
+      OUTER_LOOP:
       for (let i = 0; i !== old.length; ++i) {
         const froglin = old[i];
 
-        let captured = false;
         for (let j = 0; j !== froglinIds.length; ++j) {
           const captureId = froglinIds[j];
 
           if (froglin.id !== captureId) continue;
 
-          froglinIds.pop();
-          capturedFroglins.push(froglin);
-          captured = true;
-          break;
-        }
-        if (captured) continue;
+          froglinIds.slice(j, 1);
+          capturedFroglinsNew.push({ ...froglin, id: crypto.randomUUID() });
 
-        revealedFroglins.push(froglin);
+          continue OUTER_LOOP;
+        }
+
+        revealedFroglinsNew.push(froglin);
       }
 
-      setCapturedFroglins((c) => [...c, ...capturedFroglins]);
+      setCapturedFroglins((old) => [...old, ...capturedFroglinsNew]);
 
-      return revealedFroglins;
+      return revealedFroglinsNew;
     });
   }
 
@@ -96,7 +122,12 @@ function createState(): GameEvent {
       setEpochStartTime(event.epochStartTime);
 
       for (let i = 0; i !== event.interestPoints.length; ++i) {
-        event.interestPoints[i].visible = true;
+        const point = event.interestPoints[i];
+
+        // can have overlap on reveal and new epoch, explicitly filter out
+        if (revealedFroglins.find((f) => f.id === point.id)) continue;
+
+        point.visible = true;
       }
       setInterestPoints(event.interestPoints);
 
@@ -105,21 +136,29 @@ function createState(): GameEvent {
     } catch (err) {}
   }
 
-  if (
-    !initialized &&
-    location.coordinates.longitude &&
-    isFinite(location.coordinates.longitude) &&
-    location.coordinates.latitude &&
-    isFinite(location.coordinates.latitude)
-  ) {
-    fetchData(location.coordinates);
-  }
+  // handle event initialization
+  useEffect(
+    () => {
+      if (!pxeClient) setInitialized(false);
+      else if (
+        !initialized &&
+        location.coordinates.longitude &&
+        isFinite(location.coordinates.longitude) &&
+        location.coordinates.latitude &&
+        isFinite(location.coordinates.latitude)
+      ) {
+        fetchData(location.coordinates);
+      }
+    }, //
+    [pxeClient],
+  );
 
+  // handle server new epoch message
   useEffect(
     () => {
       function handleServerEpochUpdate(event: MessageEvent<any>) {
         if (event.data === "newEpoch") {
-          toast("New epoch", { duration: 3_000, icon: "⏳" });
+          toast("New epoch ", { duration: 3_000, icon: "⏳" });
 
           fetchData();
         }
@@ -132,6 +171,21 @@ function createState(): GameEvent {
       };
     }, //
     [initialized],
+  );
+
+  // reset revealed Froglins when event restarts
+  useEffect(
+    () => {
+      if (epochCount !== 0) return;
+
+      return () => {
+        if (!initialized) return;
+
+        toast("Event restarted", { duration: 3_000, icon: "🎉" });
+        setRevealedFroglins([]);
+      };
+    }, //
+    [epochCount],
   );
 
   return {
