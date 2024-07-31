@@ -18,10 +18,9 @@ type GameEvent = {
   setEpochStartTime: React.Dispatch<React.SetStateAction<number>>;
 
   interestPoints: InterestPoint[];
-  setInterestPoints: React.Dispatch<React.SetStateAction<InterestPoint[]>>;
 
   revealedFroglins: Froglin[];
-  revealFroglins: (froglins: Froglin[]) => void;
+  revealFroglins: (radius: number) => void;
 
   capturedFroglins: Froglin[];
   captureFroglins: (froglinIds: Froglin["id"][]) => void;

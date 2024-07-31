@@ -1,8 +1,6 @@
-import { MapCoordinates } from "../../common/types";
+import { InterestPoint } from "../../common/types";
 
-type Froglin = {
-  id: string;
-  coordinates: MapCoordinates;
+type Froglin = InterestPoint & {
   type: number;
 };
 

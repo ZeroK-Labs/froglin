@@ -3,8 +3,8 @@ import { Marker } from "react-map-gl";
 
 import { FROGLIN, PLAYER } from "settings";
 import { Froglin } from "types";
-import { InterestPoint, MapCoordinates } from "../../common/types";
 import { MAP_VIEWS } from "enums";
+import { MapCoordinates } from "../../common/types";
 import { PlayerMarkerImage, TrapMarkerList } from "components";
 import { inRange, inTriangle } from "../../common/utils/map";
 import { useGameEvent, useRevealingCircleState, useLocation } from "stores";
@@ -13,16 +13,8 @@ type Props = {
   view: MAP_VIEWS;
 };
 
-function getRandomInRange(a: number, b: number): number {
-  const min = Math.min(a, b);
-  const max = Math.max(a, b);
-  return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
 export default function PlayerMarker({ view }: Props) {
   const navRef = useRef<HTMLDivElement>(null);
-  const interestPointsRef = useRef<InterestPoint[]>([]);
-  const epochCountRef = useRef(0);
   const revealingRef = useRef(false);
 
   const [trapPoints, setTrapPoints] = useState<MapCoordinates[]>([]);
@@ -31,18 +23,8 @@ export default function PlayerMarker({ view }: Props) {
 
   const { coordinates, lost } = useLocation();
   const { setVisible, setSize } = useRevealingCircleState();
-  const {
-    epochCount,
-    interestPoints,
-    revealedFroglins,
-    setInterestPoints,
-    revealFroglins,
-    captureFroglins,
-  } = useGameEvent();
-
-  // used to detect new epoch (and rebound from) while rendering flute animation
-  epochCountRef.current = epochCount;
-  interestPointsRef.current = interestPoints;
+  const { interestPoints, revealedFroglins, revealFroglins, captureFroglins } =
+    useGameEvent();
 
   const cssMenuButton = `${open ? "" : "opacity-0"} menu-item`;
 
@@ -53,26 +35,9 @@ export default function PlayerMarker({ view }: Props) {
   function handleFluteButtonClick() {
     setOpen(false);
 
+    // prevent spamming of reveal
     if (revealingRef.current) return;
-
     revealingRef.current = true;
-
-    // filter out the revealed points
-    let interestPointsRevealed: InterestPoint[];
-    function revealInterestPoints() {
-      interestPointsRevealed = [];
-      for (let i = 0; i !== interestPointsRef.current.length; ++i) {
-        const point = interestPointsRef.current[i];
-        if (
-          point.visible &&
-          inRange(point.coordinates, coordinates, PLAYER.REVEAL.RADIUS)
-        ) {
-          interestPointsRevealed.push(point);
-        }
-      }
-    }
-
-    revealInterestPoints();
 
     // create animation for circle
     const duration = 1_000;
@@ -88,62 +53,25 @@ export default function PlayerMarker({ view }: Props) {
       () => {
         // increase circle size
         radius += increment;
-        if (radius > PLAYER.REVEAL.RADIUS) radius = PLAYER.REVEAL.RADIUS;
+        if (frameIndex === 7) radius = PLAYER.REVEAL.RADIUS;
         setSize(radius);
 
-        // detect epoch change and get updated inteterest points
-        if (epochCount !== epochCountRef.current) revealInterestPoints();
-
-        // reveal Froglins based on current circle size
-        const revealedFroglins: Froglin[] = [];
-
-        for (let i = 0; i !== interestPointsRevealed.length; ++i) {
-          const point = interestPointsRevealed[i];
-
-          if (!point.visible || !inRange(point.coordinates, coordinates, radius)) {
-            continue;
-          }
-
-          // hide the point to start fade out animation
-          point.visible = false;
-
-          // send some Froglins to the void
-          const gone = Math.random();
-          if (gone < 0.25 || gone > 0.75) continue;
-
-          revealedFroglins.push({
-            id: "R" + point.id,
-            coordinates: point.coordinates,
-            type: getRandomInRange(2, 7),
-          });
-        }
-
-        if (revealedFroglins.length !== 0) {
-          // hide interest points
-          setInterestPoints((old) => [...old]);
-
-          // delay setting the state for fadeout animation to complete
-          setTimeout(
-            revealFroglins,
-            FROGLIN.MARKER.TRANSITION_DURATION,
-            revealedFroglins,
-          );
-        }
+        revealFroglins(radius);
 
         if (++frameIndex !== loopCount) return;
 
         setVisible(false);
         clearInterval(id);
+
+        // prevent spamming of reveal
+        setTimeout(
+          () => {
+            revealingRef.current = false;
+          }, //
+          1_000,
+        );
       },
       Math.floor(duration / loopCount),
-    );
-
-    // prevent spamming of reveal
-    setTimeout(
-      () => {
-        revealingRef.current = false;
-      }, //
-      duration + 1_000,
     );
   }
 
@@ -175,12 +103,22 @@ export default function PlayerMarker({ view }: Props) {
   // capture Froglin on location change
   useEffect(
     () => {
+      const capturedFroglinIds: Froglin["id"][] = [];
       for (let i = 0; i !== revealedFroglins.length; ++i) {
         const froglin = revealedFroglins[i];
-        if (inRange(froglin.coordinates, coordinates, PLAYER.CAPTURE_RADIUS)) {
-          captureFroglins([froglin.id]);
-        }
+
+        if (!inRange(froglin.coordinates, coordinates, PLAYER.CAPTURE_RADIUS)) continue;
+
+        froglin.visible = false;
+        capturedFroglinIds.push(froglin.id);
       }
+
+      // delay setting the state for fadeout animation to complete
+      setTimeout(
+        captureFroglins,
+        FROGLIN.MARKER.TRANSITION_DURATION,
+        capturedFroglinIds,
+      );
     }, //
     [coordinates.latitude, coordinates.longitude],
   );
@@ -196,13 +134,24 @@ export default function PlayerMarker({ view }: Props) {
       // capture Froglins from inside the trap triangle
       const triangle = trapPoints as [MapCoordinates, MapCoordinates, MapCoordinates];
 
-      const capturedIds: Froglin["id"][] = [];
+      const capturedFroglinIds: Froglin["id"][] = [];
       for (let i = 0; i !== revealedFroglins.length; ++i) {
         const froglin = revealedFroglins[i];
-        if (inTriangle(froglin.coordinates, triangle)) capturedIds.push(froglin.id);
+
+        if (!inTriangle(froglin.coordinates, triangle)) continue;
+
+        froglin.visible = false;
+        capturedFroglinIds.push(froglin.id);
       }
 
-      if (capturedIds.length !== 0) captureFroglins(capturedIds);
+      if (capturedFroglinIds.length === 0) return;
+
+      // delay setting the state for fadeout animation to complete
+      setTimeout(
+        captureFroglins,
+        FROGLIN.MARKER.TRANSITION_DURATION,
+        capturedFroglinIds,
+      );
     }, //
     [trapPoints, revealedFroglins],
   );

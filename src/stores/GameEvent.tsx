@@ -1,10 +1,12 @@
 import toast from "react-hot-toast";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { FROGLIN, PLAYER } from "settings";
 import { Froglin, GameEvent } from "types";
 import { InterestPoint, MapCoordinates } from "../../common/types";
 import { ServerGameEvent } from "../../backend/types";
 import { StoreFactory, useLocation, usePXEClient } from "stores";
+import { inRange } from "../../common/utils/map";
 import {
   CLIENT_SOCKET,
   PLAYER_ID,
@@ -12,7 +14,18 @@ import {
   removeSocketEventHandler,
 } from "utils/sockets";
 
+function getRandomInRange(a: number, b: number): number {
+  const min = Math.min(a, b);
+  const max = Math.max(a, b);
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
 function createState(): GameEvent {
+  const interestPointsRef = useRef<InterestPoint[]>([]);
+  const revealedInterestPointsRef = useRef<InterestPoint[]>([]);
+  const hiddenInterestPointIdsRef = useRef<InterestPoint["id"][]>([]);
+  const revealingRef = useRef(false);
+
   const [bounds, setBounds] = useState<GeoJSON.Position[][]>([
     [
       [0, 0],
@@ -32,23 +45,77 @@ function createState(): GameEvent {
   const location = useLocation();
   const { pxeClient } = usePXEClient();
 
+  interestPointsRef.current = interestPoints;
+
   function getEventBounds(): [[number, number], [number, number]] {
     const root = bounds[0];
     return [root[0] as [number, number], root[2] as [number, number]];
   }
 
-  function revealFroglins(froglins: Froglin[]) {
-    setRevealedFroglins((old) => {
-      for (let i = 0; i !== froglins.length; ++i) {
-        const froglin = froglins[i];
+  function cacheRevealedInterestPoints() {
+    revealedInterestPointsRef.current = [];
+    for (let i = 0; i !== interestPointsRef.current.length; ++i) {
+      const point = interestPointsRef.current[i];
+      if (
+        point.visible &&
+        inRange(point.coordinates, location.coordinates, PLAYER.REVEAL.RADIUS)
+      ) {
+        revealedInterestPointsRef.current.push(point);
+      }
+    }
+  }
 
-        if (old.find((f) => f.id === froglin.id)) continue;
+  function revealFroglins(radius: number) {
+    if (!revealingRef.current) {
+      revealingRef.current = true;
+      cacheRevealedInterestPoints();
+    }
 
-        old.push(froglin);
+    // reveal Froglins based on current circle size
+    const froglins: Froglin[] = [];
+    const hiddenInterestPointIds: InterestPoint["id"][] = [];
+
+    for (let i = 0; i !== revealedInterestPointsRef.current.length; ++i) {
+      const point = revealedInterestPointsRef.current[i];
+
+      if (!point.visible || !inRange(point.coordinates, location.coordinates, radius)) {
+        continue;
       }
 
-      if (CLIENT_SOCKET.readyState !== WebSocket.OPEN) return [...old];
+      // skip captured points (can happen when epoch changes between reveal steps)
+      if (hiddenInterestPointIdsRef.current.find((id) => id === point.id)) continue;
 
+      // hide the point to start fade out animation
+      point.visible = false;
+
+      hiddenInterestPointIds.push(point.id);
+      hiddenInterestPointIdsRef.current.push(point.id);
+
+      // send some markers to the void
+      const gone = Math.random();
+      if (gone < 0.25 || gone > 0.75) continue;
+
+      // create a Froglin
+      froglins.push({
+        id: "R" + point.id,
+        coordinates: point.coordinates,
+        visible: true,
+        type: getRandomInRange(2, 7),
+      });
+    }
+
+    // mark done when last step of reveal complete
+    if (radius === PLAYER.REVEAL.RADIUS) {
+      revealingRef.current = false;
+      hiddenInterestPointIdsRef.current = [];
+    }
+
+    if (hiddenInterestPointIds.length === 0) return;
+
+    // update state of interest points to hide them all in one go
+    setInterestPoints([...interestPointsRef.current]);
+
+    if (CLIENT_SOCKET.readyState === WebSocket.OPEN) {
       try {
         fetch(`${process.env.BACKEND_URL}/reveal`, {
           method: "POST",
@@ -57,13 +124,18 @@ function createState(): GameEvent {
           },
           body: JSON.stringify({
             playerId: PLAYER_ID,
-            hiddenInterestPointIds: froglins.map((point) => point.id),
+            hiddenInterestPointIds,
           }),
         });
         //
       } catch (err) {}
+    }
 
-      return [...old];
+    if (froglins.length === 0) return;
+
+    // pause between hiding and revealing
+    setTimeout(setRevealedFroglins, FROGLIN.MARKER.TRANSITION_DURATION, (old) => {
+      return [...old, ...froglins];
     });
   }
 
@@ -83,11 +155,14 @@ function createState(): GameEvent {
           if (froglin.id !== captureId) continue;
 
           froglinIds.slice(j, 1);
-          capturedFroglinsNew.push({ ...froglin, id: crypto.randomUUID() });
+          froglin.id = crypto.randomUUID();
+          froglin.visible = false;
+          capturedFroglinsNew.push(froglin);
 
           continue OUTER_LOOP;
         }
 
+        froglin.visible = true;
         revealedFroglinsNew.push(froglin);
       }
 
@@ -121,34 +196,41 @@ function createState(): GameEvent {
       setEpochDuration(event.epochDuration);
       setEpochStartTime(event.epochStartTime);
 
+      if (revealingRef.current) {
+        interestPointsRef.current = event.interestPoints;
+        cacheRevealedInterestPoints();
+      }
+
       for (let i = 0; i !== event.interestPoints.length; ++i) {
         const point = event.interestPoints[i];
-
-        // can have overlap on reveal and new epoch, explicitly filter out
-        if (revealedFroglins.find((f) => f.id === point.id)) continue;
-
-        point.visible = true;
+        point.visible = !hiddenInterestPointIdsRef.current.find(
+          (id) => id === point.id,
+        );
       }
-      setInterestPoints(event.interestPoints);
 
-      setInitialized(true);
+      setInterestPoints(event.interestPoints);
       //
     } catch (err) {}
+  }
+
+  async function initializeEvent() {
+    if (
+      location.coordinates.longitude &&
+      isFinite(location.coordinates.longitude) &&
+      location.coordinates.latitude &&
+      isFinite(location.coordinates.latitude)
+    ) {
+      await fetchData(location.coordinates);
+
+      setInitialized(true);
+    }
   }
 
   // handle event initialization
   useEffect(
     () => {
-      if (!pxeClient) setInitialized(false);
-      else if (
-        !initialized &&
-        location.coordinates.longitude &&
-        isFinite(location.coordinates.longitude) &&
-        location.coordinates.latitude &&
-        isFinite(location.coordinates.latitude)
-      ) {
-        fetchData(location.coordinates);
-      }
+      setInitialized(!pxeClient);
+      if (pxeClient) initializeEvent();
     }, //
     [pxeClient],
   );
@@ -176,13 +258,12 @@ function createState(): GameEvent {
   // reset revealed Froglins when event restarts
   useEffect(
     () => {
-      if (epochCount !== 0) return;
+      if (!initialized || epochCount !== 0) return;
 
       return () => {
-        if (!initialized) return;
+        setRevealedFroglins([]);
 
         toast("Event restarted", { duration: 3_000, icon: "🎉" });
-        setRevealedFroglins([]);
       };
     }, //
     [epochCount],
@@ -199,7 +280,6 @@ function createState(): GameEvent {
     setEpochStartTime,
     getEventBounds,
     interestPoints,
-    setInterestPoints,
     revealedFroglins,
     revealFroglins,
     capturedFroglins,
