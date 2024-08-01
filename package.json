@@ -65,7 +65,7 @@
     "push-staging": "scripts/git/push_staging.sh",
     "aztec:build": "scripts/aztec/build.sh",
     "aztec:start": "scripts/aztec/start.sh",
-    "backend:start": "bun backend/start.ts",
+    "backend:start": "scripts/backend/start.sh",
     "typescript:compile": "tsc --noEmit --pretty",
     "webpack:clean": "scripts/webpack/clean.sh",
     "webpack:build": "scripts/webpack/build.sh",
