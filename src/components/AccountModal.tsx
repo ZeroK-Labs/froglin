@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 
 import { MODALS } from "enums";
 import { Modal } from "components";
-import { TimeoutId } from "../../common/types";
 import { useModalState, usePXEClient, usePlayer } from "stores";
 
 const INPUT_KEY_LENGTH = 100;
@@ -39,7 +38,7 @@ function getPercentageColor(percentage: number) {
 }
 
 export default function AccountModal() {
-  const errorTimerIdRef = useRef<TimeoutId>();
+  const errorTimerIdRef = useRef<Timer>();
   const lastInputTimeRef = useRef(0);
   const inputDisabledRef = useRef(true);
 

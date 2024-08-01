@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { LOCATION } from "settings";
 import { LocationInfo } from "types";
 import { StoreFactory } from "stores";
-import { TimeoutId } from "../../common/types";
 import { getDistance } from "../../common/utils/map";
 import { nullMapCoordinates, nullifyMapCoordinates } from "classes/MapCoordinates";
 
@@ -102,7 +101,7 @@ function createState(): LocationInfo {
         );
       }
 
-      let sessionTimerId: TimeoutId;
+      let sessionTimerId: Timer;
       let focusLostTime = 0;
       function handleLostFocus() {
         if (document.visibilityState === "visible") {

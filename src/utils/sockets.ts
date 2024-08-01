@@ -1,5 +1,4 @@
 import toast from "react-hot-toast";
-import { TimeoutId } from "../../common/types";
 
 function generatePlayerId() {
   const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -20,7 +19,7 @@ const url = `${process.env.WSS_URL}?${query}`;
 
 let CLIENT_SOCKET: WebSocket;
 
-let timerId: TimeoutId;
+let timerId: Timer;
 let retries = 0;
 let closed = false;
 
