@@ -22,7 +22,6 @@ if [[ "$arg" == "0" ]]; then
   exit 1
 fi
 
-# create ssl certificates
-if ! scripts/webpack/create_keys.sh; then exit $?; fi
+scripts/.ssl/create_localhost_certificates.sh || { exit 1; }
 
 webpack --env mode=$arg

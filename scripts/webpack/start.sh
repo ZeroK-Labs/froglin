@@ -22,15 +22,14 @@ if [[ "$arg" == "0" ]]; then
   exit 1
 fi
 
+scripts/.ssl/create_localhost_certificates.sh || { exit 1; }
+
 cleanup() {
   pkill -f 'tailwind|webpack'
 }
 
 # trap ctrl+c to call cleanup function
 trap 'cleanup' INT
-
-# create ssl certificates
-if ! scripts/webpack/create_keys.sh; then exit $?; fi
 
 # kill previous webpack instances
 xvg=$(pgrep -f webpack)
