@@ -10,8 +10,8 @@
     "src/styles/global.css"
   ],
   "dependencies": {
-    "@aztec/accounts": "0.47.0",
-    "@aztec/aztec.js": "0.47.0",
+    "@aztec/accounts": "0.47.1",
+    "@aztec/aztec.js": "0.47.1",
     "@react-three/drei": "9.109.2",
     "@react-three/fiber": "8.16.8",
     "mapbox-gl": "3.5.0",
@@ -23,7 +23,7 @@
     "ws": "8.18.0"
   },
   "devDependencies": {
-    "@aztec/builder": "0.47.0",
+    "@aztec/builder": "0.47.1",
     "@swc/core": "1.7.4",
     "@types/bun": "1.1.6",
     "@types/cors": "2.8.17",
