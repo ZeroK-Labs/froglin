@@ -18,7 +18,7 @@ export { default as Modal } from "./Modal";
 export { default as PlayerMarker } from "./PlayerMarker";
 export { default as PlayerMarkerImage } from "./PlayerMarkerImage";
 export { default as PlaygroundViewInfoBar } from "./PlaygroundViewInfoBar";
+export { default as ToastView } from "./ToastView";
 export { default as TrapMarker } from "./TrapMarker";
 export { default as TrapMarkerList } from "./TrapMarkerList";
-export { default as ToastView } from "./ToastView";
 export { default as TutorialModal } from "./TutorialModal";
