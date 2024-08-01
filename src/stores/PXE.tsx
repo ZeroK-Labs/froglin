@@ -112,8 +112,8 @@ function createState(): PXEState {
 
         try {
           await pxe.getPXEInfo();
-          //
-        } catch (err) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (_err) {
           handlePXEError();
 
           return;

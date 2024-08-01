@@ -122,8 +122,8 @@ function createState(): GameEventClient {
             hiddenInterestPointIds,
           }),
         });
-        //
-      } catch (err) {}
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_err) {}
     }
 
     if (froglins.length === 0) return;
@@ -236,8 +236,8 @@ function createState(): GameEventClient {
       );
 
       toast("New event", { icon: "🎉" });
-      //
-    } catch (err) {}
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_err) {}
   }
 
   // handle event initialization
