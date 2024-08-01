@@ -21,20 +21,32 @@ export default function FroglinMarker(props: Props) {
     setTimeout(setMessage, FROGLIN.MARKER.MESSAGE_TIMEOUT, "");
   }
 
+  // fade-out when hidden; fade-out at old position and and fade-in at new position
   useEffect(
     () => {
       setMessage("");
-
       setOpacity(0);
-      setTimeout(() => {
-        locationRef.current = props.froglin.coordinates;
-        setOpacity(1);
-      }, FROGLIN.MARKER.TRANSITION_DURATION);
-    }, //
-    [props.froglin.coordinates.longitude, props.froglin.coordinates.latitude],
-  );
 
-  if (!props.froglin.coordinates) return null;
+      if (!props.froglin.visible) return;
+
+      const timer = setTimeout(
+        () => {
+          locationRef.current = props.froglin.coordinates;
+          setOpacity(1);
+        }, //
+        FROGLIN.MARKER.TRANSITION_DURATION,
+      );
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }, //
+    [
+      props.froglin.visible,
+      props.froglin.coordinates.longitude,
+      props.froglin.coordinates.latitude,
+    ],
+  );
 
   return (
     <Marker

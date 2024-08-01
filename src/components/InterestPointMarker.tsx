@@ -18,6 +18,7 @@ export default function InterestPointMarker(props: Props) {
     setTimeout(setMessage, FROGLIN.MARKER.MESSAGE_TIMEOUT, "");
   }
 
+  // fade-out when hidden; fade-out at old position and and fade-in at new position
   useEffect(
     () => {
       setMessage("");
@@ -26,10 +27,13 @@ export default function InterestPointMarker(props: Props) {
       if (!props.point.visible) return;
 
       // wait for the opacity transition to finish fading out
-      const timer = setTimeout(() => {
-        locationRef.current = props.point.coordinates;
-        setOpacity(1);
-      }, FROGLIN.MARKER.TRANSITION_DURATION);
+      const timer = setTimeout(
+        () => {
+          locationRef.current = props.point.coordinates;
+          setOpacity(1);
+        }, //
+        FROGLIN.MARKER.TRANSITION_DURATION,
+      );
 
       return () => {
         clearTimeout(timer);
@@ -41,8 +45,6 @@ export default function InterestPointMarker(props: Props) {
       props.point.coordinates.latitude,
     ],
   );
-
-  if (!props.point) return null;
 
   return (
     <Marker
