@@ -23,8 +23,7 @@ export default function PlayerMarker({ view }: Props) {
 
   const { coordinates, lost } = useLocation();
   const { setVisible, setSize } = useRevealingCircleState();
-  const { interestPoints, revealedFroglins, revealFroglins, captureFroglins } =
-    useGameEvent();
+  const { revealedFroglins, revealFroglins, captureFroglins } = useGameEvent();
 
   const cssMenuButton = `${open ? "" : "opacity-0"} menu-item`;
 
@@ -44,35 +43,33 @@ export default function PlayerMarker({ view }: Props) {
     const loopCount = 8;
     const increment = PLAYER.REVEAL.RADIUS / loopCount;
     let radius = increment;
+    let frameIndex = 0;
+    let intervalId: Timer;
+
+    function animateFrame() {
+      radius += increment;
+      if (frameIndex === 7) radius = PLAYER.REVEAL.RADIUS;
+      setSize(radius);
+
+      revealFroglins(radius);
+
+      if (++frameIndex !== loopCount) return;
+
+      setVisible(false);
+      clearInterval(intervalId);
+
+      // prevent spamming of reveal
+      setTimeout(
+        () => {
+          revealingRef.current = false;
+        }, //
+        1_000,
+      );
+    }
 
     setSize(0);
     setVisible(true);
-
-    let frameIndex = 0;
-    const id = setInterval(
-      () => {
-        // increase circle size
-        radius += increment;
-        if (frameIndex === 7) radius = PLAYER.REVEAL.RADIUS;
-        setSize(radius);
-
-        revealFroglins(radius);
-
-        if (++frameIndex !== loopCount) return;
-
-        setVisible(false);
-        clearInterval(id);
-
-        // prevent spamming of reveal
-        setTimeout(
-          () => {
-            revealingRef.current = false;
-          }, //
-          1_000,
-        );
-      },
-      Math.floor(duration / loopCount),
-    );
+    intervalId = setInterval(animateFrame, Math.floor(duration / loopCount));
   }
 
   function handleTrapButtonClick() {
@@ -89,7 +86,7 @@ export default function PlayerMarker({ view }: Props) {
         trap.latitude === coordinates.latitude &&
         trap.longitude === coordinates.longitude
       ) {
-        // allow repeated shows when the same trap is duplicated by
+        // allow repeated shows of information message when the same trap is duplicated by
         // changing the state twice: initially to null, then (again) to the (same) index
         setTimeout(setDuplicateTrapIndex, 0, i);
 
@@ -103,22 +100,18 @@ export default function PlayerMarker({ view }: Props) {
   // capture Froglin on location change
   useEffect(
     () => {
-      const capturedFroglinIds: Froglin["id"][] = [];
+      const froglinIds: Froglin["id"][] = [];
       for (let i = 0; i !== revealedFroglins.length; ++i) {
         const froglin = revealedFroglins[i];
-
-        if (!inRange(froglin.coordinates, coordinates, PLAYER.CAPTURE_RADIUS)) continue;
-
-        froglin.visible = false;
-        capturedFroglinIds.push(froglin.id);
+        if (
+          froglin.visible &&
+          inRange(froglin.coordinates, coordinates, PLAYER.CAPTURE_RADIUS)
+        ) {
+          froglinIds.push(froglin.id);
+        }
       }
 
-      // delay setting the state for fadeout animation to complete
-      setTimeout(
-        captureFroglins,
-        FROGLIN.MARKER.TRANSITION_DURATION,
-        capturedFroglinIds,
-      );
+      if (froglinIds.length !== 0) captureFroglins(froglinIds);
     }, //
     [coordinates.latitude, coordinates.longitude],
   );
@@ -134,36 +127,28 @@ export default function PlayerMarker({ view }: Props) {
       // capture Froglins from inside the trap triangle
       const triangle = trapPoints as [MapCoordinates, MapCoordinates, MapCoordinates];
 
-      const capturedFroglinIds: Froglin["id"][] = [];
+      const froglinIds: Froglin["id"][] = [];
       for (let i = 0; i !== revealedFroglins.length; ++i) {
         const froglin = revealedFroglins[i];
-
-        if (!inTriangle(froglin.coordinates, triangle)) continue;
-
-        froglin.visible = false;
-        capturedFroglinIds.push(froglin.id);
+        if (froglin.visible && inTriangle(froglin.coordinates, triangle)) {
+          froglinIds.push(froglin.id);
+        }
       }
 
-      if (capturedFroglinIds.length === 0) return;
-
-      // delay setting the state for fadeout animation to complete
-      setTimeout(
-        captureFroglins,
-        FROGLIN.MARKER.TRANSITION_DURATION,
-        capturedFroglinIds,
-      );
+      if (froglinIds.length !== 0) captureFroglins(froglinIds);
     }, //
-    [trapPoints, revealedFroglins],
+    [trapPoints],
   );
 
-  // key shortcuts for Ring Menu actions
+  // TODO: need trapPoints in depList for trap to work correctly using keys
+  // Ring Menu keyboard actions
   useEffect(
     () => {
       function handleKeyPress(ev: KeyboardEvent) {
+        setOpen(false);
+
         if (ev.key === "f") handleFluteButtonClick();
         else if (ev.key === " ") handleTrapButtonClick();
-
-        setOpen(false);
       }
 
       document.addEventListener("keypress", handleKeyPress);
@@ -172,22 +157,22 @@ export default function PlayerMarker({ view }: Props) {
         document.removeEventListener("keypress", handleKeyPress);
       };
     }, //
-    [interestPoints, trapPoints, coordinates.latitude, coordinates.longitude],
+    [trapPoints],
   );
 
-  // close Ring Menu when clicking outside its bounds
+  // Ring Menu mouse actions
   useEffect(
     () => {
-      function handleDocumentClick(ev: MouseEvent) {
+      function handleClick(ev: MouseEvent) {
         if (navRef.current && navRef.current.contains(ev.target as Node)) return;
 
         setOpen(false);
       }
 
-      document.addEventListener("click", handleDocumentClick);
+      document.addEventListener("click", handleClick);
 
       return () => {
-        document.removeEventListener("click", handleDocumentClick);
+        document.removeEventListener("click", handleClick);
       };
     }, //
     [],

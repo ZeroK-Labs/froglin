@@ -23,7 +23,7 @@ function getRandomInRange(a: number, b: number): number {
 function createState(): GameEvent {
   const interestPointsRef = useRef<InterestPoint[]>([]);
   const revealedInterestPointsRef = useRef<InterestPoint[]>([]);
-  const hiddenInterestPointIdsRef = useRef<InterestPoint["id"][]>([]);
+  const epochCountRef = useRef(-1);
   const revealingRef = useRef(false);
 
   const [bounds, setBounds] = useState<GeoJSON.Position[][]>([
@@ -40,7 +40,6 @@ function createState(): GameEvent {
   const [interestPoints, setInterestPoints] = useState<InterestPoint[]>([]);
   const [revealedFroglins, setRevealedFroglins] = useState<Froglin[]>([]);
   const [capturedFroglins, setCapturedFroglins] = useState<Froglin[]>([]);
-  const [initialized, setInitialized] = useState(false);
 
   const location = useLocation();
   const { pxeClient } = usePXEClient();
@@ -52,7 +51,7 @@ function createState(): GameEvent {
     return [root[0] as [number, number], root[2] as [number, number]];
   }
 
-  function cacheRevealedInterestPoints() {
+  function cacheInterestPointsToReveal() {
     revealedInterestPointsRef.current = [];
     for (let i = 0; i !== interestPointsRef.current.length; ++i) {
       const point = interestPointsRef.current[i];
@@ -68,10 +67,10 @@ function createState(): GameEvent {
   function revealFroglins(radius: number) {
     if (!revealingRef.current) {
       revealingRef.current = true;
-      cacheRevealedInterestPoints();
+      cacheInterestPointsToReveal();
     }
 
-    // reveal Froglins based on current circle size
+    // reveal Froglins based on current radius
     const froglins: Froglin[] = [];
     const hiddenInterestPointIds: InterestPoint["id"][] = [];
 
@@ -82,14 +81,9 @@ function createState(): GameEvent {
         continue;
       }
 
-      // skip captured points (can happen when epoch changes between reveal steps)
-      if (hiddenInterestPointIdsRef.current.find((id) => id === point.id)) continue;
-
       // hide the point to start fade out animation
       point.visible = false;
-
       hiddenInterestPointIds.push(point.id);
-      hiddenInterestPointIdsRef.current.push(point.id);
 
       // send some markers to the void
       const gone = Math.random();
@@ -105,10 +99,7 @@ function createState(): GameEvent {
     }
 
     // mark done when last step of reveal complete
-    if (radius === PLAYER.REVEAL.RADIUS) {
-      revealingRef.current = false;
-      hiddenInterestPointIdsRef.current = [];
-    }
+    revealingRef.current = radius === PLAYER.REVEAL.RADIUS;
 
     if (hiddenInterestPointIds.length === 0) return;
 
@@ -141,34 +132,35 @@ function createState(): GameEvent {
 
   function captureFroglins(froglinIds: Froglin["id"][]) {
     setRevealedFroglins((old) => {
+      // copy captured from revealed and set invisibile
       const capturedFroglinsNew: Froglin[] = [];
-      const revealedFroglinsNew: Froglin[] = [];
-
-      // prettier-ignore
-      OUTER_LOOP:
       for (let i = 0; i !== old.length; ++i) {
         const froglin = old[i];
 
-        for (let j = 0; j !== froglinIds.length; ++j) {
-          const captureId = froglinIds[j];
+        if (froglinIds.indexOf(froglin.id) === -1) continue;
 
-          if (froglin.id !== captureId) continue;
-
-          froglinIds.slice(j, 1);
-          froglin.id = crypto.randomUUID();
-          froglin.visible = false;
-          capturedFroglinsNew.push(froglin);
-
-          continue OUTER_LOOP;
-        }
-
-        froglin.visible = true;
-        revealedFroglinsNew.push(froglin);
+        capturedFroglinsNew.push({ ...froglin, id: crypto.randomUUID() });
+        froglin.visible = false;
       }
 
       setCapturedFroglins((old) => [...old, ...capturedFroglinsNew]);
 
-      return revealedFroglinsNew;
+      setTimeout(setRevealedFroglins, FROGLIN.MARKER.TRANSITION_DURATION, (old) => {
+        // delay removal from revealed list to allow fade animation to complete
+        const revealedFroglinsNew: Froglin[] = [];
+        for (let i = 0; i !== old.length; ++i) {
+          const froglin = old[i];
+
+          const index = froglinIds.indexOf(froglin.id);
+          if (index === -1) revealedFroglinsNew.push(froglin);
+          else froglinIds.slice(index, 1);
+        }
+
+        return revealedFroglinsNew;
+      });
+
+      // update state to hide revealed and start fade animation
+      return [...old];
     });
   }
 
@@ -191,82 +183,87 @@ function createState(): GameEvent {
       const response = await fetch(`${process.env.BACKEND_URL}/game?${query}`);
       const event: ServerGameEvent = await response.json();
 
+      const restarted = epochCountRef.current === 0;
+      epochCountRef.current = event.epochCount;
+
+      if (revealingRef.current) {
+        interestPointsRef.current = event.interestPoints;
+        cacheInterestPointsToReveal();
+      }
+
+      for (let i = 0; i !== event.interestPoints.length; ++i) {
+        const point = event.interestPoints[i];
+        point.visible = true;
+      }
+
       setBounds(event.bounds);
       setEpochCount(event.epochCount);
       setEpochDuration(event.epochDuration);
       setEpochStartTime(event.epochStartTime);
 
-      if (revealingRef.current) {
-        interestPointsRef.current = event.interestPoints;
-        cacheRevealedInterestPoints();
+      if (!restarted) {
+        setInterestPoints(event.interestPoints);
+
+        const suffix = event.epochCount === 0 ? "" : "s";
+        const msg = `${event.epochCount + 1} epoch${suffix} left`;
+        toast(msg, { duration: 3_000, icon: "⏳" });
+
+        return;
       }
 
-      for (let i = 0; i !== event.interestPoints.length; ++i) {
-        const point = event.interestPoints[i];
-        point.visible = !hiddenInterestPointIdsRef.current.find(
-          (id) => id === point.id,
-        );
-      }
+      setRevealedFroglins([]);
 
-      setInterestPoints(event.interestPoints);
+      // TODO: direct call of setInterestPoints here leads to rendering of phantom
+      //       interestPoints when event is restarted
+
+      // hide the old points
+      setInterestPoints((old) => {
+        return old.map((point) => ({
+          ...point,
+          visible: false,
+        }));
+      });
+
+      // delay for the fade animation to complete and set the new points
+      setTimeout(
+        setInterestPoints,
+        FROGLIN.MARKER.TRANSITION_DURATION,
+        event.interestPoints,
+      );
+
+      toast("New event", { duration: 3_000, icon: "🎉" });
       //
     } catch (err) {}
-  }
-
-  async function initializeEvent() {
-    if (
-      location.coordinates.longitude &&
-      isFinite(location.coordinates.longitude) &&
-      location.coordinates.latitude &&
-      isFinite(location.coordinates.latitude)
-    ) {
-      await fetchData(location.coordinates);
-
-      setInitialized(true);
-    }
   }
 
   // handle event initialization
   useEffect(
     () => {
-      setInitialized(!pxeClient);
-      if (pxeClient) initializeEvent();
-    }, //
-    [pxeClient],
-  );
+      if (!pxeClient) return;
 
-  // handle server new epoch message
-  useEffect(
-    () => {
       function handleServerEpochUpdate(event: MessageEvent<any>) {
-        if (event.data === "newEpoch") {
-          toast("New epoch ", { duration: 3_000, icon: "⏳" });
-
-          fetchData();
-        }
+        if (event.data === "newEpoch") fetchData();
       }
 
-      addSocketEventHandler("message", handleServerEpochUpdate);
+      async function initializeEvent() {
+        if (
+          location.coordinates.longitude != null &&
+          isFinite(location.coordinates.longitude) &&
+          location.coordinates.latitude != null &&
+          isFinite(location.coordinates.latitude)
+        ) {
+          await fetchData(location.coordinates);
+
+          addSocketEventHandler("message", handleServerEpochUpdate);
+        }
+      }
+      initializeEvent();
 
       return () => {
         removeSocketEventHandler("message", handleServerEpochUpdate);
       };
     }, //
-    [initialized],
-  );
-
-  // reset revealed Froglins when event restarts
-  useEffect(
-    () => {
-      if (!initialized || epochCount !== 0) return;
-
-      return () => {
-        setRevealedFroglins([]);
-
-        toast("Event restarted", { duration: 3_000, icon: "🎉" });
-      };
-    }, //
-    [epochCount],
+    [pxeClient],
   );
 
   return {
