@@ -206,7 +206,7 @@ function createState(): GameEvent {
 
         const suffix = event.epochCount === 0 ? "" : "s";
         const msg = `${event.epochCount + 1} epoch${suffix} left`;
-        toast(msg, { duration: 3_000, icon: "⏳" });
+        toast(msg, { icon: "⏳" });
 
         return;
       }
@@ -231,7 +231,7 @@ function createState(): GameEvent {
         event.interestPoints,
       );
 
-      toast("New event", { duration: 3_000, icon: "🎉" });
+      toast("New event", { icon: "🎉" });
       //
     } catch (err) {}
   }

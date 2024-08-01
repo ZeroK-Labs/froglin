@@ -9,15 +9,21 @@ export default function Home() {
       <Toaster
         position="bottom-right"
         toastOptions={{
-          duration: 6_000,
+          duration: 3_000,
           style: {
             flexDirection: "row-reverse",
             background: "#363636",
             color: "#fff",
             fontSize: "16pt",
           },
+          loading: {
+            duration: 6_000,
+          },
           success: {
             duration: 2_000,
+          },
+          error: {
+            duration: 4_000,
           },
         }}
       >
