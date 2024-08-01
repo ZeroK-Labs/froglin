@@ -1,16 +1,9 @@
-import { useRef, useEffect, RefObject } from "react";
+import { useRef, useEffect } from "react";
 
-import { LineMenuButtonElement } from "components/LineMenuButtonElement";
+import { LineMenuButtonElement } from "./LineMenuButtonElement";
+import { LineMenuProps } from "types";
 
-export function LineMenuButton({
-  container,
-  open,
-  setOpen,
-}: {
-  container: RefObject<HTMLDivElement>;
-  open: boolean;
-  setOpen: (a: boolean) => void;
-}) {
+export function LineMenuButton({ open, setOpen }: LineMenuProps) {
   const divRef = useRef<HTMLDivElement>(null);
   const lineElementsRef = useRef<HTMLCollectionOf<Element>>();
   const mouseOverRef = useRef(false);
@@ -55,7 +48,7 @@ export function LineMenuButton({
   useEffect(
     () => {
       function handleDocumentClick(ev: MouseEvent) {
-        if (container.current!.contains(ev.target as Node)) return;
+        if (divRef.current!.contains(ev.target as Node)) return;
 
         setOpen(false);
       }

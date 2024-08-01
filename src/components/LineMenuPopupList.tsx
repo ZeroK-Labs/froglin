@@ -1,17 +1,13 @@
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { useEffect } from "react";
 
-import { LineMenuPopupListItem } from "components/LineMenuPopupListItem";
+import { LineMenuPopupListItem } from "./LineMenuPopupListItem";
+import { LineMenuProps } from "types";
 import { MAP_VIEWS, MODALS } from "enums";
 import { VIEW } from "settings";
 import { useMapViewState, useModalState, usePlayer } from "stores";
 
-type Props = {
-  open: boolean;
-  setOpen: Dispatch<SetStateAction<boolean>>;
-};
-
-export function LineMenuPopupList({ open, setOpen }: Props) {
-  const player = usePlayer();
+export function LineMenuPopupList({ open, setOpen }: LineMenuProps) {
+  const { aztec } = usePlayer();
   const { setModal } = useModalState();
   const { mapView, setMapView } = useMapViewState();
 
@@ -67,7 +63,7 @@ export function LineMenuPopupList({ open, setOpen }: Props) {
           text="📖"
           onClick={handleTutorialClick}
         />
-        {player.aztec ? (
+        {aztec ? (
           <LineMenuPopupListItem
             text="🏆"
             onClick={handleLeaderBoardClick}
