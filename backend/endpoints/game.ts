@@ -22,8 +22,16 @@ export function getGame(req: Request, res: Response) {
 
   let gameEvent = CLIENT_SESSION_DATA[playerId].GameEvent;
   if (gameEvent) {
+    const gameEventBase = {
+      location: gameEvent.location,
+      bounds: gameEvent.bounds,
+      epochCount: gameEvent.epochCount,
+      epochDuration: gameEvent.epochDuration,
+      epochStartTime: gameEvent.epochStartTime,
+      interestPoints: gameEvent.interestPoints,
+    };
     res.statusCode = 200;
-    res.json(gameEvent);
+    res.json(gameEventBase);
     return;
   }
 

@@ -2,11 +2,15 @@ import toast from "react-hot-toast";
 import { useEffect, useRef, useState } from "react";
 
 import { FROGLIN, PLAYER } from "settings";
-import { Froglin, GameEvent } from "types";
-import { InterestPoint, MapCoordinates } from "../../common/types";
-import { ServerGameEvent } from "../../backend/types";
+import { Froglin } from "types";
 import { StoreFactory, useLocation, usePXEClient } from "stores";
 import { inRange } from "../../common/utils/map";
+import {
+  GameEventBase,
+  GameEventClient,
+  InterestPoint,
+  MapCoordinates,
+} from "../../common/types";
 import {
   CLIENT_SOCKET,
   PLAYER_ID,
@@ -20,7 +24,7 @@ function getRandomInRange(a: number, b: number): number {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-function createState(): GameEvent {
+function createState(): GameEventClient {
   const interestPointsRef = useRef<InterestPoint[]>([]);
   const revealedInterestPointsRef = useRef<InterestPoint[]>([]);
   const epochCountRef = useRef(-1);
@@ -181,7 +185,7 @@ function createState(): GameEvent {
 
     try {
       const response = await fetch(`${process.env.BACKEND_URL}/game?${query}`);
-      const event: ServerGameEvent = await response.json();
+      const event: GameEventBase = await response.json();
 
       const restarted = epochCountRef.current === 0;
       epochCountRef.current = event.epochCount;
@@ -285,4 +289,4 @@ function createState(): GameEvent {
 }
 
 export const { Provider: GameEventProvider, useProvider: useGameEvent } =
-  StoreFactory<GameEvent>(createState);
+  StoreFactory<GameEventClient>(createState);

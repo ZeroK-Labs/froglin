@@ -1,8 +1,8 @@
+import { CLIENT_SESSION_DATA } from "../sockets";
 import { EVENT } from "../../src/settings";
+import { GameEventServer } from "../../common/types";
 import { MapCoordinates, TimeoutId } from "../../common/types";
 import { getInterestPoints, getBoundsForCoordinate } from "../../common/utils/map";
-import { ServerGameEvent } from "../types";
-import { CLIENT_SESSION_DATA } from "../sockets";
 
 function getFarInterestPoints(coords: MapCoordinates, count: number) {
   return getInterestPoints(coords, count, EVENT.FAR_RANGE.FROM, EVENT.FAR_RANGE.TO);
@@ -39,11 +39,11 @@ function sessionAlive(playerId: string, contextInfo: string) {
 export function createGameEvent(
   playerId: string,
   location: MapCoordinates,
-): ServerGameEvent | null {
+): GameEventServer | null {
   if (!sessionAlive(playerId, "create")) return null;
 
   let epochIntervalId: TimeoutId;
-  const event: ServerGameEvent = {
+  const event: GameEventServer = {
     location,
     bounds: getBoundsForCoordinate(location),
     epochCount: 0,
