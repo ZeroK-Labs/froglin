@@ -7,13 +7,14 @@ import { MAP_VIEWS } from "enums";
 import { MapCoordinates } from "../../common/types";
 import { PlayerMarkerImage, TrapMarkerList } from "components";
 import { inRange, inTriangle } from "../../common/utils/map";
-import { useGameEvent, useRevealingCircleState, useLocation } from "stores";
+import {
+  useGameEvent,
+  useRevealingCircleState,
+  useLocation,
+  useMapViewState,
+} from "stores";
 
-type Props = {
-  view: MAP_VIEWS;
-};
-
-export default function PlayerMarker({ view }: Props) {
+export default function PlayerMarker() {
   const navRef = useRef<HTMLDivElement>(null);
   const revealingRef = useRef(false);
 
@@ -22,6 +23,7 @@ export default function PlayerMarker({ view }: Props) {
   const [open, setOpen] = useState<boolean>(false);
 
   const { coordinates, lost } = useLocation();
+  const { mapView } = useMapViewState();
   const { setVisible, setSize } = useRevealingCircleState();
   const { revealedFroglins, revealFroglins, captureFroglins } = useGameEvent();
 
@@ -197,7 +199,7 @@ export default function PlayerMarker({ view }: Props) {
             onChange={handleMenuStateChange}
           />
           <label
-            {...(view === MAP_VIEWS.PLAYGROUND ? { htmlFor: "menu-options" } : null)}
+            {...(mapView === MAP_VIEWS.PLAYGROUND ? { htmlFor: "menu-options" } : null)}
           >
             <div
               className={`absolute -top-4 px-2 text-xs leading-5 whitespace-nowrap bg-main-purple text-white transition-opacity duration-500 ${open ? "opacity-0" : ""}`}

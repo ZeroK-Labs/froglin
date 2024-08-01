@@ -1,28 +1,27 @@
+import { MAP_VIEWS } from "enums";
 import { Layer, Source } from "react-map-gl";
 
-import { useGameEvent } from "stores";
-
-type Props = {
-  visible: boolean;
-};
+import { useGameEvent, useMapViewState } from "stores";
 
 const DURATION_SHOW = 3_000;
 const DURATION_HIDE = 1_000;
 
-export default function GameEventView(props: Props) {
+export default function GameEventView() {
   const { bounds } = useGameEvent();
+  const { mapView } = useMapViewState();
 
-  const options = props.visible
-    ? {
-        areaOpacity: 0.5,
-        outlineOpacity: 1,
-        duration: DURATION_SHOW,
-      }
-    : {
-        areaOpacity: 0,
-        outlineOpacity: 0,
-        duration: DURATION_HIDE,
-      };
+  const options =
+    mapView === MAP_VIEWS.EVENT
+      ? {
+          areaOpacity: 0.5,
+          outlineOpacity: 1,
+          duration: DURATION_SHOW,
+        }
+      : {
+          areaOpacity: 0,
+          outlineOpacity: 0,
+          duration: DURATION_HIDE,
+        };
 
   return (
     <>

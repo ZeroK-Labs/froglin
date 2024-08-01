@@ -2,9 +2,11 @@ import { useEffect } from "react";
 
 import { MODALS } from "enums";
 import { Modal, PlayerMarkerImage } from "components";
-import { ModalState } from "types";
+import { useModalState } from "stores";
 
-export default function TutorialModal({ modal, setModal }: ModalState) {
+export default function TutorialModal() {
+  const { modal, setModal } = useModalState();
+
   const visible = modal === MODALS.TUTORIAL;
 
   useEffect(
@@ -46,8 +48,6 @@ export default function TutorialModal({ modal, setModal }: ModalState) {
 
   return (
     <Modal
-      modal={modal}
-      setModal={setModal}
       className="top-4"
       icon="📖"
       title="Welcome to Froglin!"

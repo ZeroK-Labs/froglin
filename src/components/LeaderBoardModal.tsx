@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { MODALS } from "enums";
 import { Modal } from "components";
-import { ModalState } from "types";
+import { useModalState } from "stores";
 
 type LeaderBoardData = {
   username: string;
@@ -17,8 +17,10 @@ function getPodiumIcon(index: number): string {
   return "";
 }
 
-export default function LeaderBoardModal({ modal, setModal }: ModalState) {
+export default function LeaderBoardModal() {
   const [leaderBoardData, setLeaderBoardData] = useState<LeaderBoardData[]>([]);
+
+  const { modal, setModal } = useModalState();
 
   const visible = modal === MODALS.LEADERBOARD;
 
@@ -59,8 +61,6 @@ export default function LeaderBoardModal({ modal, setModal }: ModalState) {
 
   return (
     <Modal
-      modal={modal}
-      setModal={setModal}
       className="top-4"
       visible={visible}
     >

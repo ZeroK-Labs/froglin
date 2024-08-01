@@ -1,26 +1,19 @@
-import React, { Dispatch, SetStateAction, useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 
 import { LineMenuPopupListItem } from "components/LineMenuPopupListItem";
 import { MAP_VIEWS, MODALS } from "enums";
-import { ModalState, ViewState } from "types";
 import { VIEW } from "settings";
-import { usePlayer } from "stores";
+import { useMapViewState, useModalState, usePlayer } from "stores";
 
-type Props = ModalState &
-  ViewState & {
-    open: boolean;
-    setOpen: Dispatch<SetStateAction<boolean>>;
-  };
+type Props = {
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+};
 
-export function LineMenuPopupList({
-  open,
-  setOpen,
-  modal: _modal,
-  setModal,
-  view,
-  setView,
-}: Props) {
+export function LineMenuPopupList({ open, setOpen }: Props) {
   const player = usePlayer();
+  const { setModal } = useModalState();
+  const { mapView, setMapView } = useMapViewState();
 
   function handleClose() {
     setOpen(false);
@@ -28,9 +21,9 @@ export function LineMenuPopupList({
 
   function toggleView() {
     setTimeout(
-      setView,
+      setMapView,
       VIEW.LINE_MENU_FADE_ANIMATION_DURATION,
-      view === MAP_VIEWS.EVENT ? MAP_VIEWS.PLAYGROUND : MAP_VIEWS.EVENT,
+      mapView === MAP_VIEWS.EVENT ? MAP_VIEWS.PLAYGROUND : MAP_VIEWS.EVENT,
     );
   }
 
@@ -67,7 +60,7 @@ export function LineMenuPopupList({
     >
       <ul>
         <LineMenuPopupListItem
-          text={view === MAP_VIEWS.EVENT ? "🌇" : "🗺️"}
+          text={mapView === MAP_VIEWS.EVENT ? "🌇" : "🗺️"}
           onClick={toggleView}
         />
         <LineMenuPopupListItem

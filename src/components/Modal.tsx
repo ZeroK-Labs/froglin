@@ -2,9 +2,9 @@ import { useEffect, useRef } from "react";
 
 import { MODALS } from "enums";
 import { VIEW } from "settings";
-import { ModalState } from "types";
+import { useModalState } from "stores";
 
-type ModalProps = ModalState & {
+type ModalProps = {
   children: React.ReactNode;
   className?: string;
   icon?: string; // emoji
@@ -12,9 +12,7 @@ type ModalProps = ModalState & {
   visible?: boolean;
 };
 
-function Modal({
-  modal,
-  setModal,
+export default function Modal({
   children,
   className = "",
   icon = "",
@@ -23,6 +21,8 @@ function Modal({
 }: ModalProps) {
   const divRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const { modal, setModal } = useModalState();
 
   function handleClose(ev: React.MouseEvent | MouseEvent) {
     if (
@@ -91,5 +91,3 @@ function Modal({
     </div>
   );
 }
-
-export default Modal;

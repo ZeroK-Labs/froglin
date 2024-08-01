@@ -1,8 +1,13 @@
-import { useEffect, useState } from "react";
-
-import { GameEventProvider, usePlayer, usePXEClient } from "stores";
-import { MAP_VIEWS, MODALS } from "enums";
-import { PlayerProvider, LocationProvider, PXEClientProvider } from "stores";
+import {
+  GameEventProvider,
+  LocationProvider,
+  MapViewStateProvider,
+  ModalStateProvider,
+  PXEClientProvider,
+  PlayerProvider,
+  usePXEClient,
+  usePlayer,
+} from "stores";
 import {
   AccountModal,
   CapturedFroglinList,
@@ -16,63 +21,25 @@ import {
 } from "components";
 
 function AppComponent() {
-  const [view, setView] = useState(MAP_VIEWS.PLAYGROUND);
-  const [modal, setModal] = useState(MODALS.NONE);
-
   const { hasSecret } = usePlayer();
   const { pxeClient } = usePXEClient();
 
-  // view change on keypress
-  useEffect(
-    () => {
-      function handleKeyPress(ev: KeyboardEvent) {
-        if (ev.key === "1") setView(MAP_VIEWS.PLAYGROUND);
-        else if (ev.key === "2") setView(MAP_VIEWS.EVENT);
-      }
-
-      document.addEventListener("keypress", handleKeyPress);
-
-      return () => {
-        document.removeEventListener("keypress", handleKeyPress);
-      };
-    }, //
-    [],
-  );
-
   return (
     <>
-      <Map view={view} />
-      <InfoBarsContainer
-        view={view}
-        visible={modal !== MODALS.TUTORIAL && modal !== MODALS.LEADERBOARD}
-      />
+      <Map />
+
+      <InfoBarsContainer />
       <CapturedFroglinList />
-      <LineMenu
-        modal={modal}
-        setModal={setModal}
-        view={view}
-        setView={setView}
-      />
-      <TutorialModal
-        modal={modal}
-        setModal={setModal}
-      />
+      <LineMenu />
+
+      <TutorialModal />
       {pxeClient ? (
         hasSecret ? (
-          <LeaderBoardModal
-            modal={modal}
-            setModal={setModal}
-          />
+          <LeaderBoardModal />
         ) : (
           <>
-            <AccountModal
-              modal={modal}
-              setModal={setModal}
-            />
-            <CreateAccountButton
-              modal={modal}
-              setModal={setModal}
-            />
+            <AccountModal />
+            <CreateAccountButton />
           </>
         )
       ) : null}
@@ -81,19 +48,19 @@ function AppComponent() {
 }
 
 export default function App() {
+  const AppWithProviders = [
+    MapViewStateProvider,
+    ModalStateProvider,
+    LocationProvider,
+    PXEClientProvider,
+    PlayerProvider,
+    GameEventProvider,
+  ].reduceRight((acc, Provider) => <Provider>{acc}</Provider>, <AppComponent />);
+
   return (
     <>
       <ToastView />
-
-      <LocationProvider>
-        <PXEClientProvider>
-          <PlayerProvider>
-            <GameEventProvider>
-              <AppComponent />
-            </GameEventProvider>
-          </PlayerProvider>
-        </PXEClientProvider>
-      </LocationProvider>
+      {AppWithProviders}
     </>
   );
 }

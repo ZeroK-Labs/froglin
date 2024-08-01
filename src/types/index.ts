@@ -5,4 +5,4 @@ export type { default as ModalState } from "./ModalState";
 export type { default as Player } from "./Player";
 export type { default as RevealingCircleState } from "./RevealingCircleState";
 export type { default as TutorialState } from "./TutorialState";
-export type { default as ViewState } from "./ViewState";
+export type { default as MapViewState } from "./MapViewState";

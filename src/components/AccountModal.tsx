@@ -2,9 +2,8 @@ import { useState, useEffect, useRef } from "react";
 
 import { MODALS } from "enums";
 import { Modal } from "components";
-import { ModalState } from "types";
 import { TimeoutId } from "../../common/types";
-import { usePXEClient, usePlayer } from "stores";
+import { useModalState, usePXEClient, usePlayer } from "stores";
 
 const INPUT_KEY_LENGTH = 100;
 const INPUT_TIMEOUT = 150;
@@ -39,7 +38,7 @@ function getPercentageColor(percentage: number) {
   return "#15c621";
 }
 
-export default function AccountModal({ modal, setModal }: ModalState) {
+export default function AccountModal() {
   const errorTimerIdRef = useRef<TimeoutId>();
   const lastInputTimeRef = useRef(0);
   const inputDisabledRef = useRef(true);
@@ -47,6 +46,7 @@ export default function AccountModal({ modal, setModal }: ModalState) {
   const [inputKey, setInputKey] = useState("");
   const [error, setError] = useState("");
 
+  const { modal, setModal } = useModalState();
   const { pxeClient } = usePXEClient();
   const { setSecret, username, setUsername } = usePlayer();
 
@@ -121,8 +121,6 @@ export default function AccountModal({ modal, setModal }: ModalState) {
   return (
     <>
       <Modal
-        modal={modal}
-        setModal={setModal}
         className="top-[10vh]"
         icon="🎫" // 🧙‍♂️ 🧝‍♂️ 👨‍💻 👨‍🚀 🦄 🧧 🛎 🎫 🎟 🧿
         title="Create Account"

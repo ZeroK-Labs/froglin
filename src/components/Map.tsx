@@ -2,7 +2,12 @@ import { Map, MapRef } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 
 import { MAP_VIEWS } from "enums";
-import { RevealingCircleStateProvider, useGameEvent, useLocation } from "stores";
+import {
+  RevealingCircleStateProvider,
+  useGameEvent,
+  useLocation,
+  useMapViewState,
+} from "stores";
 import { VIEW } from "settings";
 import {
   CanvasOverlay,
@@ -14,7 +19,7 @@ import {
 } from "components";
 import { setMapFog } from "utils/mapbox";
 
-export default function MapScreen({ view }: { view: MAP_VIEWS }) {
+export default function MapScreen() {
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
   const durationRef = useRef(VIEW.FIRST_FLIGHT_ANIMATION_DURATION);
   const lastViewChangeTimeRef = useRef(0);
@@ -23,6 +28,7 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
   const [map, setMap] = useState<mapboxgl.Map>();
 
   const location = useLocation();
+  const { mapView } = useMapViewState();
   const { getEventBounds, interestPoints, revealedFroglins } = useGameEvent();
 
   function mapCallback(node: MapRef) {
@@ -38,9 +44,9 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
       return;
     }
 
-    if (viewLevelRef.current === view || location.disabled) return;
+    if (viewLevelRef.current === mapView || location.disabled) return;
 
-    viewLevelRef.current = view;
+    viewLevelRef.current = mapView;
     lastViewChangeTimeRef.current = Date.now();
 
     map.disableActions();
@@ -49,7 +55,7 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
     map.off("idle", map.enablePlaygroundActions);
     map.off("idle", map.enableEventActions);
 
-    if (view === MAP_VIEWS.PLAYGROUND) {
+    if (mapView === MAP_VIEWS.PLAYGROUND) {
       map.once("idle", map.enablePlaygroundActions);
       map.flyTo({
         center: [location.coordinates.longitude, location.coordinates.latitude],
@@ -64,7 +70,7 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
       });
       durationRef.current = VIEW.VIEW_ANIMATION_DURATION;
     } //
-    else if (view === MAP_VIEWS.EVENT) {
+    else if (mapView === MAP_VIEWS.EVENT) {
       map.once("idle", map.enableEventActions);
       map.fitBounds(getEventBounds(), {
         zoom: VIEW.EVENT.ZOOM - 0.5,
@@ -82,7 +88,7 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
 
       if (!map || firstLoadRef.current) return;
 
-      if (view !== MAP_VIEWS.PLAYGROUND || location.disabled) return;
+      if (mapView !== MAP_VIEWS.PLAYGROUND || location.disabled) return;
 
       // wait for view switch animation to complete
       let diff =
@@ -103,10 +109,11 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
       );
 
       return () => {
-        if (view !== MAP_VIEWS.PLAYGROUND || location.disabled) clearTimeout(timerId);
+        if (mapView !== MAP_VIEWS.PLAYGROUND || location.disabled)
+          clearTimeout(timerId);
       };
     }, //
-    [view, location.coordinates.longitude, location.coordinates.latitude],
+    [mapView, location.coordinates.longitude, location.coordinates.latitude],
   );
 
   return (
@@ -146,13 +153,13 @@ export default function MapScreen({ view }: { view: MAP_VIEWS }) {
             ),
           )}
 
-          <GameEventView visible={view === MAP_VIEWS.EVENT} />
+          <GameEventView />
 
           {!map || location.disabled ? null : (
             <>
               <RevealingCircleStateProvider>
                 <CanvasOverlay />
-                <PlayerMarker view={view} />
+                <PlayerMarker />
               </RevealingCircleStateProvider>
             </>
           )}

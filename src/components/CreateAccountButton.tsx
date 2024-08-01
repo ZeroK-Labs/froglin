@@ -1,10 +1,10 @@
 import { MODALS } from "enums";
-import { ModalState } from "types";
 import { VIEW } from "settings";
-import { usePlayer } from "stores";
+import { useModalState, usePlayer } from "stores";
 
-export default function CreateAccountButton({ modal, setModal }: ModalState) {
+export default function CreateAccountButton() {
   const { hasSecret } = usePlayer();
+  const { modal, setModal } = useModalState();
 
   function handleCreateAccountClick(ev: React.MouseEvent) {
     setModal(MODALS.ACCOUNT);
@@ -22,7 +22,7 @@ export default function CreateAccountButton({ modal, setModal }: ModalState) {
     >
       <button
         type="button"
-        className="rounded-md px-4 py-2 text-lg font-semibold shadow-sm text-white bg-indigo-500"
+        className="rounded-md px-4 py-2  text-lg font-semibold shadow-sm text-white bg-indigo-500"
         onClick={handleCreateAccountClick}
       >
         Create Account
