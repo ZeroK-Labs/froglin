@@ -36,7 +36,7 @@ export default async () => {
     // https://webpack.js.org/configuration/entry-context
     //
     entry: {
-      main: path.resolve("src/index.tsx"),
+      main: path.resolve("src/root.tsx"),
     },
     //
     // https://webpack.js.org/configuration/output
