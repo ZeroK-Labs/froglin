@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { GameEventProvider, usePlayer, usePXEClient } from "stores";
 import { MAP_VIEWS, MODALS } from "enums";
+import { PlayerProvider, LocationProvider, PXEClientProvider } from "stores";
 import {
   AccountModal,
   CapturedFroglinList,
@@ -10,10 +11,11 @@ import {
   LeaderBoardModal,
   LineMenu,
   Map,
+  ToastView,
   TutorialModal,
 } from "components";
 
-export default function App() {
+function AppComponent() {
   const [view, setView] = useState(MAP_VIEWS.PLAYGROUND);
   const [modal, setModal] = useState(MODALS.NONE);
 
@@ -38,7 +40,7 @@ export default function App() {
   );
 
   return (
-    <GameEventProvider>
+    <>
       <Map view={view} />
       <InfoBarsContainer
         view={view}
@@ -74,6 +76,24 @@ export default function App() {
           </>
         )
       ) : null}
-    </GameEventProvider>
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <>
+      <ToastView />
+
+      <LocationProvider>
+        <PXEClientProvider>
+          <PlayerProvider>
+            <GameEventProvider>
+              <AppComponent />
+            </GameEventProvider>
+          </PlayerProvider>
+        </PXEClientProvider>
+      </LocationProvider>
+    </>
   );
 }
