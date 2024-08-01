@@ -142,7 +142,6 @@ export default function PlayerMarker() {
     [trapPoints],
   );
 
-  // TODO: need trapPoints in depList for trap to work correctly using keys
   // Ring Menu keyboard actions
   useEffect(
     () => {
@@ -159,7 +158,8 @@ export default function PlayerMarker() {
         document.removeEventListener("keypress", handleKeyPress);
       };
     }, //
-    [trapPoints],
+    // TODO: need all below for trap to work correctly using keys
+    [trapPoints, coordinates.longitude, coordinates.latitude],
   );
 
   // Ring Menu mouse actions
