@@ -1,15 +1,5 @@
 #!/bin/bash
 
-get_version_nvm() {
-  if [ -s "$NVM_DIR/nvm.sh" ]; then
-    source "$NVM_DIR/nvm.sh"
-  else
-    return 1
-  fi
-
-  nvm --version 2>/dev/null
-}
-
 load_nvm() {
   # load nvm
   if [ -s "$NVM_DIR/nvm.sh" ]; then
@@ -28,6 +18,10 @@ load_nvm() {
   fi
 }
 
+get_version_nvm() {
+  nvm --version 2>/dev/null || { return $?; }
+}
+
 install_nvm() {
   # set environment vars
   export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
@@ -35,5 +29,5 @@ install_nvm() {
   # install
   curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 
-  load_nvm || { return 1; }
+  load_nvm || { return $?; }
 }

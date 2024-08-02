@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# ensure the script is sourced
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  (source $(realpath "$0"))
-  exit $?
-fi
-
 # get environment info
 source scripts/.env/get.sh
 source scripts/.env/maybe_sudo.sh
@@ -14,6 +8,8 @@ source scripts/.env/maybe_sudo.sh
 echo -e "\033[H\033[2J\033[3J"
 
 if [[ "$OS_NAME" == "linux" ]]; then
+  source $(dirname "$0")/prerequisites/nvm.sh
+  load_nvm
   nvm uninstall $(cat .nvmrc)
 
   # remove using apt-get
@@ -32,9 +28,16 @@ elif [[ "$OS_NAME" == "mac" ]]; then
   brew cleanup;
 fi
 
-# remove files and folders
-maybe_sudo rm -rf ~/.aztec
+# cleanup bun
+
+# remove BUN_INSTALL from PATH
 maybe_sudo rm -rf ~/.bun
+if [[ -n "$BUN_INSTALL" ]]; then
+  export PATH=$(echo "$PATH" | sed -e "s:$BUN_INSTALL/bin::" -e 's/^://' -e 's/:$://' -e 's/::/:/g')
+fi
+
+# unset environment variables
+unset BUN_INSTALL
 
 # cleanup node
 maybe_sudo rm -rf           \
@@ -52,6 +55,8 @@ for func in $(declare -F | grep nvm_ | awk "{print $3}"); do
 done
 unset -f "__nvm"
 unset -f "nvm"
+unset NVM_DIR
+unset NVM_CD_FLAGS
 
 # cleanup docker
 maybe_sudo rm -rf                           \
@@ -63,8 +68,12 @@ maybe_sudo rm -rf                           \
 /usr/local/bin/docker-credential-osxkeychain\
 $HOME/Library/Containers/com.docker.docker  # here we delete stored images
 
-# # create a backup of the original .bashrc file
-# cp $ENV_VARS_FILE $ENV_VARS_FILE.bak
+# cleanup aztec
+
+# remove files and folders
+maybe_sudo rm -rf ~/.aztec
+
+# cleanup environment file
 
 # define the patterns to match
 patterns=(
@@ -84,8 +93,7 @@ for pattern in "${patterns[@]}"; do
   if [ $? -ne 0 ]; then return $?; fi
 done
 
-# remove trailing newlines
+# remove trailing newlines from environment file
 sed -i ':a; /^\n*$/{$d; N; ba;}' $ENV_VARS_FILE
 
-# reload bash context
-source $ENV_VARS_FILE
+warn_when_source_required;

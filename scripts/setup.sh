@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# ensure the script is sourced
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  (source $(realpath "$0"))
-  exit $?
-fi
-
 # get environment info
 source scripts/.env/get.sh
 source scripts/.env/maybe_sudo.sh
@@ -27,14 +21,14 @@ printf "\033[H\033[2J\033[3J"
 PREREQUISITES=""
 for pkg in curl unzip nvm node bun docker aztec-sandbox; do
   # load the installation script file
-  source scripts/prerequisites/_/$pkg.sh
+  source scripts/prerequisites/$pkg.sh
 
   # check package version (available and matches required, else returns an error)
   PACKAGE_VERSION=$(get_version_$pkg 2>/dev/null)
   if [ $? -ne 0 ]; then
     # install missing packages
     printf "\nInstalling \033[32m$pkg\033[0m...\n\n"
-    if ! install_$pkg; then exit $?; fi
+    install_$pkg || { exit $?; }
 
     # verify
     PACKAGE_VERSION=$(get_version_$pkg 2>/dev/null)
@@ -46,8 +40,11 @@ for pkg in curl unzip nvm node bun docker aztec-sandbox; do
     # post installation
     if declare -f post_install_$pkg > /dev/null;
     then
-      if ! post_install_$pkg; then exit $?; fi
+      post_install_$pkg || { exit $?; }
     fi
+
+    # reload bash context
+    source $ENV_VARS_FILE
   fi
 
   # store installed package and version (for pretty-printing)
@@ -63,3 +60,5 @@ done
 # install package dependecies
 echo ""
 bun i
+
+warn_when_source_required;

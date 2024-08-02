@@ -22,10 +22,10 @@ get_version_node() {
 }
 
 install_node() {
-  source $(dirname "$0")/_/nvm.sh
-  load_nvm || { return 1; }
+  source $(dirname "$0")/prerequisites/nvm.sh
+  load_nvm || { return $?; }
 
-  nvm install > /dev/null || { return 1; }
+  nvm install >/dev/null || { return $?; }
 
   local PROJECT_NODE_VERSION=$(cat .nvmrc)
   nvm alias default $PROJECT_NODE_VERSION

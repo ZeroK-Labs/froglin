@@ -41,3 +41,11 @@ ENV_VARS_FILE=~/."${SHELL##/bin/}"rc
 
 export OS_NAME;
 export ENV_VARS_FILE;
+
+warn_when_source_required() {
+  # warn when not sourced
+  if [[ "${BASH_SOURCE[1]}" == "${0}" ]]; then
+    printf "\n\n\033[33m\033[3mReload the enviroment to update this terminal session with the changes performed\033[0m\033[0m\n"
+    printf "\033[1msource $ENV_VARS_FILE\033[0m\n\n"
+  fi;
+}
