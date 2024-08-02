@@ -40,7 +40,7 @@ export default function TrapMarker(props: Props) {
       latitude={props.location.latitude}
       style={{ zIndex: 9998 }}
     >
-      <div className="relative topp-[-48px] p-1.5 text-[10px] leading-3 tracking-wider rounded-sm whitespace-nowrap text-gray-800 bg-green-400">
+      <div className="relative top-[-48px] p-1.5 text-[10px] leading-3 tracking-wider rounded-sm whitespace-nowrap text-gray-800 bg-green-400">
         {text}
       </div>
       <div
