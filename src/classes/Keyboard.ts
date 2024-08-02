@@ -1,4 +1,4 @@
-import { Keyboard } from "types";
+import { Keyboard } from "src/types";
 
 export function nullKeyboard(): Keyboard {
   return {

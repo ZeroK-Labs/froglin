@@ -1,22 +1,22 @@
 import toast from "react-hot-toast";
 import { useEffect, useRef, useState } from "react";
 
-import { FROGLIN, PLAYER } from "settings";
-import { Froglin } from "types";
-import { StoreFactory, useLocation, usePXEClient } from "stores";
-import { inRange } from "../../common/utils/map";
+import { FROGLIN, PLAYER } from "src/settings";
+import { Froglin } from "src/types";
+import { StoreFactory, useLocation, usePXEClient } from "src/stores";
+import { inRange } from "common/utils/map";
 import {
   GameEventBase,
   GameEventClient,
   InterestPoint,
   MapCoordinates,
-} from "../../common/types";
+} from "common/types";
 import {
   CLIENT_SOCKET,
   PLAYER_ID,
   addSocketEventHandler,
   removeSocketEventHandler,
-} from "utils/sockets";
+} from "src/utils/sockets";
 
 function getRandomInRange(a: number, b: number): number {
   const min = Math.min(a, b);

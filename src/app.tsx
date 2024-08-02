@@ -7,7 +7,7 @@ import {
   PlayerProvider,
   usePXEClient,
   usePlayer,
-} from "stores";
+} from "src/stores";
 import {
   AccountModal,
   CapturedFroglinList,
@@ -18,7 +18,7 @@ import {
   Map,
   ToastView,
   TutorialModal,
-} from "components";
+} from "src/components";
 
 function AppComponent() {
   const { hasSecret } = usePlayer();

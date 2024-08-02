@@ -1,6 +1,6 @@
 import { Dispatch } from "react";
 
-import { AccountWithContracts } from "../../common/types";
+import { AccountWithContracts } from "common/types";
 
 type Player = {
   hasSecret: boolean;

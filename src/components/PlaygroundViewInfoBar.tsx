@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
-import { CountDownTimer } from "components";
-import { BatteryIcon, StopwatchIcon, MapPinIcon } from "assets/svg";
-import { useGameEvent, useLocation } from "stores";
+import { CountDownTimer } from "src/components";
+import { BatteryIcon, StopwatchIcon, MapPinIcon } from "src/assets/svg";
+import { useGameEvent, useLocation } from "src/stores";
 
 type Props = {
   visible: boolean;

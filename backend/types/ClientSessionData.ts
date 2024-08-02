@@ -1,6 +1,6 @@
 import { ChildProcess } from "child_process";
 
-import GameEventServer from "../../common/types/GameEventServer";
+import GameEventServer from "common/types/GameEventServer";
 
 type ClientSessionData = {
   GameEvent: GameEventServer | null;

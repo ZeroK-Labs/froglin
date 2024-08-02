@@ -1,8 +1,7 @@
 import { CLIENT_SESSION_DATA } from "../sockets";
 import { EVENT } from "../../src/settings";
-import { GameEventServer } from "../../common/types";
-import { MapCoordinates } from "../../common/types";
-import { getInterestPoints, getBoundsForCoordinate } from "../../common/utils/map";
+import { GameEventServer, MapCoordinates } from "common/types";
+import { getInterestPoints, getBoundsForCoordinate } from "common/utils/map";
 
 function getFarInterestPoints(coords: MapCoordinates, count: number) {
   return getInterestPoints(coords, count, EVENT.FAR_RANGE.FROM, EVENT.FAR_RANGE.TO);

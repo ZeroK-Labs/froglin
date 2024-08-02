@@ -1,7 +1,7 @@
 import { Dispatch, MutableRefObject, SetStateAction, useEffect, useRef } from "react";
 
-import { CapturedFroglinListItem } from "components";
-import { useGameEvent } from "stores";
+import { CapturedFroglinListItem } from "src/components";
+import { useGameEvent } from "src/stores";
 
 type Dispacher = Dispatch<SetStateAction<boolean>>;
 

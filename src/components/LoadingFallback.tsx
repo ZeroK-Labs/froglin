@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { VIEW } from "settings";
+import { VIEW } from "src/settings";
 
 export default function LoadingFallback() {
   useEffect(

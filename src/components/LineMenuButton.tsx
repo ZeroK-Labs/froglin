@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 
 import { LineMenuButtonElement } from "./LineMenuButtonElement";
-import { LineMenuProps } from "types";
+import { LineMenuProps } from "src/types";
 
 export function LineMenuButton({ open, setOpen }: LineMenuProps) {
   const divRef = useRef<HTMLDivElement>(null);

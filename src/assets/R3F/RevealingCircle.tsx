@@ -2,9 +2,9 @@ import mapboxgl from "mapbox-gl";
 import { BackSide, FrontSide } from "three";
 import { useEffect, useState } from "react";
 
-import { RevealingCircleState } from "types";
-import { MinusHalfPI } from "../../../common/utils/math";
-import { PLAYER } from "settings";
+import { RevealingCircleState } from "src/types";
+import { MinusHalfPI } from "common/utils/math";
+import { PLAYER } from "src/settings";
 
 export default function RevealingCircle({
   visible,

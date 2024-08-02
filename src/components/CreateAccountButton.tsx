@@ -1,6 +1,6 @@
-import { MODALS } from "enums";
-import { VIEW } from "settings";
-import { useModalState, usePlayer } from "stores";
+import { MODALS } from "src/enums";
+import { VIEW } from "src/settings";
+import { useModalState, usePlayer } from "src/stores";
 
 export default function CreateAccountButton() {
   const { hasSecret } = usePlayer();

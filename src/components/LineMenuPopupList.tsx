@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 
 import { LineMenuPopupListItem } from "./LineMenuPopupListItem";
-import { LineMenuProps } from "types";
-import { MAP_VIEWS, MODALS } from "enums";
-import { VIEW } from "settings";
-import { useMapViewState, useModalState, usePlayer } from "stores";
+import { LineMenuProps } from "src/types";
+import { MAP_VIEWS, MODALS } from "src/enums";
+import { VIEW } from "src/settings";
+import { useMapViewState, useModalState, usePlayer } from "src/stores";
 
 export function LineMenuPopupList({ open, setOpen }: LineMenuProps) {
   const { aztec } = usePlayer();

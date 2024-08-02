@@ -2,13 +2,13 @@ import toast from "react-hot-toast";
 import { PXE, createPXEClient } from "@aztec/aztec.js";
 import { useEffect, useState, useRef } from "react";
 
-import { StoreFactory } from "stores";
+import { StoreFactory } from "src/stores";
 import {
   addSocketEventHandler,
   CLIENT_SOCKET,
   removeSocketEventHandler,
   getPXEReadyMessage,
-} from "utils/sockets";
+} from "src/utils/sockets";
 
 type PXEState = {
   pxeClient: PXE | null;

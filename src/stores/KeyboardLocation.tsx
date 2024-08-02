@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 
-import { AngleToRadian } from "../../common/utils/math";
-import { KeyboardSymbol, LocationInfo } from "types";
-import { LOCATION } from "settings";
-import { MapCoordinates } from "../../common/types";
-import { RADIANS_PER_METER_LATITUDE } from "../../common/utils/map";
-import { StoreFactory } from "stores";
-import { nullKeyboard, nullifyKeyboard } from "classes/Keyboard";
-import { nullMapCoordinates } from "classes/MapCoordinates";
+import { AngleToRadian } from "common/utils/math";
+import { KeyboardSymbol, LocationInfo } from "src/types";
+import { LOCATION } from "src/settings";
+import { MapCoordinates } from "common/types";
+import { RADIANS_PER_METER_LATITUDE } from "common/utils/map";
+import { StoreFactory } from "src/stores";
+import { nullKeyboard, nullifyKeyboard } from "src/classes/Keyboard";
+import { nullMapCoordinates } from "src/classes/MapCoordinates";
 
 const KEYBOARD = nullKeyboard();
 

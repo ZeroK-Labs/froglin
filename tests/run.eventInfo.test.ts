@@ -1,11 +1,11 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import { Fr } from "@aztec/aztec.js";
 
-import AccountWithContracts from "../common/types/AccountWithContracts";
-import { FroglinEventContract } from "../aztec/contracts/event/artifact/FroglinEvent";
-import { FroglinGatewayContract } from "../aztec/contracts/gateway/artifact/FroglinGateway";
+import AccountWithContracts from "common/types/AccountWithContracts";
+import { FroglinEventContract } from "aztec/contracts/event/artifact/FroglinEvent";
+import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { getDeploymentAccount, getPlayerAccount } from "./accounts";
-import { stringToBigInt } from "../common/utils/bigint";
+import { stringToBigInt } from "common/utils/bigint";
 
 describe("EventInfo Tests", () => {
   const timeout = 60_000;

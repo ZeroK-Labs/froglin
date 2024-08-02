@@ -1,6 +1,6 @@
-// import { TimerIcon } from "components/svg";
-import { CountDownTimer } from "components";
-import { useGameEvent } from "stores";
+// import { TimerIcon } from "src/components/svg";
+import { CountDownTimer } from "src/components";
+import { useGameEvent } from "src/stores";
 
 type Props = {
   visible: boolean;
@@ -41,7 +41,6 @@ export default function EventViewInfoBar({ visible }: Props) {
             </span>
           </div>
           <div className="flex items-center space-x-1">
-            {/* <TimerIcon className="h-6 w-6" /> */}
             <div className="font-semibold">Captured: </div>
             <span className="pl-1 font-semibold">
               {capturedFroglins.length} / {interestPoints.length}

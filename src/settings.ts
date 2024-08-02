@@ -5,7 +5,7 @@ import {
   FroglinSettings,
   LocationSettings,
   PointGenerationRange,
-} from "types/settings";
+} from "src/types/settings";
 
 export const VIEW: ViewSettings = {
   PLAYGROUND: {

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "build",
-    "baseUrl": "src",
+    "baseUrl": "./",
     "target": "ES2020",
     "lib": ["esnext", "dom", "DOM.Iterable"],
     "module": "ESNext",

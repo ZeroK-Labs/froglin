@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 
-import { MODALS } from "enums";
-import { Modal } from "components";
-import { useModalState, usePXEClient, usePlayer } from "stores";
+import { MODALS } from "src/enums";
+import { Modal } from "src/components";
+import { useModalState, usePXEClient, usePlayer } from "src/stores";
 
 const INPUT_KEY_LENGTH = 100;
 const INPUT_TIMEOUT = 150;

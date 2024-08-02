@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-import { LineMenuButton } from "components/LineMenuButton";
-import { LineMenuPopupList } from "components/LineMenuPopupList";
+import { LineMenuButton } from "src/components/LineMenuButton";
+import { LineMenuPopupList } from "src/components/LineMenuPopupList";
 
 export default function LineMenu() {
   const [open, setOpen] = useState(false);

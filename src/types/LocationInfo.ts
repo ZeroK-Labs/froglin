@@ -1,4 +1,4 @@
-import MapCoordinates from "../../common/types/MapCoordinates";
+import MapCoordinates from "common/types/MapCoordinates";
 
 type LocationInfo = {
   disabled: boolean;

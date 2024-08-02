@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 import StoreFactory from "./StoreFactory";
-import { MAP_VIEWS } from "enums";
-import { MapViewState } from "types";
+import { MAP_VIEWS } from "src/enums";
+import { MapViewState } from "src/types";
 
 function createState(): MapViewState {
   const [mapView, setMapView] = useState(MAP_VIEWS.PLAYGROUND);

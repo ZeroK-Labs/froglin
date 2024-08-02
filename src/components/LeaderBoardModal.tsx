@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
-import { MODALS } from "enums";
-import { Modal } from "components";
-import { useModalState } from "stores";
+import { MODALS } from "src/enums";
+import { Modal } from "src/components";
+import { useModalState } from "src/stores";
 
 type LeaderBoardData = {
   username: string;

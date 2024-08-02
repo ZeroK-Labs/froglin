@@ -4,8 +4,8 @@ import { MercatorCoordinate } from "mapbox-gl";
 import { Layer, useMap } from "react-map-gl";
 import { PropsWithChildren, useEffect, useState } from "react";
 
-import MapCoordinates from "../../common/types/MapCoordinates";
-import { MinusHalfPI } from "../../common/utils/math";
+import MapCoordinates from "common/types/MapCoordinates";
+import { MinusHalfPI } from "common/utils/math";
 
 interface BaseCanvasProps
   extends Omit<R3F.RenderProps<HTMLCanvasElement>, "dpr">,

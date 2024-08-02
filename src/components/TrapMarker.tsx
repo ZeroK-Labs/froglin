@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Marker } from "react-map-gl";
 
-import { MapCoordinates } from "../../common/types";
-import { PLAYER } from "settings";
+import { MapCoordinates } from "common/types";
+import { PLAYER } from "src/settings";
 
 type Props = {
   ordinal: number;

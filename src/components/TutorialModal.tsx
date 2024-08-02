@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 
-import { MODALS } from "enums";
-import { Modal, PlayerMarkerImage } from "components";
-import { useModalState } from "stores";
+import { MODALS } from "src/enums";
+import { Modal, PlayerMarkerImage } from "src/components";
+import { useModalState } from "src/stores";
 
 export default function TutorialModal() {
   const { modal, setModal } = useModalState();

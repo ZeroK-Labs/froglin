@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction, useState } from "react";
-import { Froglin } from "types";
+
+import { Froglin } from "src/types";
 
 export default function CapturedFroglinListItem({
   item,

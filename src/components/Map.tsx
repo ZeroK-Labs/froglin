@@ -1,14 +1,15 @@
 import { Map, MapRef } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 
-import { MAP_VIEWS } from "enums";
+import { MAP_VIEWS } from "src/enums";
+import { VIEW } from "src/settings";
+import { setMapFog } from "src/utils/mapbox";
 import {
   RevealingCircleStateProvider,
   useGameEvent,
   useLocation,
   useMapViewState,
-} from "stores";
-import { VIEW } from "settings";
+} from "src/stores";
 import {
   CanvasOverlay,
   FroglinMarker,
@@ -16,8 +17,7 @@ import {
   InterestPointMarker,
   LocationRestoreButton,
   PlayerMarker,
-} from "components";
-import { setMapFog } from "utils/mapbox";
+} from "src/components";
 
 export default function MapScreen() {
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);

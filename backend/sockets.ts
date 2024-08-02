@@ -4,7 +4,7 @@ import { parse } from "url";
 
 import { BACKEND_WALLET } from "./aztec";
 import { ClientSessionData } from "./types";
-import { createPXEService, destroyPXEService } from "../common/PXEManager";
+import { createPXEService, destroyPXEService } from "common/PXEManager";
 
 export const CLIENT_SESSION_DATA: { [key: string]: ClientSessionData } = {};
 

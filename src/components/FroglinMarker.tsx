@@ -1,9 +1,9 @@
 import { Marker } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 
-import { FROGLIN } from "settings";
-import { Froglin } from "types";
-import { useGameEvent } from "stores";
+import { FROGLIN } from "src/settings";
+import { Froglin } from "src/types";
+import { useGameEvent } from "src/stores";
 
 type Props = {
   froglin: Froglin;

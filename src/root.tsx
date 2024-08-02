@@ -1,10 +1,10 @@
-import "styles/global.css";
+import "./styles/global.css";
 
 import { Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 
-import { LoadingFallback } from "components";
-import { createSocketClient } from "utils/sockets";
+import { LoadingFallback } from "./components";
+import { createSocketClient } from "./utils/sockets";
 
 function Root() {
   return (

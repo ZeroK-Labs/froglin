@@ -2,11 +2,11 @@ import toast from "react-hot-toast";
 import { AztecAddress, AccountWallet } from "@aztec/aztec.js";
 import { SetStateAction, useEffect, useState } from "react";
 
-import { FroglinGatewayContract } from "../../aztec/contracts/gateway/artifact/FroglinGateway";
-import { Player } from "types";
-import { StoreFactory, usePXEClient } from "stores";
-import { createWallet } from "../../common/WalletManager";
-import { stringToBigInt, bigIntToString } from "../../common/utils/bigint";
+import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
+import { Player } from "src/types";
+import { StoreFactory, usePXEClient } from "src/stores";
+import { createWallet } from "common/WalletManager";
+import { stringToBigInt, bigIntToString } from "common/utils/bigint";
 
 function getSecret() {
   return localStorage.getItem("secret") ?? "";

@@ -1,6 +1,6 @@
-import { EventViewInfoBar, PlaygroundViewInfoBar } from "components";
-import { MAP_VIEWS, MODALS } from "enums";
-import { useMapViewState, useModalState } from "stores";
+import { EventViewInfoBar, PlaygroundViewInfoBar } from "src/components";
+import { MAP_VIEWS, MODALS } from "src/enums";
+import { useMapViewState, useModalState } from "src/stores";
 
 export default function InfoBarsContainer() {
   const { mapView } = useMapViewState();

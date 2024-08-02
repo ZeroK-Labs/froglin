@@ -1,4 +1,4 @@
-import { InterestPoint, MapCoordinates } from "../../common/types";
+import { InterestPoint, MapCoordinates } from "common/types";
 
 type GameEventBase = {
   location: MapCoordinates;

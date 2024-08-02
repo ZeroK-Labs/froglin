@@ -1,4 +1,4 @@
-import { MAP_VIEWS } from "enums";
+import { MAP_VIEWS } from "src/enums";
 
 type MapViewState = {
   mapView: MAP_VIEWS;

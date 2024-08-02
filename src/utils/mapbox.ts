@@ -1,6 +1,6 @@
 import mapboxgl from "mapbox-gl";
 
-import { VIEW } from "settings";
+import { VIEW } from "src/settings";
 import { mobileClient } from "./window";
 
 declare module "mapbox-gl" {

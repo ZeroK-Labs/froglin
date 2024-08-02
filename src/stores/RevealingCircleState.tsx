@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-import { StoreFactory } from "stores";
-import { RevealingCircleState } from "types";
+import { StoreFactory } from "src/stores";
+import { RevealingCircleState } from "src/types";
 
 function createState(): RevealingCircleState {
   const [color, setColor] = useState("white");

@@ -1,7 +1,7 @@
-import { MAP_VIEWS } from "enums";
 import { Layer, Source } from "react-map-gl";
 
-import { useGameEvent, useMapViewState } from "stores";
+import { MAP_VIEWS } from "src/enums";
+import { useGameEvent, useMapViewState } from "src/stores";
 
 const DURATION_SHOW = 3_000;
 const DURATION_HIDE = 1_000;

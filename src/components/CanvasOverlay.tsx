@@ -1,9 +1,8 @@
 import { useMap } from "react-map-gl";
 
-import RevealingCircle from "assets/R3F/RevealingCircle";
-import { Canvas } from "adapters/R3FMapbox";
-import { useLocation } from "stores";
-import { useRevealingCircleState } from "stores";
+import RevealingCircle from "src/assets/R3F/RevealingCircle";
+import { Canvas } from "src/adapters/R3FMapbox";
+import { useLocation, useRevealingCircleState } from "src/stores";
 
 export default function CanvasOverlay() {
   const { coordinates } = useLocation();

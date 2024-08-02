@@ -52,7 +52,7 @@ export default async () => {
     //
     resolve: {
       extensions: [".js", ".ts", ".tsx"],
-      modules: [path.resolve("src"), path.resolve("node_modules")],
+      modules: [path.resolve("./"), path.resolve("node_modules")],
       fallback: {
         crypto: false,
         fs: false,
@@ -68,9 +68,7 @@ export default async () => {
     plugins: [
       // new BundleAnalyzerPlugin(),
       new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] }),
-      new HtmlWebpackPlugin({
-        template: "./src/index.html",
-      }),
+      new HtmlWebpackPlugin({ template: "./src/index.html" }),
       new webpack.DefinePlugin({
         "process.env": {
           NODE_ENV: JSON.stringify(process.env.NODE_ENV),

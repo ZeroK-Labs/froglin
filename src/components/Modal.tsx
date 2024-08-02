@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 
-import { MODALS } from "enums";
-import { VIEW } from "settings";
-import { useModalState } from "stores";
+import { MODALS } from "src/enums";
+import { VIEW } from "src/settings";
+import { useModalState } from "src/stores";
 
 type ModalProps = {
   children: React.ReactNode;

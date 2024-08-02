@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 import StoreFactory from "./StoreFactory";
-import { ModalState } from "types";
-import { MODALS } from "enums";
+import { ModalState } from "src/types";
+import { MODALS } from "src/enums";
 
 function createState(): ModalState {
   const [modal, setModal] = useState(MODALS.NONE);

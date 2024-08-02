@@ -1,9 +1,9 @@
 import fs from "fs";
 import { AztecAddress, createPXEClient } from "@aztec/aztec.js";
 
-import { AccountWithContracts } from "../common/types";
-import { FroglinGatewayContract } from "../aztec/contracts/gateway/artifact/FroglinGateway";
-import { createWallet } from "../common/WalletManager";
+import { AccountWithContracts } from "common/types";
+import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
+import { createWallet } from "common/WalletManager";
 
 export const BACKEND_WALLET = {
   secret: process.env.BACKEND_WALLET_SECRET!,

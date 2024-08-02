@@ -1,8 +1,8 @@
 import { Marker } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 
-import { FROGLIN } from "settings";
-import { InterestPoint } from "../../common/types";
+import { FROGLIN } from "src/settings";
+import { InterestPoint } from "common/types";
 
 type Props = {
   point: InterestPoint;

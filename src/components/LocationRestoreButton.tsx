@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
-import { PlayerMarkerImage } from "components";
-import { VIEW } from "settings";
-import { useLocation } from "stores";
+import { PlayerMarkerImage } from "src/components";
+import { VIEW } from "src/settings";
+import { useLocation } from "src/stores";
 
 export default function LocationRestoreButton({ map }: { map: mapboxgl.Map }) {
   const [contained, setContained] = useState(true);
