@@ -24,13 +24,6 @@ fi
 
 scripts/.ssl/create_localhost_certificates.sh || { exit 1; }
 
-cleanup() {
-  pkill -f 'tailwind|webpack'
-}
-
-# trap ctrl+c to call cleanup function
-trap 'cleanup' INT
-
 # kill previous webpack instances
 xvg=$(pgrep -f webpack)
 IFS=$'\n' read -r -d '' -a PIDS <<< "$xvg"
@@ -39,8 +32,21 @@ for ((i = 0; i <= ${#PIDS[@]}-3; ++i)); do
   kill -2 ${PIDS[i]}
 done
 
-# start webpack concurrently and run tailwind watcher
-bun webpack serve --env mode=$arg &
-scripts/tailwind/start.sh
+cleanup() {
+  echo killed
+  pkill -f 'tailwind|webpack'
+}
+
+# trap ctrl+c
+trap 'cleanup' INT
+
+# concurrently run webpack and tailwind watcher
+(
+  sleep 0.5; # allow for taiwind to start first
+  bun webpack serve --env mode=$arg
+) &
+(
+  scripts/tailwind/start.sh
+)
 
 cleanup
