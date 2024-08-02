@@ -70,7 +70,7 @@
     "webpack:clean": "scripts/webpack/clean.sh",
     "webpack:build": "scripts/webpack/build.sh",
     "webpack:start": "scripts/webpack/start.sh",
-    "clean": "scripts/clean.sh",
+    "clean": "scripts/aztec/clean.sh && scripts/webpack/clean.sh",
     "lint": "eslint",
     "dev": "scripts/dev.sh",
     "test": "scripts/test.sh"
