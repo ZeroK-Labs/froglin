@@ -1,6 +1,6 @@
 import toast from "react-hot-toast";
 import { PXE, createPXEClient } from "@aztec/aztec.js";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
 import { StoreFactory } from "src/stores";
 import {
@@ -15,62 +15,17 @@ type PXEState = {
   pxeURL: string;
 };
 
-const TIMEOUT = 5_000;
-
-function createSandboxClient() {
-  return createPXEClient(process.env.SANDBOX_URL!);
-}
-
 function createState(): PXEState {
-  const checkingRef = useRef(false);
-
-  const [sandboxClient] = useState<PXE>(createSandboxClient);
   const [pxeClient, setPXEClient] = useState<PXE | null>(null);
   const [pxeURL, setPXEURL] = useState("");
-  const [connected, setConnected] = useState(false);
 
   useEffect(
     () => {
-      async function checkConnection() {
-        if (checkingRef.current) return;
-
-        checkingRef.current = true;
-
-        try {
-          await sandboxClient.getPXEInfo(); // does 4 retries before throwing an error
-
-          setConnected(true);
-          //
-        } catch (err: unknown) {
-          if ((err as TypeError).message === "Failed to fetch") setConnected(false);
-        }
-
-        checkingRef.current = false;
-      }
-
-      checkConnection();
-      const intervalId = setInterval(checkConnection, TIMEOUT);
-
-      return () => {
-        clearInterval(intervalId);
-      };
-    }, //
-    [],
-  );
-
-  useEffect(
-    () => {
-      if (!connected) {
-        if (!checkingRef.current) toast.error("Aztec Sandbox offline");
-
-        return;
-      }
-
-      toast.success("Aztec Sandbox available");
-
       let toastId = "";
+      let timerId: Timer;
       function handleSocketOpen() {
         toastId = toast.loading("Waiting for PXE...");
+        // timerId = setTimeout(CLIENT_SOCKET.send, 3_000, "which pxe");
       }
 
       function handleSocketClose() {
@@ -81,27 +36,24 @@ function createState(): PXEState {
       }
 
       let retries = 0;
-      function handleRetry() {
-        retries += 1;
-        CLIENT_SOCKET.send("which pxe");
-
-        if (retries === 4) retries = 0;
-      }
-
       function handlePXEError() {
         if (retries === 0) {
           toast.error("PXE host offline", { id: toastId });
-          console.error("Failed to initialize PXE: service offline");
+          console.error("Failed to initialize PXE: host offline");
         }
+        retries += 1;
+        if (retries === 4) retries = 0;
 
-        setTimeout(handleRetry, 3_000);
+        // retry after 3 seconds
+        setTimeout(CLIENT_SOCKET.send, 3_000, "which pxe");
       }
 
       async function handlePXEReady(ev: MessageEvent<string>) {
         if (!ev.data.includes("pxe ")) return;
 
-        const url = ev.data.split(" ")[1];
+        clearTimeout(timerId);
 
+        const url = ev.data.split(" ")[1];
         if (!url) {
           handlePXEError();
 
@@ -109,7 +61,6 @@ function createState(): PXEState {
         }
 
         const pxe = createPXEClient(url);
-
         try {
           await pxe.getPXEInfo();
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -129,9 +80,13 @@ function createState(): PXEState {
       addSocketEventHandler("close", handleSocketClose);
       addSocketEventHandler("message", handlePXEReady);
 
-      handleSocketOpen();
-      const ready = getPXEReadyMessage();
-      if (ready) handlePXEReady(ready);
+      if (CLIENT_SOCKET.readyState === WebSocket.OPEN) {
+        handleSocketOpen();
+        const ready = getPXEReadyMessage();
+        if (ready) handlePXEReady(ready);
+      }
+
+      // CLIENT_SOCKET.send("which pxe");
 
       return () => {
         removeSocketEventHandler("message", handlePXEReady);
@@ -139,7 +94,7 @@ function createState(): PXEState {
         removeSocketEventHandler("open", handleSocketOpen);
       };
     }, //
-    [connected],
+    [],
   );
 
   return {
