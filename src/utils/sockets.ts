@@ -17,9 +17,14 @@ const PLAYER_ID = localStorage.getItem("playerId") ?? generatePlayerId();
 const query = new URLSearchParams({ playerId: PLAYER_ID });
 const url = `${process.env.WSS_URL}?${query}`;
 
-let CLIENT_SOCKET: WebSocket;
+// attach socket to the window object to persist across module reloads
+const _window = window as any;
+let CLIENT_SOCKET: WebSocket = _window.__CLIENT_SOCKET;
+_window.__socket_reload =
+  CLIENT_SOCKET &&
+  (CLIENT_SOCKET.readyState === WebSocket.CONNECTING ||
+    CLIENT_SOCKET.readyState === WebSocket.OPEN);
 
-let timerId: Timer;
 let retries = 0;
 let closed = false;
 
@@ -71,86 +76,95 @@ export function getPXEReadyMessage() {
   return server_pxe_url;
 }
 
-export function createSocketClient() {
-  if (
-    CLIENT_SOCKET &&
-    (CLIENT_SOCKET.readyState === WebSocket.CONNECTING ||
-      CLIENT_SOCKET.readyState === WebSocket.OPEN)
-  ) {
+function handleError(ev: Event) {
+  console.error("WebSocket error:", ev);
+
+  for (const handler of handlers["error"]) handler(ev);
+}
+
+function handleMessage(ev: MessageEvent<string>) {
+  console.log(`Received ${ev.data}`);
+
+  for (const handler of handlers["message"]) handler(ev);
+}
+
+// TODO: handle late subscription of event handlers for "message"
+function handleMessageWrapper(ev: MessageEvent<string>) {
+  if (!ev.data.includes("pxe ")) {
+    console.log(`Received ${ev.data}`);
+
     return;
   }
 
-  function handleError(ev: Event) {
-    console.error("WebSocket error:", ev);
+  handleMessage(ev);
 
-    for (const handler of handlers["error"]) handler(ev);
-  }
+  const url = ev.data.split(" ")[1];
+  if (!url) return;
 
-  function handleMessage(ev: MessageEvent<string>) {
-    console.log(`Received ${ev.data}`);
+  server_pxe_url = ev;
 
-    for (const handler of handlers["message"]) handler(ev);
-  }
+  CLIENT_SOCKET.removeEventListener("message", handleMessageWrapper);
+  CLIENT_SOCKET.addEventListener("message", handleMessage);
+}
 
-  // TODO: handle late subscription of event handlers for "message"
-  function handleMessageWrapper(ev: MessageEvent<string>) {
-    if (!ev.data.includes("pxe ")) {
-      console.log(`Received ${ev.data}`);
+function handleClose(ev: CloseEvent) {
+  console.error("WebSocket connection closed");
 
-      return;
-    }
-
-    handleMessage(ev);
-
-    const url = ev.data.split(" ")[1];
-    if (!url) return;
-
-    server_pxe_url = ev;
-
-    CLIENT_SOCKET.removeEventListener("message", handleMessageWrapper);
-    CLIENT_SOCKET.addEventListener("message", handleMessage);
-  }
-
-  function handleOpen(ev: Event) {
-    console.log("WebSocket connection established");
-
-    CLIENT_SOCKET.addEventListener("error", handleError);
-    CLIENT_SOCKET.addEventListener("message", handleMessageWrapper);
-
-    server_pxe_url = null;
-    retries = 0;
-    closed = false;
-
-    for (const handler of handlers["open"]) handler(ev);
-  }
-
-  function handleClose(ev: CloseEvent) {
-    console.error("WebSocket connection closed");
-
+  if (!closed) {
     CLIENT_SOCKET.removeEventListener("error", handleError);
     CLIENT_SOCKET.removeEventListener("open", handleOpen);
     CLIENT_SOCKET.removeEventListener("close", handleClose);
     CLIENT_SOCKET.removeEventListener("message", handleMessage);
     CLIENT_SOCKET.removeEventListener("message", handleMessageWrapper);
 
-    if (retries === 0) toast.error("Socket server offline");
-
-    retries += 1;
-    clearTimeout(timerId);
-    timerId = setTimeout(createSocketClient, 5_000);
-
-    if (retries === 4) retries = 0;
-
-    if (closed) return;
-
     closed = true;
     for (const handler of handlers["close"]) handler(ev);
   }
 
-  CLIENT_SOCKET = new WebSocket(url);
+  // during HMR, context is stale, need to abort
+  if (_window.__socket_reload) {
+    _window.__socket_reload = false;
+    return;
+  }
 
+  if (retries === 0) toast.error("Socket server offline");
+
+  retries += 1;
+  clearTimeout(_window.__socket_reconnect_timerId);
+  _window.__socket_reconnect_timerId = setTimeout(createSocketClient, 5_000);
+
+  if (retries === 4) retries = 0;
+}
+
+function handleOpen(ev: Event) {
+  console.log("WebSocket connection established");
+
+  CLIENT_SOCKET.addEventListener("error", handleError);
+  CLIENT_SOCKET.addEventListener("message", handleMessageWrapper);
+
+  _window.__socket_reconnect_timerId = null;
+  server_pxe_url = null;
+  retries = 0;
+  closed = false;
+
+  for (const handler of handlers["open"]) handler(ev);
+}
+
+export function createSocketClient() {
+  // during HMR, remove previous socket connection
+  if (_window.__socket_reload) CLIENT_SOCKET.close();
+
+  // during HMR, clear previous module's attempt to reconnect
+  // if it initialized without a connection to socket server
+  if (_window.__socket_reconnect_timerId && !closed) {
+    clearTimeout(_window.__socket_reconnect_timerId);
+  }
+
+  CLIENT_SOCKET = new WebSocket(url);
   CLIENT_SOCKET.addEventListener("open", handleOpen);
   CLIENT_SOCKET.addEventListener("close", handleClose);
+
+  _window.__CLIENT_SOCKET = CLIENT_SOCKET;
 }
 
 export { CLIENT_SOCKET, PLAYER_ID };
