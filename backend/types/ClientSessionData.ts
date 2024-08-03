@@ -4,7 +4,11 @@ import GameEventServer from "common/types/GameEventServer";
 
 type ClientSessionData = {
   GameEvent: GameEventServer | null;
-  PXE: ChildProcess | null;
+  PXE: {
+    process: ChildProcess;
+    port: number;
+    reuseTimerId: Timer | null;
+  } | null;
   Socket: WebSocket | null;
 };
 

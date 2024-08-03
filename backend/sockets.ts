@@ -15,6 +15,10 @@ const HOST =
 
 let ws_server: WebSocketServer;
 
+// used on shutdown
+let _terminating = false;
+const terminating = () => _terminating;
+
 export function createSocketServer(options?: ServerOptions) {
   ws_server = new WebSocketServer(options);
 
@@ -29,14 +33,14 @@ export function createSocketServer(options?: ServerOptions) {
 
     if (CLIENT_SESSION_DATA[playerId]) {
       const previous_socket = CLIENT_SESSION_DATA[playerId].Socket;
-
       if (
         previous_socket &&
         (previous_socket.readyState === WebSocket.CONNECTING ||
           previous_socket.readyState == WebSocket.OPEN)
       ) {
-        console.error("Failed to initialize socket connection: socket already open");
-
+        console.error(
+          `Failed to initialize a new connection: socket ${playerId} already open`,
+        );
         socket.close();
 
         return;
@@ -46,58 +50,76 @@ export function createSocketServer(options?: ServerOptions) {
     const clientData = CLIENT_SESSION_DATA[playerId] ?? ({} as ClientSessionData);
 
     let url = "";
-    const [port, pxe] = createPXEService();
+    let port: number;
+    if (clientData.PXE && clientData.PXE.reuseTimerId !== null) {
+      // reuse PXE instance
+      clearTimeout(clientData.PXE.reuseTimerId);
+      port = clientData.PXE!.port;
+      url = `${HOST}${port}`;
+
+      socket.send(`pxe ${url}`);
+    } //
+    else {
+      let pxe;
+      [port, pxe] = createPXEService();
+
+      // pxe.stderr!.on("data", (data) => {
+      //   process.stderr.write(data);
+      // });
+
+      pxe.stdout!.on("data", async (data) => {
+        // process.stdout.write(data);
+
+        if (!data.includes(`Aztec Server listening on port ${port}`)) return;
+
+        url = `${HOST}${port}`;
+
+        // register contracts in PXE client
+        const pxeClient = createPXEClient(url);
+        await pxeClient.registerContract({
+          instance: BACKEND_WALLET.contracts.gateway.instance,
+          artifact: BACKEND_WALLET.contracts.gateway.artifact,
+        });
+
+        clientData.PXE = { process: pxe, port, reuseTimerId: null };
+
+        socket.send(`pxe ${url}`);
+        console.log("PXE ready", url);
+      });
+
+      pxe.on("close", (code) => {
+        clientData.PXE = null;
+        console.log(`PXE process exited with code ${code}`);
+      });
+    }
 
     socket.on("message", (message) => {
       console.log(`Received message: ${message}`);
 
-      const msg = message.toString();
-
-      if (msg.includes("which pxe")) {
-        socket.send(`pxe ${clientData.PXE ? url : ""}`);
-      }
+      if (message.toString().includes("which pxe")) socket.send(`pxe ${url}`);
     });
 
     socket.on("close", () => {
-      console.log("Client disconnected");
-
       clientData.Socket = null;
 
-      destroyPXEService(port);
+      if (terminating()) destroyPXEService(port);
+      else {
+        // delay destruction to allow reuse of PXE process on quick reconnect
+        if (!clientData.PXE) return;
+
+        clientData.PXE.reuseTimerId = setTimeout(
+          () => {
+            clientData.PXE!.reuseTimerId = null;
+            destroyPXEService(port);
+          }, //
+          3_000,
+        );
+      }
+
+      console.log("Client disconnected");
     });
 
     clientData.Socket = socket;
-
-    // pxe.stderr!.on("data", (data) => {
-    //   process.stderr.write(data);
-    // });
-
-    pxe.stdout!.on("data", async (data) => {
-      // process.stdout.write(data);
-
-      if (!data.includes(`Aztec Server listening on port ${port}`)) return;
-
-      url = `${HOST}${port}`;
-
-      // register contracts in PXE client
-      const pxeClient = createPXEClient(url);
-      await pxeClient.registerContract({
-        instance: BACKEND_WALLET.contracts.gateway.instance,
-        artifact: BACKEND_WALLET.contracts.gateway.artifact,
-      });
-
-      clientData.PXE = pxe;
-
-      socket.send(`pxe ${url}`);
-      console.log("PXE ready", url);
-    });
-
-    pxe.on("close", (code) => {
-      const msg = `PXE process exited with code ${code}`;
-      console.log(msg);
-
-      clientData.PXE = null;
-    });
 
     CLIENT_SESSION_DATA[playerId] = clientData;
 
@@ -106,6 +128,8 @@ export function createSocketServer(options?: ServerOptions) {
 }
 
 export function destroySocketServer() {
+  _terminating = true;
+
   if (!ws_server) return;
 
   for (const client of ws_server.clients) {
