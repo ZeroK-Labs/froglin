@@ -4,8 +4,8 @@ import { Froglin } from "src/types";
 import { InterestPoint } from ".";
 
 type GameEventClient = {
-  bounds: GeoJSON.Position[][];
-  setBounds: React.Dispatch<React.SetStateAction<GeoJSON.Position[][]>>;
+  bounds: [number, number][][];
+  setBounds: React.Dispatch<React.SetStateAction<[number, number][][]>>;
   getEventBounds: () => LngLatBoundsLike;
 
   epochCount: number;

@@ -64,7 +64,7 @@ export function inTriangle(
 
 const latitudeDelta = (EVENT.BOUNDS_SIDE_LENGTH / METERS_PER_DEGREE_LATITUDE) * 0.5;
 
-export function getBoundsForCoordinate(location: MapCoordinates): GeoJSON.Position[][] {
+export function getBoundsForCoordinate(location: MapCoordinates): [number, number][][] {
   const { latitude, longitude } = location;
 
   // adjust based on latitude

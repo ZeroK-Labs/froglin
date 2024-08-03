@@ -27,7 +27,6 @@
     "@swc/core": "1.7.4",
     "@types/bun": "1.1.6",
     "@types/cors": "2.8.17",
-    "@types/geojson": "7946.0.14",
     "@types/node": "22.0.2",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",

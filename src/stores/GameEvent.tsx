@@ -30,7 +30,7 @@ function createState(): GameEventClient {
   const epochCountRef = useRef(-1);
   const revealingRef = useRef(false);
 
-  const [bounds, setBounds] = useState<GeoJSON.Position[][]>([
+  const [bounds, setBounds] = useState<[number, number][][]>([
     [
       [0, 0],
       [0, 0],
