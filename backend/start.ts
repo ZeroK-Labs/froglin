@@ -5,7 +5,6 @@ import express from "express";
 import fs from "fs";
 import https from "https";
 import path from "path";
-import { execSync } from "child_process";
 
 import { addSandboxWatcherEventHandler, startSandboxWatcher } from "./SandboxWatcher";
 import { createAccount } from "./aztec";
@@ -22,9 +21,7 @@ function cleanup() {
   destroySocketServer();
 
   html_server.close(() => {
-    execSync(`pgrep -a -f "bun backend/start.ts" | awk '{print $1}' | xargs kill -9`, {
-      stdio: "inherit",
-    });
+    process.exit();
   });
 }
 
