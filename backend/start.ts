@@ -9,10 +9,12 @@ import path from "path";
 import { addSandboxWatcherEventHandler, startSandboxWatcher } from "./SandboxWatcher";
 import { createAccount } from "./aztec";
 import { createSocketServer, destroySocketServer } from "./sockets";
-import { getGame } from "./endpoints/game";
-import { getGatewayAddress } from "./endpoints/gateway";
-import { getLeaderboard } from "./endpoints/leaderboard";
-import { revealFroglins } from "./endpoints/reveal";
+import {
+  getGatewayAddress,
+  getGame,
+  getLeaderboard,
+  revealFroglins,
+} from "./endpoints";
 
 // graceful shutdown on Ctrl+C
 function cleanup() {
