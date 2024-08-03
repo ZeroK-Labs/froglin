@@ -3,9 +3,9 @@ import {
   LocationProvider,
   MapViewStateProvider,
   ModalStateProvider,
-  PXEClientProvider,
+  PXEStateProvider,
   PlayerProvider,
-  usePXEClient,
+  usePXEState,
   usePlayer,
 } from "src/stores";
 import {
@@ -22,7 +22,7 @@ import {
 
 function AppComponent() {
   const { hasSecret } = usePlayer();
-  const { pxeClient } = usePXEClient();
+  const { pxeClient } = usePXEState();
 
   return (
     <>
@@ -52,7 +52,7 @@ export default function App() {
     MapViewStateProvider,
     ModalStateProvider,
     LocationProvider,
-    PXEClientProvider,
+    PXEStateProvider,
     PlayerProvider,
     GameEventProvider,
   ].reduceRight((acc, Provider) => <Provider>{acc}</Provider>, <AppComponent />);

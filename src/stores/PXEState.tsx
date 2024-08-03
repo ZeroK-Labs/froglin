@@ -2,18 +2,14 @@ import toast from "react-hot-toast";
 import { PXE, createPXEClient } from "@aztec/aztec.js";
 import { useEffect, useState } from "react";
 
+import { PXEState } from "src/types";
 import { StoreFactory } from "src/stores";
 import {
-  addSocketEventHandler,
   CLIENT_SOCKET,
-  removeSocketEventHandler,
+  addSocketEventHandler,
   getPXEReadyMessage,
+  removeSocketEventHandler,
 } from "src/utils/sockets";
-
-type PXEState = {
-  pxeClient: PXE | null;
-  pxeURL: string;
-};
 
 function createState(): PXEState {
   const [pxeClient, setPXEClient] = useState<PXE | null>(null);
@@ -25,7 +21,6 @@ function createState(): PXEState {
       let timerId: Timer;
       function handleSocketOpen() {
         toastId = toast.loading("Waiting for PXE...");
-        // timerId = setTimeout(CLIENT_SOCKET.send, 3_000, "which pxe");
       }
 
       function handleSocketClose() {
@@ -86,8 +81,6 @@ function createState(): PXEState {
         if (ready) handlePXEReady(ready);
       }
 
-      // CLIENT_SOCKET.send("which pxe");
-
       return () => {
         removeSocketEventHandler("message", handlePXEReady);
         removeSocketEventHandler("close", handleSocketClose);
@@ -103,5 +96,5 @@ function createState(): PXEState {
   };
 }
 
-export const { Provider: PXEClientProvider, useProvider: usePXEClient } =
+export const { Provider: PXEStateProvider, useProvider: usePXEState } =
   StoreFactory<PXEState>(createState);

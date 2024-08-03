@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 import { MODALS } from "src/enums";
 import { Modal } from "src/components";
-import { useModalState, usePXEClient, usePlayer } from "src/stores";
+import { useModalState, usePXEState, usePlayer } from "src/stores";
 
 const INPUT_KEY_LENGTH = 100;
 const INPUT_TIMEOUT = 150;
@@ -46,7 +46,7 @@ export default function AccountModal() {
   const [error, setError] = useState("");
 
   const { modal, setModal } = useModalState();
-  const { pxeClient } = usePXEClient();
+  const { pxeClient } = usePXEState();
   const { setSecret, username, setUsername } = usePlayer();
 
   const completionPercentage = Math.floor((inputKey.length / INPUT_KEY_LENGTH) * 100);

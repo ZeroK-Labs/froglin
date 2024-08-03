@@ -4,6 +4,7 @@ export type { default as LineMenuProps } from "./LineMenuProps";
 export type { default as LocationInfo } from "./LocationInfo";
 export type { default as MapViewState } from "./MapViewState";
 export type { default as ModalState } from "./ModalState";
+export type { default as PXEState } from "./PXEState";
 export type { default as Player } from "./Player";
 export type { default as RevealingCircleState } from "./RevealingCircleState";
 export type { default as TutorialState } from "./TutorialState";

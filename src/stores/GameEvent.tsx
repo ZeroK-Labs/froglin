@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { FROGLIN, PLAYER } from "src/settings";
 import { Froglin } from "src/types";
-import { StoreFactory, useLocation, usePXEClient } from "src/stores";
+import { StoreFactory, useLocation, usePXEState } from "src/stores";
 import { inRange } from "common/utils/map";
 import {
   GameEventBase,
@@ -46,7 +46,7 @@ function createState(): GameEventClient {
   const [capturedFroglins, setCapturedFroglins] = useState<Froglin[]>([]);
 
   const location = useLocation();
-  const { pxeClient } = usePXEClient();
+  const { pxeClient } = usePXEState();
 
   interestPointsRef.current = interestPoints;
 

@@ -4,7 +4,7 @@ import { SetStateAction, useEffect, useState } from "react";
 
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { Player } from "src/types";
-import { StoreFactory, usePXEClient } from "src/stores";
+import { StoreFactory, usePXEState } from "src/stores";
 import { createWallet } from "common/WalletManager";
 import { stringToBigInt, bigIntToString } from "common/utils/bigint";
 
@@ -13,7 +13,7 @@ function getSecret() {
 }
 
 function createState(): Player {
-  const { pxeClient, pxeURL } = usePXEClient();
+  const { pxeClient, pxeURL } = usePXEState();
 
   const [wallet, setWallet] = useState<AccountWallet | null>(null);
   const [gateway, setGateway] = useState<FroglinGatewayContract | null>(null);
