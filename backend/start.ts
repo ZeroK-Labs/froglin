@@ -7,6 +7,7 @@ import https from "https";
 import path from "path";
 import { execSync } from "child_process";
 
+import { addSandboxWatcherEventHandler, startSandboxWatcher } from "./SandboxWatcher";
 import { createAccount } from "./aztec";
 import { createSocketServer, destroySocketServer } from "./sockets";
 import { getGame } from "./endpoints/game";
@@ -49,21 +50,36 @@ const options = {
   cert: fs.readFileSync(path.resolve(process.env.SSL_CERT!)),
 };
 
-const html_server = https.createServer(options, app);
+let html_server: https.Server;
 
-// INITIALIZE OTHERS
+async function handleSandboxFound() {
+  try {
+    await createAccount();
+    //
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (err) {
+    return;
+  }
 
-// AZTEC
-await createAccount();
+  html_server = https.createServer(options, app);
+  createSocketServer({ server: html_server });
 
-// SOCKETS
-createSocketServer({ server: html_server });
+  // START
+  html_server.listen(Number(process.env.BACKEND_PORT), () => {
+    console.log(
+      `\nWebserver is \x1b[32mlive\x1b[0m @ \x1b[1m\x1b[34mhttps\x1b[0m\x1b[0m://localhost:${process.env.BACKEND_PORT}\x1b[0m\n`,
+    );
+  });
+}
 
-// ..
+function handleSandboxLost() {
+  console.log("\nSandbox lost, shutting down\n");
 
-// START
-html_server.listen(Number(process.env.BACKEND_PORT), () => {
-  console.log(
-    `\nWebserver is \x1b[32mlive\x1b[0m @ \x1b[1m\x1b[34mhttps\x1b[0m\x1b[0m://localhost:${process.env.BACKEND_PORT}\x1b[0m\n`,
-  );
-});
+  destroySocketServer();
+  if (html_server) html_server.close();
+}
+
+addSandboxWatcherEventHandler("found", handleSandboxFound);
+addSandboxWatcherEventHandler("lost", handleSandboxLost);
+
+startSandboxWatcher();
