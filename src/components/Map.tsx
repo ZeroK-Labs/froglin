@@ -107,13 +107,12 @@ export default function MapScreen() {
 
       const timerId = setTimeout(
         () => {
-          map.disableActions();
-          map.off("idle", map.enablePlaygroundActions);
+          if (map.isBusy()) return;
+
           map.flyTo({
             center,
             duration: VIEW.LOCATION_FOLLOW_DURATION,
           });
-          map.once("idle", map.enablePlaygroundActions);
         }, //
         VIEW.LOCATION_FOLLOW_DELAY,
       );
