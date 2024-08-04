@@ -62,8 +62,10 @@ frontend/styles/global.css
 ################
 
 /.env
+/settings
+
+/env.config.js
 backend/gateway_address
-settings
 
 #####################
 ### MISCELLANEOUS ###

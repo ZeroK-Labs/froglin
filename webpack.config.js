@@ -7,23 +7,24 @@ import path from "path";
 import webpack from "webpack";
 // import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
 
-import loadenv from "./common/loadenv.js";
+import "./common/loadenv.js";
 
-export default async () => {
-  // extract mode from command-line args
-  let index = 0;
-  const serving = process.argv[2] === "serve";
-
-  if (process.argv[2] === "--env") index = 3;
-  else if (serving) index = 4;
-  else throw "Unable to identify 'mode' parameter from command line arguments";
-
-  // prepare environment
-  const mode = process.argv.slice(index)[0].split("=")[1];
-  await loadenv(mode);
+export default () => {
+  // extract 'mode' from command-line args
+  let index = process.argv.findIndex((arg) => arg.startsWith("mode="));
+  if (index === -1) {
+    throw "Unable to identify 'mode' parameter from command line arguments";
+  }
+  const mode = process.argv[index].split("=")[1];
 
   const development = mode === "dev";
   const production = !development;
+
+  process.env.NODE_ENV = development ? "development" : "production";
+
+  console.log(`\n\x1b[32m${process.env.NODE_ENV}\x1b[0m mode\n`);
+
+  const serving = process.argv.indexOf("serve") !== -1;
 
   //
   // https://webpack.js.org/configuration

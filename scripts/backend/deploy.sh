@@ -1,12 +1,13 @@
 #!/bin/bash
 
+# load required env vars
 eval $(node -e "
   (async () => {
-    const settings = (await import('./settings/dev.js')).default;
+    const configuration = (await import('./env.config.js')).default;
 
-    const env = 'DEPLOY_USER=' + settings.DEPLOY_USER + ';'
-              + 'DEPLOY_HOST=' + settings.DEPLOY_HOST + ';'
-              + 'DEPLOY_DIR=' + settings.DEPLOY_BACKEND_DIR + ';';
+    const env = 'DEPLOY_USER=' + configuration.DEPLOY_USER + ';'
+              + 'DEPLOY_HOST=' + configuration.DEPLOY_HOST + ';'
+              + 'DEPLOY_DIR=' + configuration.DEPLOY_BACKEND_DIR + ';';
 
     console.log(env);
   })()
@@ -20,13 +21,15 @@ printf "\nSyncing files...\n"
 
 items=(
   "aztec"
-  "backend"
+  "backend/start.sh"
   "common"
+  "frontend/settings.ts"
   "scripts/.env"
   "scripts/aztec"
   "scripts/docker"
   "scripts/prerequisites"
-  "frontend/settings.ts"
+  "scripts/cleanup.sh"
+  "scripts/setup.sh"
   ".nvmrc"
   "bun.lockb"
   "package.json"

@@ -1,3 +1,3 @@
 [test]
 # scripts to run before `bun run`-ing a file or script
-preload = ["./tests/setup.ts"]
+preload = ["./common/loadenv.js"]

@@ -1,14 +1,17 @@
 #!/bin/bash
 
+# do a production build
+rm -rf "build/prod"
 bun webpack:build prod || { exit 1; }
 
+# load required env vars
 eval $(node -e "
   (async () => {
-    const settings = (await import('./settings/dev.js')).default;
+    const configuration = (await import('./env.config.js')).default;
 
-    const env = 'DEPLOY_USER=' + settings.DEPLOY_USER + ';'
-              + 'DEPLOY_HOST=' + settings.DEPLOY_HOST + ';'
-              + 'DEPLOY_DIR=' + settings.DEPLOY_FRONTEND_DIR + ';';
+    const env = 'DEPLOY_USER=' + configuration.DEPLOY_USER + ';'
+              + 'DEPLOY_HOST=' + configuration.DEPLOY_HOST + ';'
+              + 'DEPLOY_DIR=' + configuration.DEPLOY_FRONTEND_DIR + ';';
 
     console.log(env);
   })()
