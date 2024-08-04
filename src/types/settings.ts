@@ -22,9 +22,9 @@ export type ViewSettings = {
    */
   readonly FIRST_FLIGHT_ANIMATION_DURATION: number;
   /**
-   * View mode swith transition animation duration (milliseconds)
+   * View mode switch transition animation duration (milliseconds)
    */
-  readonly VIEW_ANIMATION_DURATION: number;
+  readonly TRANSITION_DURATION: number;
   /**
    * GPS location change follow-up fly-to animation duration (miliseconds)
    */

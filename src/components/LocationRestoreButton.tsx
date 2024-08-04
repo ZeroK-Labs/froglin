@@ -22,7 +22,7 @@ export default function LocationRestoreButton({ map }: { map: mapboxgl.Map }) {
       zoom: VIEW.PLAYGROUND.ZOOM,
       pitch: VIEW.PLAYGROUND.PITCH,
       bearing: VIEW.PLAYGROUND.BEARING,
-      duration: VIEW.VIEW_ANIMATION_DURATION,
+      duration: VIEW.TRANSITION_DURATION,
     });
   }
 

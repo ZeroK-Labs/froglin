@@ -107,6 +107,7 @@ function getR3FRoot({ ...props }: BaseCanvasProps = {}) {
       canvas,
       context: canvas.getContext("webgl2") ?? undefined,
       autoClear: false,
+      ...props.gl,
     },
     camera: {
       matrixAutoUpdate: false,
@@ -164,28 +165,8 @@ function syncCamera(
   camera.userData.projViewInvMx = projViewInvMx;
 }
 
-function getMatrixTransformForCoordinate(
-  {
-    longitude,
-    latitude,
-    altitude = 0,
-    rotation = [MinusHalfPI, 0, 0],
-    scale = [1, 1, 1],
-  }: MapCoordinates & {
-    rotation?: [number, number, number];
-    scale?: [number, number, number];
-  },
-  matrix4 = new THREE.Matrix4(), // specify existing instance or allocate
-): THREE.Matrix4 {
-  const center = MercatorCoordinate.fromLngLat([longitude, latitude], altitude);
-  const scaleUnit = center.meterInMercatorCoordinateUnits();
-
-  position.set(center.x, center.y, center.z || 0);
-  scaleV.set(scaleUnit * scale[0], -scaleUnit * scale[1], scaleUnit * scale[2]);
-  quaternion.setFromEuler(euler.set(rotation[0], rotation[1], rotation[2]));
-
-  return matrix4.compose(position, quaternion, scaleV);
-}
+const rotation = [MinusHalfPI, 0, 0];
+const scale = [1, 1, 1];
 
 export function Canvas({ id = "3d", center, children, ...props }: CanvasProps) {
   const [canvas] = useState(getCanvas);
@@ -199,26 +180,7 @@ export function Canvas({ id = "3d", center, children, ...props }: CanvasProps) {
     state.advance(Date.now() * 0.001, false);
   }
 
-  // camera origin changes
-  useEffect(
-    () => {
-      getMatrixTransformForCoordinate(center, originMx);
-    }, //
-    [center.longitude, center.latitude],
-  );
-
-  // R3F update on children changed
-  useEffect(
-    () => {
-      // console.log("\x1b[30mR3FMapbox - repaint\x1b[0m");
-
-      root.render(children);
-      map.triggerRepaint();
-    }, //
-    [children],
-  );
-
-  // mount / unmount
+  // map resize
   useEffect(
     () => {
       function handleResize() {
@@ -241,6 +203,34 @@ export function Canvas({ id = "3d", center, children, ...props }: CanvasProps) {
       };
     }, //
     [],
+  );
+
+  // camera origin changes
+  useEffect(
+    () => {
+      const { longitude, latitude, altitude = 0 } = center;
+
+      const c = MercatorCoordinate.fromLngLat([longitude, latitude], altitude);
+      const scaleUnit = c.meterInMercatorCoordinateUnits();
+
+      position.set(c.x, c.y, c.z || 0);
+      scaleV.set(scaleUnit * scale[0], -scaleUnit * scale[1], scaleUnit * scale[2]);
+      quaternion.setFromEuler(euler.set(rotation[0], rotation[1], rotation[2]));
+
+      originMx.compose(position, quaternion, scaleV);
+    }, //
+    [center.longitude, center.latitude],
+  );
+
+  // R3F update on children changed
+  useEffect(
+    () => {
+      // console.log("\x1b[30mR3FMapbox - repaint\x1b[0m");
+
+      root.render(children);
+      map.triggerRepaint();
+    }, //
+    [children],
   );
 
   return (

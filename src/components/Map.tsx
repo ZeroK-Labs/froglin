@@ -68,7 +68,7 @@ export default function MapScreen() {
         //   return -(Math.cos(Math.PI * x) - 1) / 2;
         // },
       });
-      durationRef.current = VIEW.VIEW_ANIMATION_DURATION;
+      durationRef.current = VIEW.TRANSITION_DURATION;
     } //
     else if (mapView === MAP_VIEWS.EVENT) {
       map.once("idle", map.enableEventActions);
@@ -76,7 +76,7 @@ export default function MapScreen() {
         zoom: VIEW.EVENT.ZOOM - 0.5,
         pitch: VIEW.EVENT.PITCH,
         bearing: VIEW.EVENT.BEARING,
-        duration: VIEW.VIEW_ANIMATION_DURATION,
+        duration: VIEW.TRANSITION_DURATION,
       });
     }
   }
@@ -101,9 +101,9 @@ export default function MapScreen() {
       if (x < 0 || x > clientWidth || y < 0 || y > clientHeight) return;
 
       // wait for view switch animation to complete
-      let diff =
-        VIEW.VIEW_ANIMATION_DURATION - (Date.now() - lastViewChangeTimeRef.current);
-      if (diff > 0) return;
+      if (VIEW.TRANSITION_DURATION - (Date.now() - lastViewChangeTimeRef.current) > 0) {
+        return;
+      }
 
       const timerId = setTimeout(
         () => {
