@@ -18,23 +18,17 @@ export function getLocalIP() {
   throw "Failed to find IP address of this device";
 }
 
-const PXE_PORT_LOWER_BOUND = Number(process.env.SANDBOX_PORT) + 1;
-const PXE_PORT_UPPER_BOUND = 65535;
-const allocatedPorts: number[] = [];
-
 // TODO: cannot access sandbox using localhost, need specific IP
 const HOST = process.env.SANDBOX_URL!.replace("localhost", getLocalIP());
 
-export function createPXEService(): [number, ChildProcess] {
-  // generate a port
-  let port: number;
-  do {
-    port =
-      Math.floor(Math.random() * (PXE_PORT_UPPER_BOUND - PXE_PORT_LOWER_BOUND)) +
-      PXE_PORT_LOWER_BOUND;
-    //
-  } while (allocatedPorts.indexOf(port) !== -1);
+const allocatedPorts: number[] = [];
 
+export function createPXEService(): [number, ChildProcess] {
+  if (allocatedPorts.length === 32) throw "Max 32 PXE service instances";
+
+  // allocate a port sequentially
+  let port = Number(process.env.SANDBOX_PORT) + 1;
+  while (allocatedPorts.includes(port)) port += 1;
   allocatedPorts.push(port);
 
   return [
@@ -49,7 +43,11 @@ export function createPXEService(): [number, ChildProcess] {
 export function destroyPXEService(port: number) {
   const index = allocatedPorts.indexOf(port);
   if (index === -1) {
-    console.log(`Failed to destroy PXE service: port ${port} is missing from registry`);
+    console.error(
+      `Failed to destroy PXE service: port ${port} is missing from registry`,
+    );
+
+    return;
   }
 
   allocatedPorts.splice(index, 1);
