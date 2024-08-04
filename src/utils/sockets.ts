@@ -18,7 +18,6 @@ _window.__socket_reload =
     CLIENT_SOCKET.readyState === WebSocket.OPEN);
 
 let retries = 0;
-let closed = false;
 
 const handlers = {
   open: [],
@@ -102,14 +101,14 @@ function handleMessageWrapper(ev: MessageEvent<string>) {
 function handleClose(ev: CloseEvent) {
   console.error("WebSocket connection closed");
 
-  if (!closed) {
+  if (!_window.__socket_closed) {
     CLIENT_SOCKET.removeEventListener("error", handleError);
     CLIENT_SOCKET.removeEventListener("open", handleOpen);
     CLIENT_SOCKET.removeEventListener("close", handleClose);
     CLIENT_SOCKET.removeEventListener("message", handleMessage);
     CLIENT_SOCKET.removeEventListener("message", handleMessageWrapper);
 
-    closed = true;
+    _window.__socket_closed = true;
     for (const handler of handlers["close"]) handler(ev);
   }
 
@@ -137,18 +136,24 @@ function handleOpen(ev: Event) {
   _window.__socket_reconnect_timerId = null;
   server_pxe_url = null;
   retries = 0;
-  closed = false;
+  _window.__socket_closed = false;
 
   for (const handler of handlers["open"]) handler(ev);
 }
 
 export function createSocketClient() {
   // during HMR, remove previous socket connection
-  if (_window.__socket_reload) CLIENT_SOCKET.close();
+  if (
+    CLIENT_SOCKET &&
+    (CLIENT_SOCKET.readyState === WebSocket.CONNECTING ||
+      CLIENT_SOCKET.readyState === WebSocket.OPEN)
+  ) {
+    CLIENT_SOCKET.close();
+  }
 
   // during HMR, clear previous module's attempt to reconnect
   // if it initialized without a connection to socket server
-  if (_window.__socket_reconnect_timerId && !closed) {
+  if (_window.__socket_reconnect_timerId && !_window.__socket_closed) {
     clearTimeout(_window.__socket_reconnect_timerId);
   }
 
