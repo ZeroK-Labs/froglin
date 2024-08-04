@@ -26,7 +26,6 @@ _window.__map_load_duration ??= VIEW.FIRST_FLIGHT_DURATION;
 export default function MapScreen() {
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
   const lastViewChangeTimeRef = useRef(0);
-  const firstLoadRef = useRef(true);
 
   const [map, setMap] = useState<mapboxgl.Map>();
 
@@ -41,9 +40,7 @@ export default function MapScreen() {
       const map = node.getMap();
       setMapFog(map);
       setMap(map);
-      map.once("idle", () => {
-        firstLoadRef.current = false;
-      });
+
       return;
     }
 
@@ -99,7 +96,7 @@ export default function MapScreen() {
     () => {
       // console.log("map - location change", location);
 
-      if (!map || firstLoadRef.current) return;
+      if (!map) return;
 
       if (mapView !== MAP_VIEWS.PLAYGROUND || location.disabled) return;
 
