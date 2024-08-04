@@ -1,4 +1,3 @@
-import mapboxgl from "mapbox-gl";
 import { BackSide, FrontSide } from "three";
 import { useEffect, useState } from "react";
 
