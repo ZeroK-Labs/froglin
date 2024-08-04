@@ -96,9 +96,7 @@ export default function MapScreen() {
     () => {
       // console.log("map - location change", location);
 
-      if (!map) return;
-
-      if (mapView !== MAP_VIEWS.PLAYGROUND || location.disabled) return;
+      if (!map || mapView !== MAP_VIEWS.PLAYGROUND || location.disabled) return;
 
       const center: [number, number] = [
         location.coordinates.longitude,
@@ -128,8 +126,9 @@ export default function MapScreen() {
       );
 
       return () => {
-        if (mapView !== MAP_VIEWS.PLAYGROUND || location.disabled)
+        if (mapView !== MAP_VIEWS.PLAYGROUND || location.disabled) {
           clearTimeout(timerId);
+        }
       };
     }, //
     [mapView, location.coordinates.longitude, location.coordinates.latitude],
