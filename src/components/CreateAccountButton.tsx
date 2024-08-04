@@ -17,7 +17,7 @@ export default function CreateAccountButton() {
       style={{
         opacity: modal === MODALS.NONE && !hasSecret ? 1 : 0,
         pointerEvents: modal === MODALS.NONE && !hasSecret ? "auto" : "none",
-        transitionDuration: `${VIEW.TUTORIAL_FADE_ANIMATION_DURATION}ms`,
+        transitionDuration: `${VIEW.TUTORIAL_FADE_DURATION}ms`,
       }}
     >
       <button

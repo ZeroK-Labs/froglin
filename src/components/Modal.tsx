@@ -67,7 +67,7 @@ export default function Modal({
           ? { opacity: 1, pointerEvents: "auto" }
           : { opacity: 0, pointerEvents: "none" }),
         transitionProperty: "opacity",
-        transitionDuration: `${VIEW.TUTORIAL_FADE_ANIMATION_DURATION}ms`,
+        transitionDuration: `${VIEW.TUTORIAL_FADE_DURATION}ms`,
         maxHeight: "calc(100dvh - 2rem)",
       }}
     >

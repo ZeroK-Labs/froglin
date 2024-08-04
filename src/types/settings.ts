@@ -16,11 +16,11 @@ export type ViewSettings = {
   /**
    * Application fade-in after load transition animation duration (miliseconds)
    */
-  readonly LOAD_FADE_ANIMATION_DURATION: number;
+  readonly LOAD_FADE_DURATION: number;
   /**
    * Initial (first fly in) transition animation duration (miliseconds)
    */
-  readonly FIRST_FLIGHT_ANIMATION_DURATION: number;
+  readonly FIRST_FLIGHT_DURATION: number;
   /**
    * View mode switch transition animation duration (milliseconds)
    */
@@ -28,19 +28,19 @@ export type ViewSettings = {
   /**
    * GPS location change follow-up fly-to animation duration (miliseconds)
    */
-  readonly LOCATION_FOLLOW_ANIMATION_DURATION: number;
+  readonly LOCATION_FOLLOW_DURATION: number;
   /**
    * GPS location change follow-up fly-to animation delay (miliseconds)
    */
-  readonly LOCATION_FOLLOW_ANIMATION_DELAY: number;
+  readonly LOCATION_FOLLOW_DELAY: number;
   /**
    * Tutorial fade transition animation duration (miliseconds)
    */
-  readonly TUTORIAL_FADE_ANIMATION_DURATION: number;
+  readonly TUTORIAL_FADE_DURATION: number;
   /**
    * Line menu popup list fade animation duration (miliseconds)
    */
-  readonly LINE_MENU_FADE_ANIMATION_DURATION: number;
+  readonly LINE_MENU_FADE_DURATION: number;
 };
 
 /**

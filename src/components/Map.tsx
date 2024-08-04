@@ -21,7 +21,7 @@ import {
 
 export default function MapScreen() {
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
-  const durationRef = useRef(VIEW.FIRST_FLIGHT_ANIMATION_DURATION);
+  const durationRef = useRef(VIEW.FIRST_FLIGHT_DURATION);
   const lastViewChangeTimeRef = useRef(0);
   const firstLoadRef = useRef(true);
 
@@ -111,11 +111,11 @@ export default function MapScreen() {
           map.off("idle", map.enablePlaygroundActions);
           map.flyTo({
             center,
-            duration: VIEW.LOCATION_FOLLOW_ANIMATION_DURATION,
+            duration: VIEW.LOCATION_FOLLOW_DURATION,
           });
           map.once("idle", map.enablePlaygroundActions);
         }, //
-        VIEW.LOCATION_FOLLOW_ANIMATION_DELAY,
+        VIEW.LOCATION_FOLLOW_DELAY,
       );
 
       return () => {

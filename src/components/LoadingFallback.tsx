@@ -14,7 +14,7 @@ export default function LoadingFallback() {
       return () => {
         function setVisible() {
           root.style.transitionProperty = "opacity";
-          root.style.transitionDuration = `${VIEW.LOAD_FADE_ANIMATION_DURATION}ms`;
+          root.style.transitionDuration = `${VIEW.LOAD_FADE_DURATION}ms`;
           root.style.opacity = "1";
         }
 
@@ -35,7 +35,7 @@ export default function LoadingFallback() {
             const style = document.getElementById("load-style");
             if (style) document.head.removeChild(style);
           }, //
-          VIEW.LOAD_FADE_ANIMATION_DURATION + duration,
+          VIEW.LOAD_FADE_DURATION + duration,
         );
       };
     }, //
