@@ -2,7 +2,7 @@ import { WebSocketServer, ServerOptions } from "ws";
 import { createPXEClient } from "@aztec/aztec.js";
 import { parse } from "url";
 
-import { BACKEND_WALLET } from "backend/utils";
+import { BACKEND_WALLET } from "backend/utils/aztec";
 import { ClientSessionData } from "backend/types";
 import { createPXEService, destroyPXEService } from "common/utils/PXEManager";
 

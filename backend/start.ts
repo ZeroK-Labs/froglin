@@ -6,19 +6,18 @@ import fs from "fs";
 import https from "https";
 import path from "path";
 
+import { createAccount } from "./utils/aztec";
+import { createSocketServer, destroySocketServer } from "./utils/sockets";
+import {
+  addSandboxWatcherEventHandler,
+  startSandboxWatcher,
+} from "./utils/SandboxWatcher";
 import {
   getGatewayAddress,
   getGame,
   getLeaderboard,
   revealFroglins,
 } from "./endpoints";
-import {
-  addSandboxWatcherEventHandler,
-  createAccount,
-  createSocketServer,
-  destroySocketServer,
-  startSandboxWatcher,
-} from "./utils";
 
 // graceful shutdown on Ctrl+C
 function cleanup() {
