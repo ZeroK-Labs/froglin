@@ -38,7 +38,7 @@ aztec/contracts/**/target
 codegenCache.json
 
 # tailwind
-src/styles/global.css
+frontend/styles/global.css
 
 ############
 ### LOGS ###

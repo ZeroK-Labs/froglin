@@ -7,7 +7,7 @@
   "type": "module",
   "private": false,
   "sideEffects": [
-    "src/styles/global.css"
+    "frontend/styles/global.css"
   ],
   "dependencies": {
     "@aztec/accounts": "0.47.1",

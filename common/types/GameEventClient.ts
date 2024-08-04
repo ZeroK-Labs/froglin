@@ -1,6 +1,6 @@
 import { LngLatBoundsLike } from "mapbox-gl";
 
-import { Froglin } from "src/types";
+import { Froglin } from "frontend/types";
 import { InterestPoint } from ".";
 
 type GameEventClient = {

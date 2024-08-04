@@ -1,5 +1,5 @@
 import { AngleToRadian } from "./math";
-import { EVENT } from "../../src/settings";
+import { EVENT } from "frontend/settings";
 import { MapCoordinates } from "common/types";
 
 // radius of Earth in kilometers; 3956 for miles

@@ -26,7 +26,7 @@ items=(
   "scripts/aztec"
   "scripts/docker"
   "scripts/prerequisites"
-  "src/settings.ts"
+  "frontend/settings.ts"
   ".nvmrc"
   "bun.lockb"
   "package.json"

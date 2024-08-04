@@ -1,5 +1,5 @@
 import { CLIENT_SESSION_DATA } from "../sockets";
-import { EVENT } from "../../src/settings";
+import { EVENT } from "../../frontend/settings";
 import { GameEventServer, MapCoordinates } from "common/types";
 import { getInterestPoints, getBoundsForCoordinate } from "common/utils/map";
 

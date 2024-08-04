@@ -31,7 +31,7 @@
     "common/loadenv.js",
     "aztec/contracts/**/artifact/*.ts",
     "aztec/contracts/**/target/*.json",
-    "src/**/*.ts*",
+    "frontend/**/*.ts*",
     "tests/**/*.ts"
   ],
   "exclude": ["**/node_modules", "build"]

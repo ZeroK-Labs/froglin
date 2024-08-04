@@ -9,7 +9,10 @@ const colors = {
 };
 
 export default {
-  content: ["./src/pages/**/*.{html,ts,tsx}", "./src/components/**/*.{html,ts,tsx}"],
+  content: [
+    "./frontend/pages/**/*.{html,ts,tsx}",
+    "./frontend/components/**/*.{html,ts,tsx}",
+  ],
   theme: {
     extend: {
       colors,

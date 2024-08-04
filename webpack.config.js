@@ -36,7 +36,7 @@ export default async () => {
     // https://webpack.js.org/configuration/entry-context
     //
     entry: {
-      main: path.resolve("src/root.tsx"),
+      main: path.resolve("frontend/root.tsx"),
     },
     //
     // https://webpack.js.org/configuration/output
@@ -68,7 +68,7 @@ export default async () => {
     plugins: [
       // new BundleAnalyzerPlugin(),
       new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] }),
-      new HtmlWebpackPlugin({ template: "./src/index.html" }),
+      new HtmlWebpackPlugin({ template: "./frontend/index.html" }),
       new webpack.DefinePlugin({
         "process.env": {
           NODE_ENV: JSON.stringify(process.env.NODE_ENV),
