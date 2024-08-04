@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
-import { createGameEvent } from "../stores/GameEvent";
-import { CLIENT_SESSION_DATA } from "../utils/sockets";
+import { createGameEvent } from "backend/stores/GameEvent";
+import { CLIENT_SESSION_DATA } from "backend/utils/sockets";
 
 export function getGame(req: Request, res: Response) {
   res.setHeader("content-type", "text/json");
