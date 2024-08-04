@@ -24,4 +24,4 @@ fi
 
 scripts/.ssl/create_localhost_certificates.sh || { exit 1; }
 
-webpack --env mode=$arg
+bun webpack --env mode=$arg
