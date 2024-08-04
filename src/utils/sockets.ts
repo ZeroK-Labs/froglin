@@ -1,18 +1,10 @@
 import toast from "react-hot-toast";
 
-function generatePlayerId() {
-  const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const array = new Uint8Array(16);
-  crypto.getRandomValues(array);
+import { generateID } from "./id";
 
-  const id = Array.from(array, (byte) => chars[byte % chars.length]).join("");
+if (!localStorage.getItem("playerId")) localStorage.setItem("playerId", generateID());
 
-  localStorage.setItem("playerId", id);
-
-  return id;
-}
-
-const PLAYER_ID = localStorage.getItem("playerId") ?? generatePlayerId();
+const PLAYER_ID = localStorage.getItem("playerId")!;
 
 const query = new URLSearchParams({ playerId: PLAYER_ID });
 const url = `${process.env.WSS_URL}?${query}`;
