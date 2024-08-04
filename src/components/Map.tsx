@@ -19,9 +19,12 @@ import {
   PlayerMarker,
 } from "src/components";
 
+// attach map to the window object to persist across module reloads
+const _window = window as any;
+_window.__map_load_duration ??= VIEW.FIRST_FLIGHT_DURATION;
+
 export default function MapScreen() {
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
-  const durationRef = useRef(VIEW.FIRST_FLIGHT_DURATION);
   const lastViewChangeTimeRef = useRef(0);
   const firstLoadRef = useRef(true);
 
@@ -62,13 +65,13 @@ export default function MapScreen() {
         zoom: VIEW.PLAYGROUND.ZOOM,
         pitch: VIEW.PLAYGROUND.PITCH,
         bearing: VIEW.PLAYGROUND.BEARING,
-        duration: durationRef.current,
+        duration: _window.__map_load_duration,
         // https://easings.net/#easeInOutSine
         // easing: (x: number): number => {
         //   return -(Math.cos(Math.PI * x) - 1) / 2;
         // },
       });
-      durationRef.current = VIEW.TRANSITION_DURATION;
+      _window.__map_load_duration = VIEW.TRANSITION_DURATION;
     } //
     else if (mapView === MAP_VIEWS.EVENT) {
       map.once("idle", map.enableEventActions);
@@ -80,6 +83,16 @@ export default function MapScreen() {
       });
     }
   }
+
+  // stop fly-in on HMR updates
+  useEffect(
+    () => {
+      return () => {
+        _window.__map_load_duration = 0;
+      };
+    }, //
+    [],
+  );
 
   // map camera follows player
   useEffect(
