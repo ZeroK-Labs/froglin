@@ -3,7 +3,7 @@ import { AztecAddress, createPXEClient } from "@aztec/aztec.js";
 
 import { AccountWithContracts } from "common/types";
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
-import { createWallet } from "common/WalletManager";
+import { createWallet } from "common/utils/WalletManager";
 
 export const BACKEND_WALLET = {
   secret: process.env.BACKEND_WALLET_SECRET!,

@@ -1,8 +1,8 @@
 import { createPXEClient } from "@aztec/aztec.js";
 
 import AccountWithContracts from "common/types/AccountWithContracts";
-import { createPXEService, destroyPXEService } from "common/PXEManager";
-import { createWallet } from "common/WalletManager";
+import { createPXEService, destroyPXEService } from "common/utils/PXEManager";
+import { createWallet } from "common/utils/WalletManager";
 
 const game_master = { secret: "123", contracts: {} } as AccountWithContracts;
 

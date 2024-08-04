@@ -4,7 +4,7 @@ import { parse } from "url";
 
 import { BACKEND_WALLET } from "backend/utils";
 import { ClientSessionData } from "backend/types";
-import { createPXEService, destroyPXEService } from "common/PXEManager";
+import { createPXEService, destroyPXEService } from "common/utils/PXEManager";
 
 export const CLIENT_SESSION_DATA: { [key: string]: ClientSessionData } = {};
 

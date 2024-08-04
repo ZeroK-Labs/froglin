@@ -5,7 +5,7 @@ import { SetStateAction, useEffect, useState } from "react";
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { Player } from "frontend/types";
 import { StoreFactory, usePXEState } from "frontend/stores";
-import { createWallet } from "common/WalletManager";
+import { createWallet } from "common/utils/WalletManager";
 import { stringToBigInt, bigIntToString } from "common/utils/bigint";
 
 function getSecret() {
