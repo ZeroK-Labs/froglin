@@ -90,6 +90,16 @@ export default function MapScreen() {
 
       if (mapView !== MAP_VIEWS.PLAYGROUND || location.disabled) return;
 
+      const center: [number, number] = [
+        location.coordinates.longitude,
+        location.coordinates.latitude,
+      ];
+
+      // skip follow when not in view
+      const { x, y } = map.project(center);
+      const { clientWidth, clientHeight } = map.getContainer();
+      if (x < 0 || x > clientWidth || y < 0 || y > clientHeight) return;
+
       // wait for view switch animation to complete
       let diff =
         VIEW.VIEW_ANIMATION_DURATION - (Date.now() - lastViewChangeTimeRef.current);
@@ -100,7 +110,7 @@ export default function MapScreen() {
           map.disableActions();
           map.off("idle", map.enablePlaygroundActions);
           map.flyTo({
-            center: [location.coordinates.longitude, location.coordinates.latitude],
+            center,
             duration: VIEW.LOCATION_FOLLOW_ANIMATION_DURATION,
           });
           map.once("idle", map.enablePlaygroundActions);
