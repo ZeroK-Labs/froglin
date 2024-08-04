@@ -13,7 +13,7 @@ import {
 } from "common/types";
 import {
   CLIENT_SOCKET,
-  PLAYER_ID,
+  SESSION_ID,
   addSocketEventHandler,
   removeSocketEventHandler,
 } from "src/utils/sockets";
@@ -118,7 +118,7 @@ function createState(): GameEventClient {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            playerId: PLAYER_ID,
+            sessionId: SESSION_ID,
             hiddenInterestPointIds,
           }),
         });
@@ -171,13 +171,13 @@ function createState(): GameEventClient {
   async function fetchData(coordinates?: MapCoordinates) {
     if (CLIENT_SOCKET.readyState !== WebSocket.OPEN) return;
 
-    if (!PLAYER_ID) {
-      console.error("Failed to fetch game event data: missing PLAYER_ID");
+    if (!SESSION_ID) {
+      console.error("Failed to fetch game event data: missing SESSION_ID");
 
       return;
     }
 
-    const query = new URLSearchParams({ playerId: PLAYER_ID });
+    const query = new URLSearchParams({ sessionId: SESSION_ID });
     if (coordinates) {
       query.set("longitude", coordinates.longitude.toString());
       query.set("latitude", coordinates.latitude.toString());

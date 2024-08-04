@@ -24,22 +24,22 @@ export function createSocketServer(options?: ServerOptions) {
 
   ws_server.on("connection", (socket: WebSocket, request) => {
     const query = parse(request.url!, true).query;
-    const playerId = query.playerId as string;
-    if (!playerId) {
-      console.error("Socket connection error: missing request playerId param");
+    const sessionId = query.sessionId as string;
+    if (!sessionId) {
+      console.error("Socket connection error: missing request sessionId param");
 
       return;
     }
 
-    if (CLIENT_SESSION_DATA[playerId]) {
-      const previous_socket = CLIENT_SESSION_DATA[playerId].Socket;
+    if (CLIENT_SESSION_DATA[sessionId]) {
+      const previous_socket = CLIENT_SESSION_DATA[sessionId].Socket;
       if (
         previous_socket &&
         (previous_socket.readyState === WebSocket.CONNECTING ||
           previous_socket.readyState == WebSocket.OPEN)
       ) {
         console.error(
-          `Failed to initialize a new connection: socket ${playerId} already open`,
+          `Failed to initialize a new connection: socket ${sessionId} already open`,
         );
         socket.close();
 
@@ -47,7 +47,7 @@ export function createSocketServer(options?: ServerOptions) {
       }
     }
 
-    const clientData = CLIENT_SESSION_DATA[playerId] ?? ({} as ClientSessionData);
+    const clientData = CLIENT_SESSION_DATA[sessionId] ?? ({} as ClientSessionData);
 
     let url = "";
     let port: number;
@@ -121,9 +121,9 @@ export function createSocketServer(options?: ServerOptions) {
 
     clientData.Socket = socket;
 
-    CLIENT_SESSION_DATA[playerId] = clientData;
+    CLIENT_SESSION_DATA[sessionId] = clientData;
 
-    console.log("Client connected", playerId, port);
+    console.log("Client connected", sessionId, port);
   });
 }
 

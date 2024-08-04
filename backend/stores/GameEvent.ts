@@ -15,16 +15,16 @@ function getCloseInterestPoints(coords: MapCoordinates, count: number) {
   return getInterestPoints(coords, count, EVENT.CLOSE_RANGE.FROM, EVENT.CLOSE_RANGE.TO);
 }
 
-function notifyNewEpoch(playerId: string) {
-  const socket = CLIENT_SESSION_DATA[playerId].Socket;
+function notifyNewEpoch(sessionId: string) {
+  const socket = CLIENT_SESSION_DATA[sessionId].Socket;
   if (socket && socket.readyState === WebSocket.OPEN) socket.send("newEpoch");
 }
 
-function sessionAlive(playerId: string, contextInfo: string) {
+function sessionAlive(sessionId: string, contextInfo: string) {
   if (
-    CLIENT_SESSION_DATA[playerId] &&
-    CLIENT_SESSION_DATA[playerId].Socket &&
-    CLIENT_SESSION_DATA[playerId].Socket.readyState === WebSocket.OPEN
+    CLIENT_SESSION_DATA[sessionId] &&
+    CLIENT_SESSION_DATA[sessionId].Socket &&
+    CLIENT_SESSION_DATA[sessionId].Socket.readyState === WebSocket.OPEN
   ) {
     return true;
   }
@@ -36,10 +36,10 @@ function sessionAlive(playerId: string, contextInfo: string) {
 }
 
 export function createGameEvent(
-  playerId: string,
+  sessionId: string,
   location: MapCoordinates,
 ): GameEventServer | null {
-  if (!sessionAlive(playerId, "create")) return null;
+  if (!sessionAlive(sessionId, "create")) return null;
 
   let epochIntervalId: Timer;
   const event: GameEventServer = {
@@ -57,13 +57,13 @@ export function createGameEvent(
         return;
       }
 
-      if (!sessionAlive(playerId, "start")) {
-        CLIENT_SESSION_DATA[playerId].GameEvent = null;
+      if (!sessionAlive(sessionId, "start")) {
+        CLIENT_SESSION_DATA[sessionId].GameEvent = null;
 
         return;
       }
 
-      console.log(playerId, "newGame");
+      console.log(sessionId, "newGame");
 
       event.epochCount = EVENT.EPOCH_COUNT;
       event.interestPoints = Array.from({ length: EVENT.MARKER_COUNT }, (_, i) => ({
@@ -84,14 +84,14 @@ export function createGameEvent(
         return;
       }
 
-      console.log(playerId, "epoch", event.epochCount);
+      console.log(sessionId, "epoch", event.epochCount);
 
       event.epochCount -= 1;
       event.epochStartTime = Date.now();
 
       const totalCount = event.interestPoints.length;
       if (totalCount === 0) {
-        notifyNewEpoch(playerId);
+        notifyNewEpoch(sessionId);
 
         return;
       }
@@ -111,7 +111,7 @@ export function createGameEvent(
         event.interestPoints[i].coordinates = coordinates[i];
       }
 
-      notifyNewEpoch(playerId);
+      notifyNewEpoch(sessionId);
     },
 
     revealInterestPoints: function (interestPointIds: string[]) {

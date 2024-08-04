@@ -9,18 +9,18 @@ export function getGame(req: Request, res: Response) {
   // pre-emptively set status to error
   res.statusCode = 400;
 
-  const playerId = req.query.playerId as string;
-  if (!playerId) {
-    res.json("Missing playerId");
+  const sessionId = req.query.sessionId as string;
+  if (!sessionId) {
+    res.json("Missing sessionId");
     return;
   }
 
-  if (!CLIENT_SESSION_DATA[playerId] || !CLIENT_SESSION_DATA[playerId].Socket) {
-    res.json(`Missing socket connection for player ${playerId}`);
+  if (!CLIENT_SESSION_DATA[sessionId] || !CLIENT_SESSION_DATA[sessionId].Socket) {
+    res.json(`Missing socket connection for player ${sessionId}`);
     return;
   }
 
-  let gameEvent = CLIENT_SESSION_DATA[playerId].GameEvent;
+  let gameEvent = CLIENT_SESSION_DATA[sessionId].GameEvent;
   if (gameEvent) {
     const gameEventBase = {
       location: gameEvent.location,
@@ -46,7 +46,7 @@ export function getGame(req: Request, res: Response) {
     return;
   }
 
-  gameEvent = createGameEvent(playerId, {
+  gameEvent = createGameEvent(sessionId, {
     longitude,
     latitude,
   });
@@ -58,7 +58,7 @@ export function getGame(req: Request, res: Response) {
 
   gameEvent.start();
 
-  CLIENT_SESSION_DATA[playerId].GameEvent = gameEvent;
+  CLIENT_SESSION_DATA[sessionId].GameEvent = gameEvent;
 
   res.statusCode = 200;
   res.json(gameEvent);

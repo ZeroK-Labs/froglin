@@ -7,10 +7,10 @@ export function revealFroglins(req: Request, res: Response) {
   // pre-emptively set status to error
   res.statusCode = 400;
 
-  const { playerId, hiddenInterestPointIds } = req.body;
+  const { sessionId, hiddenInterestPointIds } = req.body;
 
-  if (!playerId) {
-    res.json("Missing playerId");
+  if (!sessionId) {
+    res.json("Missing sessionId");
     return;
   }
 
@@ -19,7 +19,7 @@ export function revealFroglins(req: Request, res: Response) {
     return;
   }
 
-  const gameEvent = CLIENT_SESSION_DATA[playerId].GameEvent;
+  const gameEvent = CLIENT_SESSION_DATA[sessionId].GameEvent;
 
   if (!gameEvent) {
     res.json("Missing game event");

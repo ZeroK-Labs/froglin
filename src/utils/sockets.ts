@@ -2,11 +2,11 @@ import toast from "react-hot-toast";
 
 import { generateID } from "./id";
 
-if (!localStorage.getItem("playerId")) localStorage.setItem("playerId", generateID());
+if (!localStorage.getItem("sessionId")) localStorage.setItem("sessionId", generateID());
 
-const PLAYER_ID = localStorage.getItem("playerId")!;
+const SESSION_ID = localStorage.getItem("sessionId")!;
 
-const query = new URLSearchParams({ playerId: PLAYER_ID });
+const query = new URLSearchParams({ sessionId: SESSION_ID });
 const url = `${process.env.WSS_URL}?${query}`;
 
 // attach socket to the window object to persist across module reloads
@@ -159,4 +159,4 @@ export function createSocketClient() {
   _window.__CLIENT_SOCKET = CLIENT_SOCKET;
 }
 
-export { CLIENT_SOCKET, PLAYER_ID };
+export { CLIENT_SOCKET, SESSION_ID };
