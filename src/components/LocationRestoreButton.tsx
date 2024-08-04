@@ -29,10 +29,9 @@ export default function LocationRestoreButton({ map }: { map: mapboxgl.Map }) {
   useEffect(
     () => {
       function checkBounds() {
-        const { clientWidth: width, clientHeight: height } = map.getContainer();
         const { x, y } = map.project([coordinates.longitude, coordinates.latitude]);
-
-        setContained(x >= 0 && x <= width && y >= 0 && y <= height);
+        const { clientWidth, clientHeight } = map.getContainer();
+        setContained(x >= 0 && x <= clientWidth && y >= 0 && y <= clientHeight);
       }
 
       map.on("move", checkBounds);
