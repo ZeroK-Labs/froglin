@@ -2,8 +2,8 @@ import { WebSocketServer, ServerOptions } from "ws";
 import { createPXEClient } from "@aztec/aztec.js";
 import { parse } from "url";
 
-import { BACKEND_WALLET } from "./aztec";
-import { ClientSessionData } from "./types";
+import { BACKEND_WALLET } from "backend/utils";
+import { ClientSessionData } from "backend/types";
 import { createPXEService, destroyPXEService } from "common/PXEManager";
 
 export const CLIENT_SESSION_DATA: { [key: string]: ClientSessionData } = {};
