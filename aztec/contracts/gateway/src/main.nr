@@ -6,10 +6,11 @@ contract FroglinGateway {
     };
 
     use dep::zkl_utils::public_keys::PublicKeys;
+    use dep::zkl_utils::player_note::PlayerNote;
 
     #[aztec(storage)]
     struct Storage {
-        accounts: Map<AztecAddress, PrivateMutable<ValueNote>>,
+        accounts: Map<AztecAddress, PrivateMutable<PlayerNote>>,
     }
 
     #[aztec(initializer)]
@@ -40,7 +41,7 @@ contract FroglinGateway {
 
         let keys = PublicKeys::from_private_context(&mut context, player);
 
-        let mut player_name_note = ValueNote::new(name, keys.npk_hash);
+        let mut player_name_note = PlayerNote::new(name, keys.npk_hash);
         storage.accounts.at(context.msg_sender()).initialize(&mut player_name_note).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk, player));
     }
 
@@ -51,7 +52,7 @@ contract FroglinGateway {
 
         let keys = PublicKeys::from_private_context(&mut context, context.msg_sender());
 
-        let mut new_player_name = ValueNote::new(name, keys.npk_hash);
+        let mut new_player_name = PlayerNote::new(name, keys.npk_hash);
         storage.accounts.at(context.msg_sender()).replace(&mut new_player_name).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk, player));
     }
 
@@ -64,6 +65,6 @@ contract FroglinGateway {
     unconstrained fn view_name(player: AztecAddress) -> pub Field {
         _check_registration(player);
 
-        storage.accounts.at(player).view_note().value
+        storage.accounts.at(player).view_note().player.name
     }
 }
