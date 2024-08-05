@@ -33,10 +33,14 @@ export function createPXEService(): [number, ChildProcess] {
 
   return [
     port,
-    spawn(`scripts/aztec/create_PXE.sh ${port} ${HOST}`, {
-      shell: true,
-      stdio: ["ignore", "pipe", "pipe"],
-    }),
+    spawn(
+      `scripts/aztec/destroy_PXE.sh ${port};
+       scripts/aztec/create_PXE.sh ${port} ${HOST}`,
+      {
+        shell: true,
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    ),
   ];
 }
 
@@ -50,10 +54,13 @@ export function destroyPXEService(port: number) {
     return;
   }
 
-  allocatedPorts.splice(index, 1);
-
-  spawn(`scripts/aztec/destroy_PXE.sh ${port}`, {
+  const destroyPXE = spawn(`scripts/aztec/destroy_PXE.sh ${port}`, {
     shell: true,
     stdio: "ignore", // "inherit",
+  });
+
+  destroyPXE.on("close", (code) => {
+    if (code === 0) allocatedPorts.splice(index, 1);
+    else console.error(`Failed to destroy PXE on port ${port}`);
   });
 }
