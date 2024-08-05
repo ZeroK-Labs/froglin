@@ -29,12 +29,12 @@ export const VIEW: ViewSettings = {
 
 const CLOSE_RANGE: PointGenerationRange = {
   FROM: 2,
-  TO: 15,
+  TO: 25,
 };
 
 const NEAR_RANGE: PointGenerationRange = {
   FROM: CLOSE_RANGE.TO,
-  TO: 50,
+  TO: 100,
 };
 
 const FAR_RANGE: PointGenerationRange = {
@@ -43,10 +43,10 @@ const FAR_RANGE: PointGenerationRange = {
 };
 
 export const EVENT: EventSettings = {
-  EPOCH_COUNT: 5,
-  EPOCH_DURATION: 5_000,
+  EPOCH_COUNT: 21,
+  EPOCH_DURATION: 50_000,
   BOUNDS_SIDE_LENGTH: FAR_RANGE.TO * 2,
-  MARKER_COUNT: 30,
+  MARKER_COUNT: 100,
   CLOSE_RANGE,
   NEAR_RANGE,
   FAR_RANGE,
