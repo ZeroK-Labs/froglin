@@ -13,12 +13,12 @@ function getSecret() {
 }
 
 function createState(): Player {
-  const { pxeClient, pxeURL } = usePXEState();
-
   const [wallet, setWallet] = useState<AccountWallet | null>(null);
   const [gateway, setGateway] = useState<FroglinGatewayContract | null>(null);
   const [secret, setSecret] = useState(getSecret);
   const [username, setUsername] = useState("");
+
+  const { pxeClient, pxeURL } = usePXEState();
 
   useEffect(
     () => {
@@ -77,6 +77,7 @@ function createState(): Player {
             .view_name(wallet.getAddress())
             .simulate();
           const name = bigIntToString(nameAsBigInt);
+
           setUsername(name);
 
           toast(`Welcome ${name}!`);
@@ -85,9 +86,10 @@ function createState(): Player {
         }
 
         if (!username) {
-          console.error("Failed to register player: missing username");
-          toast.error("Failed to register player");
-
+          // console.error("Failed to register player: missing username");
+          // toast.error("Failed to register player");
+          localStorage.removeItem("secret");
+          setSecret("");
           return;
         }
 
