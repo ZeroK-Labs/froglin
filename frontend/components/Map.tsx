@@ -117,6 +117,16 @@ export default function MapScreen() {
         () => {
           if (map.isBusy()) return;
 
+          // flying animation tries to zoom-out past minimum zoom
+          const minZoom = map.getMinZoom();
+          map.disableZoom();
+          map.setMinZoom(1);
+
+          setTimeout(() => {
+            map.setMinZoom(minZoom);
+            map.enableZoom();
+          }, VIEW.LOCATION_FOLLOW_DURATION);
+
           map.flyTo({
             center,
             duration: VIEW.LOCATION_FOLLOW_DURATION,
