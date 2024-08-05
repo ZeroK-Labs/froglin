@@ -67,11 +67,11 @@ export default function AccountModal() {
     const now = Date.now();
     if (now - lastInputTimeRef.current < INPUT_TIMEOUT) return;
 
-    if (!ev.clientX || !ev.clientY) return;
+    if (!ev.screenX || !ev.screenY) return;
 
     const x = Math.floor(ev.screenX);
     const y = Math.floor(ev.screenY);
-    const sum = ((x + y) % 1024).toString();
+    const sum = Math.abs((x + y) % 1024).toString();
 
     setInputKey((prev) => prev + sum);
     lastInputTimeRef.current = now;
