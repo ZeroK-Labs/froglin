@@ -6,6 +6,8 @@ import { mobileClient } from "./window";
 declare module "mapbox-gl" {
   interface Map {
     isBusy: () => boolean;
+    disableZoom: () => void;
+    enableZoom: () => void;
     disableActions: () => void;
     enablePlaygroundActions: () => void;
     enableEventActions: () => void;
@@ -13,6 +15,8 @@ declare module "mapbox-gl" {
 }
 
 mapboxgl.Map.prototype.isBusy = isBusy;
+mapboxgl.Map.prototype.disableZoom = disableZoom;
+mapboxgl.Map.prototype.enableZoom = enableZoom;
 mapboxgl.Map.prototype.disableActions = disableActions;
 mapboxgl.Map.prototype.enablePlaygroundActions = enablePlaygroundActions;
 mapboxgl.Map.prototype.enableEventActions = enableEventActions;
@@ -25,6 +29,20 @@ function isBusy(this: mapboxgl.Map) {
     this.isRotating() ||
     this._isDragging()
   );
+}
+
+function disableZoom(this: mapboxgl.Map) {
+  this.scrollZoom.disable();
+  this.touchPitch.disable();
+  this.touchZoomRotate.disable();
+  this.doubleClickZoom.disable();
+}
+
+function enableZoom(this: mapboxgl.Map) {
+  this.scrollZoom.enable();
+  this.touchPitch.enable();
+  this.touchZoomRotate.enable();
+  if (mobileClient) this.doubleClickZoom.enable();
 }
 
 function disableActions(this: mapboxgl.Map) {
@@ -47,10 +65,7 @@ function enablePlaygroundActions(this: mapboxgl.Map) {
   this.setMaxZoom(VIEW.PLAYGROUND.ZOOM);
   this.dragPan.enable();
   this.dragRotate.enable();
-  this.scrollZoom.enable();
-  this.touchPitch.enable();
-  this.touchZoomRotate.enable();
-  if (mobileClient) this.doubleClickZoom.enable();
+  this.enableZoom();
 }
 
 function enableEventActions(this: mapboxgl.Map) {
@@ -59,10 +74,7 @@ function enableEventActions(this: mapboxgl.Map) {
   this.setMinZoom(VIEW.EVENT.ZOOM - 1);
   this.setMaxZoom(VIEW.EVENT.ZOOM);
   this.dragRotate.enable();
-  this.scrollZoom.enable();
-  this.touchPitch.enable();
-  this.touchZoomRotate.enable();
-  if (mobileClient) this.doubleClickZoom.enable();
+  this.enableZoom();
 }
 
 // work-around to counteract the sky being black after loading
