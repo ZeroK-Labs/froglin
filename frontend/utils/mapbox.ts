@@ -18,7 +18,13 @@ mapboxgl.Map.prototype.enablePlaygroundActions = enablePlaygroundActions;
 mapboxgl.Map.prototype.enableEventActions = enableEventActions;
 
 function isBusy(this: mapboxgl.Map) {
-  return this.isEasing() || this.isZooming() || this.isMoving() || this.isRotating();
+  return (
+    this.isEasing() ||
+    this.isZooming() ||
+    this.isMoving() ||
+    this.isRotating() ||
+    this._isDragging()
+  );
 }
 
 function disableActions(this: mapboxgl.Map) {
