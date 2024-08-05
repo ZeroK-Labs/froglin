@@ -2,7 +2,7 @@
 
 # do a production build
 rm -rf "build/prod"
-bun webpack:build prod || { exit 1; }
+scripts/webpack/build.sh prod || { exit 1; }
 
 # load required env vars
 eval $(node -e "
@@ -23,12 +23,22 @@ eval $(node -e "
 
 printf "\nSyncing files...\n"
 
-rsync                                         \
+items=(
+  "public/images" "images"
+  "build/prod/"   ""
+)
+
+for ((i=0; i<${#items[@]}; i+=2)); do
+  item="${items[i]}"
+  DEST_DIR="${DEPLOY_DIR}/${items[i+1]}"
+
+  rsync                                       \
   -avz                                        \
   --progress                                  \
   -e "ssh -i ~/.ssh/id_rsa_contabo"           \
-  "build/prod"                                \
+  "$item"                                     \
   ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_DIR} \
   || { printf "\nFailed to sync files\n"; exit 1; }
+done
 
 printf "\nFiles synced successfully!\n"

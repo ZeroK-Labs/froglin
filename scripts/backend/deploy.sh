@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# do a production build
+scripts/aztec/compile.sh || { exit 1; }
+
 # load required env vars
 eval $(node -e "
   (async () => {
@@ -20,19 +23,24 @@ eval $(node -e "
 printf "\nSyncing files...\n"
 
 items=(
-  "aztec"
-  "backend/start.sh"
+  "aztec/contracts/event/artifact"
+  "aztec/contracts/event/target"
+  "aztec/contracts/gateway/artifact"
+  "aztec/contracts/gateway/target"
+  "backend"
   "common"
   "frontend/settings.ts"
   "scripts/.env"
   "scripts/aztec"
-  "scripts/docker"
+  "scripts/backend/start.sh"
+  "scripts/docker/start.sh"
   "scripts/prerequisites"
   "scripts/cleanup.sh"
   "scripts/setup.sh"
   ".nvmrc"
   "bun.lockb"
   "package.json"
+  "tsconfig.json"
 )
 
 for item in "${items[@]}"; do
