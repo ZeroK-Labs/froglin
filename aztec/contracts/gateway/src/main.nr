@@ -41,7 +41,7 @@ contract FroglinGateway {
 
         let keys = PublicKeys::from_private_context(&mut context, player);
 
-        let mut player_name_note = PlayerNote::new(name, keys.npk_hash);
+        let mut player_name_note = PlayerNote::new(name, AztecAddress::zero(), keys.npk_hash);
         storage.accounts.at(context.msg_sender()).initialize(&mut player_name_note).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk, player));
     }
 
@@ -52,8 +52,20 @@ contract FroglinGateway {
 
         let keys = PublicKeys::from_private_context(&mut context, context.msg_sender());
 
-        let mut new_player_name = PlayerNote::new(name, keys.npk_hash);
+        let old_player_note = storage.accounts.at(player).get_note().note;
+
+        let mut new_player_name = PlayerNote::new(name, old_player_note.event, keys.npk_hash);
         storage.accounts.at(context.msg_sender()).replace(&mut new_player_name).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk, player));
+    }
+
+    #[aztec(private)]
+    fn update_game_event_contract(address: AztecAddress) {
+        let player = context.msg_sender();
+        _check_registration(player);
+        // let note = storage.accounts.at(player).get_note().player;
+        // re-emit note: 71-74 in eventinfo contract
+        // do my thang
+        //
     }
 
     #[aztec(view)]
@@ -62,9 +74,16 @@ contract FroglinGateway {
     }
 
     #[aztec(view)]
+    unconstrained fn view_contract_address(player: AztecAddress) -> pub AztecAddress {
+        _check_registration(player);
+
+        storage.accounts.at(player).view_note().event
+    }
+
+    #[aztec(view)]
     unconstrained fn view_name(player: AztecAddress) -> pub Field {
         _check_registration(player);
 
-        storage.accounts.at(player).view_note().player.name
+        storage.accounts.at(player).view_note().name
     }
 }

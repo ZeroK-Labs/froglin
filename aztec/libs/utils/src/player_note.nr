@@ -7,53 +7,14 @@ use dep::aztec::{
     oracle::unsafe_rand::unsafe_rand, keys::getters::get_nsk_app, context::PrivateContext
 };
 
-global PLAYER_LEN: Field = 1;
-global PLAYER_SIZE: Field = 32;
-global PLAYER_NOTE_LEN: Field = PLAYER_LEN + 2;
+global PLAYER_NOTE_LEN: Field = 4;
 // PLAYER_NOTE_LEN * 32 + 32(storage_slot as bytes) + 32(note_type_id as bytes)
 global PLAYER_NOTE_BYTES_LEN: Field = PLAYER_NOTE_LEN * 32 + 64;
 
-struct Player {
-  name: Field,
-}
-
-impl ToField for Player {
-    fn to_field(self) -> Field {
-        self.name
-    }
-}
-
-impl FromField for Player {
-    fn from_field(name: Field) -> Self {
-        Player { name }
-    }
-}
-
-impl Serialize<1> for Player {
-    fn serialize(self) -> [Field; 1] {
-        [self.name]
-    }
-}
-
-impl Deserialize<1> for Player {
-    fn deserialize(serialized: [Field; 1]) -> Self {
-        Player {
-            name: serialized[0]
-        }
-    }
-}
-
-impl Default for Player {
-    fn default() -> Self {
-        Player {
-            name: 0
-        }
-    }
-}
-
 #[aztec(note)]
 struct PlayerNote {
-    player: Player,
+    event: AztecAddress,
+    name: Field,
     npk_m_hash: Field,
     randomness: Field,
 }
@@ -83,24 +44,23 @@ impl NoteInterface<PLAYER_NOTE_LEN, PLAYER_NOTE_BYTES_LEN> for PlayerNote {
 }
 
 impl PlayerNote {
-    pub fn new(name: Field, npk_m_hash: Field) -> Self {
+    pub fn new(name: Field, event: AztecAddress, npk_m_hash: Field) -> Self {
         let randomness = unsafe_rand();
         let header = NoteHeader::empty();
-        PlayerNote { player: Player { name }, npk_m_hash, randomness, header }
+        PlayerNote { name, event, npk_m_hash, randomness, header }
     }
 }
 
 impl Serialize<PLAYER_NOTE_LEN> for PlayerNote {
     fn serialize(self) -> [Field; PLAYER_NOTE_LEN] {
-        let header = self.header.serialize();
-
-        [self.player.name, self.npk_m_hash, self.randomness]
+        [self.name, self.event.to_field(), self.npk_m_hash, self.randomness]
     }
 }
 
 impl Eq for PlayerNote {
     fn eq(self, other: Self) -> bool {
-        (self.player.name == other.player.name) &
+        (self.name == other.name) &
+        (self.event == other.event) &
         (self.npk_m_hash == other.npk_m_hash) &
         (self.randomness == other.randomness)
     }
