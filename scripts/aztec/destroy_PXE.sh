@@ -8,4 +8,8 @@ if command -v apache2 &>/dev/null || command -v httpd &>/dev/null; then
   fi
 fi
 
-docker stop $(docker ps | grep $1 | cut -d ' ' -f 1)
+container=$(docker ps | grep $1 | cut -d ' ' -f 1)
+
+if [ -z "$container" ]; then exit 0; fi;
+
+docker stop $container >/dev/null
