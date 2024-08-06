@@ -22,7 +22,10 @@ function createState(): Player {
 
   useEffect(
     () => {
-      if (!(pxeClient && secret)) return;
+      if (!(pxeClient && secret)) {
+        setUsername("");
+        return;
+      }
 
       async function initializeWallet() {
         if (!pxeClient) {
