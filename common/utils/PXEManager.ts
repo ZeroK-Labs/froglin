@@ -1,5 +1,5 @@
 import os from "os";
-import { ChildProcess, spawn } from "child_process";
+import { ChildProcess, spawn, spawnSync } from "child_process";
 
 // TODO: cannot access sandbox using localhost, need specific IP
 export function getLocalIP() {
@@ -54,13 +54,11 @@ export function destroyPXEService(port: number) {
     return;
   }
 
-  const destroyPXE = spawn(`scripts/aztec/destroy_PXE.sh ${port}`, {
+  const destroyPXE = spawnSync(`scripts/aztec/destroy_PXE.sh ${port}`, {
     shell: true,
     stdio: "ignore", // "inherit",
   });
 
-  destroyPXE.on("close", (code) => {
-    if (code === 0) allocatedPorts.splice(index, 1);
-    else console.error(`Failed to destroy PXE on port ${port}`);
-  });
+  if (destroyPXE.status === 0) allocatedPorts.splice(index, 1);
+  else console.error(`Failed to destroy PXE on port ${port}`);
 }
