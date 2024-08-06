@@ -31,34 +31,35 @@ export function createPXEService(): [number, ChildProcess] {
   while (allocatedPorts.includes(port)) port += 1;
   allocatedPorts.push(port);
 
-  return [
-    port,
-    spawn(
-      `scripts/aztec/destroy_PXE.sh ${port};
-       scripts/aztec/create_PXE.sh ${port} ${HOST}`,
-      {
-        shell: true,
-        stdio: ["ignore", "pipe", "pipe"],
-      },
-    ),
-  ];
+  const pxe = spawn(
+    `scripts/aztec/destroy_PXE.sh ${port};
+     scripts/aztec/create_PXE.sh ${port} ${HOST}`,
+    {
+      shell: true,
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
+
+  pxe.on("close", () => {
+    const index = allocatedPorts.indexOf(port);
+    if (index === -1) {
+      console.error(
+        `Failed to destroy PXE service: port ${port} is missing from registry`,
+      );
+
+      return;
+    }
+    allocatedPorts.splice(index, 1);
+  });
+
+  return [port, pxe];
 }
 
 export function destroyPXEService(port: number) {
-  const index = allocatedPorts.indexOf(port);
-  if (index === -1) {
-    console.error(
-      `Failed to destroy PXE service: port ${port} is missing from registry`,
-    );
-
-    return;
-  }
-
   const destroyPXE = spawnSync(`scripts/aztec/destroy_PXE.sh ${port}`, {
     shell: true,
     stdio: "ignore", // "inherit",
   });
 
-  if (destroyPXE.status === 0) allocatedPorts.splice(index, 1);
-  else console.error(`Failed to destroy PXE on port ${port}`);
+  if (destroyPXE.status !== 0) console.error(`Failed to destroy PXE on port ${port}`);
 }
