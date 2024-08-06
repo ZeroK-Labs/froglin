@@ -1,3 +1,0 @@
-[test]
-# scripts to run before `bun run`-ing a file or script
-preload = ["./common/loadenv.js"]

@@ -4,13 +4,16 @@ import AccountWithContracts from "common/types/AccountWithContracts";
 import { createPXEService, destroyPXEService } from "common/utils/PXEManager";
 import { createWallet } from "common/utils/WalletManager";
 
-const game_master = { secret: "123", contracts: {} } as AccountWithContracts;
+export const GAME_MASTER = {
+  secret: "123",
+  contracts: {},
+} as const as AccountWithContracts;
 
-const accounts: { [key: string]: AccountWithContracts } = {
-  alice: { secret: "0x123", contracts: {} } as AccountWithContracts,
-  bob: { secret: "0x457", contracts: {} } as AccountWithContracts,
-  charlie: { secret: "0x789", contracts: {} } as AccountWithContracts,
-};
+export const ACCOUNTS: { [key: string]: AccountWithContracts } = {
+  alice: { secret: "0x123", contracts: {} } as const as AccountWithContracts,
+  bob: { secret: "0x457", contracts: {} } as const as AccountWithContracts,
+  charlie: { secret: "0x789", contracts: {} } as const as AccountWithContracts,
+} as const;
 
 function createPXE(): Promise<string> {
   return new Promise<string>((resolve, reject) => {
@@ -41,44 +44,32 @@ function createPXE(): Promise<string> {
   });
 }
 
-export async function createAccounts() {
-  if (game_master.wallet !== undefined) return game_master;
+async function createPXEWallet(account: AccountWithContracts) {
+  account.pxe_url = await createPXE();
+  account.pxe = createPXEClient(account.pxe_url);
+  account.wallet = await createWallet(account.secret, account.pxe);
+}
 
+export async function createAccounts() {
   console.log("Creating deployment account...");
 
-  game_master.pxe_url = process.env.SANDBOX_URL!;
-  game_master.pxe = createPXEClient(game_master.pxe_url);
-  game_master.wallet = await createWallet(game_master.secret, game_master.pxe);
+  GAME_MASTER.pxe_url = process.env.SANDBOX_URL!;
+  GAME_MASTER.pxe = createPXEClient(GAME_MASTER.pxe_url);
+  GAME_MASTER.wallet = await createWallet(GAME_MASTER.secret, GAME_MASTER.pxe);
 
   console.log("Creating player accounts...");
 
-  async function createAccountWallet(account: AccountWithContracts) {
-    account.pxe_url = await createPXE();
-    account.pxe = createPXEClient(account.pxe_url);
-    account.wallet = await createWallet(account.secret, account.pxe);
-  }
-
-  let promises: Promise<any>[] = [
-    createAccountWallet(accounts.alice),
-    createAccountWallet(accounts.bob),
-    createAccountWallet(accounts.charlie),
+  const promises: Promise<any>[] = [
+    createPXEWallet(ACCOUNTS.alice),
+    createPXEWallet(ACCOUNTS.bob),
+    createPXEWallet(ACCOUNTS.charlie),
   ];
   await Promise.all(promises);
 }
 
 export function destroyAccounts() {
-  for (const name in accounts) {
-    destroyPXEService(Number(accounts[name].pxe_url.split(":")[2]));
+  for (const name in ACCOUNTS) {
+    const port = Number(ACCOUNTS[name].pxe_url.split(":")[2]);
+    destroyPXEService(port);
   }
-}
-
-export async function getDeploymentAccount(): Promise<AccountWithContracts> {
-  if (game_master.wallet !== undefined) await createAccounts();
-  return game_master;
-}
-
-export async function getPlayerAccount(name: string): Promise<AccountWithContracts> {
-  const account = accounts[name];
-  if (account.wallet === undefined) await createAccounts();
-  return account;
 }
