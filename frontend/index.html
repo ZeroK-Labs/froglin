@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1, user-scalable=no, viewport-fit=cover, width=device-width, height=device-height"
+    />
+    <link
+      rel="icon"
+      href="/images/icon.png"
+    />
+    <!-- MapBoxGL mandatory CSS -->
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css?optimize=true"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <style id="load-style">
+      :root {
+        --text-color: #f59e0b;
+        --highlight-color: #eee;
+        --primary-color-glow: rgba(240, 165, 36, 0.8);
+        --secondary-color-glow: rgba(253, 218, 176, 0.85);
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 0;
+        }
+        20% {
+          opacity: 1;
+        }
+        80% {
+          opacity: 1;
+        }
+        90% {
+          opacity: 0;
+        }
+      }
+
+      @keyframes highlight {
+        0% {
+          background-position: -70%;
+        }
+        50%,
+        60% {
+          background-position: 80%;
+        }
+        80% {
+          background-position: -70%;
+        }
+      }
+
+      @keyframes glow {
+        0% {
+          text-shadow: 0 0 0px var(--primary-color-glow);
+        }
+        25% {
+          text-shadow:
+            0 0 15px var(--primary-color-glow),
+            0 0 35px var(--primary-color-glow);
+        }
+        35% {
+          text-shadow:
+            0 0 15px var(--primary-color-glow),
+            0 0 35px var(--primary-color-glow),
+            0 0 45px var(--secondary-color-glow);
+        }
+        40% {
+          text-shadow:
+            0 0 15px var(--primary-color-glow),
+            0 0 35px var(--secondary-color-glow),
+            0 0 20px var(--secondary-color-glow),
+            0 0 60px var(--secondary-color-glow);
+        }
+        66% {
+          text-shadow:
+            0 0 0px transparent,
+            0 0 2px var(--secondary-color-glow),
+            0 0 10px var(--primary-color-glow),
+            0 0 40px var(--primary-color-glow);
+        }
+        82% {
+          text-shadow: 0 0 0px var(--primary-color-glow);
+        }
+      }
+
+      #load {
+        width: 100vw;
+        display: flex;
+        justify-content: center;
+      }
+
+      #load span {
+        font-size: 24pt;
+        letter-spacing: 4pt;
+        display: inline-block;
+        color: transparent;
+        background: linear-gradient(
+          to left,
+          #f59e0b,
+          #f59e0b 50%,
+          #eee 60%,
+          #f59e0b 75%
+        );
+        background-size: 200%;
+        background-clip: text;
+        -webkit-background-clip: text;
+        opacity: 0;
+        animation:
+          pulse 5s ease-in infinite 3s,
+          highlight 5s ease-in infinite 3s,
+          glow 5s ease-in infinite 3.5s;
+      }
+    </style>
+    <title>Froglin</title>
+  </head>
+  <body>
+    <div width="100vw">
+      <div id="load"><span>Loading...</span></div>
+    </div>
+    <div id="root"></div>
+    <div id="gps"></div>
+  </body>
+</html>

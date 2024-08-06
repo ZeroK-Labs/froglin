@@ -10,61 +10,43 @@ arg=$(
 
 # check if arg is in the expected values
 if [[ "$arg" == "" ]] || [[ "$arg" == "dev" ]] || [[ "$arg" == "development" ]]; then
-  arg=development
+  arg=dev
 elif [[ "$arg" == "prod" ]] || [[ "$arg" == "production" ]]; then
-  arg=production
+  arg=prod
 else
   arg=0
 fi
 
 if [[ "$arg" == "0" ]]; then
   echo Unknown argument "\"$arg\""
-  return 1
+  exit 1
 fi
 
-# create ssl certificates
-if ! scripts/webpack/create_keys.sh; then return $?; fi
+scripts/.ssl/create_localhost_certificates.sh || { exit 1; }
 
-# compile contracts
-if ! scripts/aztec/prep.sh; then return $?; fi
+# kill previous webpack instances
+xvg=$(pgrep -f webpack)
+IFS=$'\n' read -r -d '' -a PIDS <<< "$xvg"
+for ((i = 0; i <= ${#PIDS[@]}-3; ++i)); do
+  echo "Killing PID: ${PIDS[i]}"
+  kill -2 ${PIDS[i]}
+done
 
-start_tailwind() {
-  # load env
-  local env_file=.env/dev
-  if [[ "$arg" == "production" ]]; then env_file=.env/prod; fi
-  source $env_file
-
-  local WEBPACK_URL=${WEBPACK_PROTOCOL:-https}://${WEBPACK_HOST:-localhost}:${WEBPACK_PORT:-8080}
-
-  # wait for webpack to ready up
-  while true; do
-    # stop if webpack quit
-    local count=$(pgrep -f "webpack" | wc -l)
-    if (( count < 4 )); then return 0; fi
-
-    # ping the URL for a known status, and break when good
-    local status=$(curl -sSf "$WEBPACK_URL" > /dev/null 2>&1; echo $?)
-    if [[ $status -eq 60 ]] || [[ $status -eq 200 ]]; then break; fi
-    sleep 1
-  done
-
-  # start tailwind watcher
-  tailwindcss -i src/styles/tailwind.css -o src/styles/global.css -w
-  echo -e "\ntailwind watcher enabled\n"
+cleanup() {
+  echo killed
+  pkill -f 'tailwind|webpack'
 }
 
-# run tailwind watcher concurrently
-start_tailwind &
+# trap ctrl+c
+trap 'cleanup' INT
 
-echo -e "\n\033[32m$arg\033[0m mode\n"
-webpack serve --env $arg
+# concurrently run webpack and tailwind watcher
+(
+  sleep 0.5; # allow for taiwind to start first
+  bun webpack serve --env mode=$arg
+) &
+(
+  scripts/tailwind/start.sh
+)
 
-# kill tailwind watcher
-pkill -f "tailwind"
-
-# kill webpack instances
-while true; do
-  count=$(pgrep -f "webpack" | wc -l)
-  if (( count == 0 )); then break; fi
-  pkill -f "webpack" > /dev/null 2>&1
-done
+cleanup

@@ -1,13 +1,3 @@
-# misc
-.DS_Store
-.env*
-
-# vscode: ignore all files...
-.vscode/*
-# ...except
-!.vscode/extensions.json
-!.vscode/settings.json
-
 ########################
 ### PACKAGE MANAGERS ###
 ########################
@@ -28,23 +18,27 @@
 # eslint
 .eslintcache
 
-# next.js
-# build output
-.next
-.vercel
-out/
-next-env.d.ts
 # certificates for https
 certificates
+
+#####################
+### BUILD-RELATED ###
+#####################
 
 # typescript
 *.tsbuildinfo
 
 # webpack
-# build-related output
-src/contracts/artifacts
-src/contracts/target
+build
+dist
+
+# Noir
+aztec/contracts/**/artifact
+aztec/contracts/**/target
 codegenCache.json
+
+# tailwind
+frontend/styles/global.css
 
 ############
 ### LOGS ###
@@ -52,3 +46,29 @@ codegenCache.json
 
 *-debug.log*
 *-error.log*
+
+##############
+### VSCODE ###
+##############
+
+# vscode: ignore all files...
+.vscode/*
+# ...except
+!.vscode/extensions.json
+!.vscode/settings.json
+
+################
+### SETTINGS ###
+################
+
+/.env
+/settings
+
+/env.config.js
+backend/gateway_address
+
+#####################
+### MISCELLANEOUS ###
+#####################
+
+.DS_Store

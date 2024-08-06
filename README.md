@@ -164,10 +164,10 @@ bun test
 <br>
 
 - ### [`src`](https://github.com/ZeroK-Labs/froglin/blob/main/src)
-  - #### [`contracts`](https://github.com/ZeroK-Labs/froglin/blob/main/src/contracts) - Aztec L2 Noir contracts
-  - #### [`components`](https://github.com/ZeroK-Labs/froglin/blob/main/src/components) - React component files
-  - #### [`pages`](https://github.com/ZeroK-Labs/froglin/blob/main/src/pages) - React pages
-  - #### [`styles`](https://github.com/ZeroK-Labs/froglin/blob/main/src/styles) - Tailwind CSS files
+  - #### [`contracts`](https://github.com/ZeroK-Labs/froglin/blob/main/frontend/contracts) - Aztec L2 Noir contracts
+  - #### [`components`](https://github.com/ZeroK-Labs/froglin/blob/main/frontend/components) - React component files
+  - #### [`pages`](https://github.com/ZeroK-Labs/froglin/blob/main/frontend/pages) - React pages
+  - #### [`styles`](https://github.com/ZeroK-Labs/froglin/blob/main/frontend/styles) - Tailwind CSS files
 
 <br>
 
