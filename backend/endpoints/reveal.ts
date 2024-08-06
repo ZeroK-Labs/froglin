@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { CLIENT_SESSION_DATA } from "backend/utils/sockets";
+
+import { CLIENT_SESSION_DATA } from "backend/start";
 
 export function revealFroglins(req: Request, res: Response) {
   res.setHeader("content-type", "text/json");

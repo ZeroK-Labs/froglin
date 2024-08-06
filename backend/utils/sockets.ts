@@ -3,10 +3,9 @@ import { createPXEClient } from "@aztec/aztec.js";
 import { parse } from "url";
 
 import { BACKEND_WALLET } from "backend/utils/aztec";
+import { CLIENT_SESSION_DATA } from "backend/start";
 import { ClientSessionData } from "backend/types";
 import { createPXEService, destroyPXEService } from "common/utils/PXEManager";
-
-export const CLIENT_SESSION_DATA: { [key: string]: ClientSessionData } = {};
 
 const HOST =
   process.env.BACKEND_HOST === "localhost"

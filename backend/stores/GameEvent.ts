@@ -1,4 +1,4 @@
-import { CLIENT_SESSION_DATA } from "backend/utils/sockets";
+import { CLIENT_SESSION_DATA } from "backend/start";
 import { EVENT } from "frontend/settings";
 import { GameEventServer, MapCoordinates } from "common/types";
 import { getInterestPoints, getBoundsForCoordinate } from "common/utils/map";
@@ -73,6 +73,10 @@ export function createGameEvent(
 
       event.advanceEpoch();
       epochIntervalId = setInterval(event.advanceEpoch, event.epochDuration);
+    },
+
+    stop: function () {
+      clearInterval(epochIntervalId);
     },
 
     advanceEpoch: function () {

@@ -6,6 +6,7 @@ import fs from "fs";
 import https from "https";
 import path from "path";
 
+import { ClientSessionData } from "backend/types";
 import { createAccount } from "./utils/aztec";
 import { createSocketServer, destroySocketServer } from "./utils/sockets";
 import {
@@ -18,6 +19,8 @@ import {
   getLeaderboard,
   revealFroglins,
 } from "./endpoints";
+
+export const CLIENT_SESSION_DATA: { [key: string]: ClientSessionData } = {};
 
 // graceful shutdown on Ctrl+C
 function cleanup() {
@@ -79,6 +82,11 @@ function handleSandboxLost() {
 
   destroySocketServer();
   if (html_server) html_server.close();
+
+  for (const sessionId in CLIENT_SESSION_DATA) {
+    CLIENT_SESSION_DATA[sessionId].GameEvent?.stop();
+    delete CLIENT_SESSION_DATA[sessionId];
+  }
 }
 
 addSandboxWatcherEventHandler("found", handleSandboxFound);
