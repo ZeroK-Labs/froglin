@@ -1,4 +1,4 @@
-import { PXE, AccountWallet } from "@aztec/aztec.js";
+import type { PXE, AccountWallet } from "@aztec/aztec.js";
 
 type PXEWallet = {
   secret: bigint;

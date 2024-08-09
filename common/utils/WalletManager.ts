@@ -1,16 +1,14 @@
-import { AccountManager } from "@aztec/aztec.js/account";
 // TODO: why TX dropped by P2P node when using Schnorr directly?
 // import { SchnorrAccountContract } from "@aztec/accounts/schnorr";
 
-import { SingleKeyAccountContract } from "@aztec/accounts/single_key";
-import {
+import type {
   AccountWallet,
-  Fr,
   PXE,
-  deriveMasterIncomingViewingSecretKey,
 } from "@aztec/aztec.js";
 
 export async function createWallet(secret: string, pxe: PXE): Promise<AccountWallet> {
+  const { AccountManager, Fr, deriveMasterIncomingViewingSecretKey } = await import("@aztec/aztec.js");
+  const { SingleKeyAccountContract } = await import("@aztec/accounts/single_key")
   const bigNumber = BigInt(secret);
   const reducedSecret = bigNumber % Fr.MODULUS;
   const secretKey = new Fr(reducedSecret);

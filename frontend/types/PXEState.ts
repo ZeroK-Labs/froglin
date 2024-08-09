@@ -1,4 +1,4 @@
-import { PXE } from "@aztec/aztec.js";
+import type { PXE } from "@aztec/aztec.js";
 
 type PXEState = {
   pxeClient: PXE | null;

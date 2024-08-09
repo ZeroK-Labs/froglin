@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import { AztecAddress, AccountWallet } from "@aztec/aztec.js";
+import type { AccountWallet } from "@aztec/aztec.js";
 import { SetStateAction, useEffect, useState } from "react";
 
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
@@ -28,6 +28,7 @@ function createState(): Player {
       }
 
       async function initializeWallet() {
+        const { AztecAddress } = await import("@aztec/aztec.js");
         if (!pxeClient) {
           console.error("Failed to initialize wallet: missing PXE client");
           toast.error("Wallet unavailable");

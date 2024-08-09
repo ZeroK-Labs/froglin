@@ -1,8 +1,9 @@
 import "./styles/global.css";
 
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { createRoot } from "react-dom/client";
 
+import App from "./app";
 import { LoadingFallback } from "./components";
 import { createSocketClient } from "./utils/sockets";
 
@@ -27,7 +28,5 @@ _window.__root.render(<Root />);
 // hydrateRoot(document.getElementById("root")!, <Root />); // SSR
 
 // INITIALIZATION
-
-const App = lazy(() => import("./app"));
 
 createSocketClient();
