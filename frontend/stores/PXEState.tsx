@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import { PXE, createPXEClient } from "@aztec/aztec.js";
+import type { PXE } from "@aztec/aztec.js";
 import { useEffect, useState } from "react";
 
 import { PXEState } from "frontend/types";
@@ -44,6 +44,7 @@ function createState(): PXEState {
       }
 
       async function handlePXEReady(ev: MessageEvent<string>) {
+        const { createPXEClient } = await import("@aztec/aztec.js");
         if (!ev.data.includes("pxe ")) return;
 
         clearTimeout(timerId);
