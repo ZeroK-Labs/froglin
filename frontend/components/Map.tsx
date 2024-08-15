@@ -172,14 +172,12 @@ export default function MapScreen() {
             />
           ))}
 
-          {revealedFroglins.map((froglin) =>
-            isNaN(froglin.coordinates.longitude) ? null : (
-              <FroglinMarker
-                key={froglin.id}
-                froglin={froglin}
-              />
-            ),
-          )}
+          {revealedFroglins.map((froglin) => (
+            <FroglinMarker
+              key={froglin.id}
+              froglin={froglin}
+            />
+          ))}
 
           <GameEventView />
 
