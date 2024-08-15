@@ -1,4 +1,4 @@
-import { InterestPoint } from "common/types";
+import type { InterestPoint } from "common/types";
 
 type Froglin = InterestPoint & {
   type: number;

@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 
+import type { LocationInfo } from "frontend/types";
 import { LOCATION } from "frontend/settings";
-import { LocationInfo } from "frontend/types";
 import { StoreFactory } from "frontend/stores";
 import { getDistance } from "common/utils/map";
-import { nullMapCoordinates, nullifyMapCoordinates } from "frontend/classes/MapCoordinates";
+import {
+  nullMapCoordinates,
+  nullifyMapCoordinates,
+} from "frontend/classes/MapCoordinates";
 
 function createState(): LocationInfo {
   // console.log("DeviceLocation createState");

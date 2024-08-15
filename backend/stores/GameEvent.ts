@@ -1,6 +1,6 @@
 import { CLIENT_SESSION_DATA } from "backend/start";
 import { EVENT } from "frontend/settings";
-import { GameEventServer, MapCoordinates } from "common/types";
+import type { GameEventServer, MapCoordinates } from "common/types";
 import { getInterestPoints, getBoundsForCoordinate } from "common/utils/map";
 
 function getFarInterestPoints(coords: MapCoordinates, count: number) {

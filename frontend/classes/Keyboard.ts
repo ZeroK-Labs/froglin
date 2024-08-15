@@ -1,4 +1,4 @@
-import { Keyboard } from "frontend/types";
+import type { Keyboard } from "frontend/types";
 
 export function nullKeyboard(): Keyboard {
   return {

@@ -1,7 +1,7 @@
 import { BackSide, FrontSide } from "three";
 import { useEffect, useState } from "react";
 
-import { RevealingCircleState } from "frontend/types";
+import type { RevealingCircleState } from "frontend/types";
 import { MinusHalfPI } from "common/utils/math";
 import { PLAYER } from "frontend/settings";
 

@@ -2,8 +2,8 @@ import toast from "react-hot-toast";
 import { AztecAddress, AccountWallet } from "@aztec/aztec.js";
 import { SetStateAction, useEffect, useState } from "react";
 
+import type { Player } from "frontend/types";
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
-import { Player } from "frontend/types";
 import { StoreFactory, usePXEState } from "frontend/stores";
 import { createWallet } from "common/utils/WalletManager";
 import { stringToBigInt, bigIntToString } from "common/utils/bigint";

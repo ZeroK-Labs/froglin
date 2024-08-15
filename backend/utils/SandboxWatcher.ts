@@ -1,4 +1,5 @@
-import { createPXEClient, PXE } from "@aztec/aztec.js";
+import type { PXE } from "@aztec/aztec.js";
+import { createPXEClient } from "@aztec/aztec.js";
 
 const handlers = {
   found: [],

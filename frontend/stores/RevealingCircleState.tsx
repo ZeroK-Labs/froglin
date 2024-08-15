@@ -1,7 +1,7 @@
 import { useState } from "react";
 
+import type { RevealingCircleState } from "frontend/types";
 import { StoreFactory } from "frontend/stores";
-import { RevealingCircleState } from "frontend/types";
 
 function createState(): RevealingCircleState {
   const [color, setColor] = useState("white");

@@ -1,6 +1,6 @@
+import type { MapCoordinates } from "common/types";
 import { AngleToRadian } from "./math";
 import { EVENT } from "frontend/settings";
-import { MapCoordinates } from "common/types";
 
 // radius of Earth in kilometers; 3956 for miles
 export const METERS_IN_EARTH_RADIUS = 6_371_008.8;

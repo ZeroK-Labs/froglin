@@ -1,8 +1,8 @@
 import toast from "react-hot-toast";
 import { useEffect, useRef, useState } from "react";
 
+import type { Froglin } from "frontend/types";
 import { FROGLIN, PLAYER } from "frontend/settings";
-import { Froglin } from "frontend/types";
 import { StoreFactory, useLocation, usePXEState } from "frontend/stores";
 import { inRange } from "common/utils/map";
 import {

@@ -1,6 +1,6 @@
-import { Froglin } from "frontend/types";
-import { useGameEvent } from "frontend/stores";
 import BaseMarker from "./BaseMarker";
+import type { Froglin } from "frontend/types";
+import { useGameEvent } from "frontend/stores";
 
 type Props = {
   froglin: Froglin;

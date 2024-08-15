@@ -1,8 +1,8 @@
 import { Marker } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 
+import type { MapCoordinates } from "common/types";
 import { FROGLIN } from "frontend/settings";
-import { MapCoordinates } from "common/types";
 
 type BaseMarkerProps = {
   coordinates: MapCoordinates;

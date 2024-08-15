@@ -6,7 +6,7 @@ import fs from "fs";
 import https from "https";
 import path from "path";
 
-import { ClientSessionData } from "backend/types";
+import type { ClientSessionData } from "backend/types";
 import { createAccount } from "./utils/aztec";
 import { createSocketServer, destroySocketServer } from "./utils/sockets";
 import {

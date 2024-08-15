@@ -1,18 +1,19 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import type { ChangeEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Marker } from "react-map-gl";
 
+import type { Froglin } from "frontend/types";
+import type { MapCoordinates } from "common/types";
 import { FROGLIN, PLAYER } from "frontend/settings";
-import { Froglin } from "frontend/types";
 import { MAP_VIEWS } from "frontend/enums";
-import { MapCoordinates } from "common/types";
 import { PlayerMarkerImage, TrapMarkerList } from "frontend/components";
 import { inRange, inTriangle } from "common/utils/map";
 import {
   useGameEvent,
-  useRevealingCircleState,
   useLocation,
   useMapViewState,
   usePlayer,
+  useRevealingCircleState,
 } from "frontend/stores";
 
 export default function PlayerMarker() {

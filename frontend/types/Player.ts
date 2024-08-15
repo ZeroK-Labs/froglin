@@ -1,12 +1,12 @@
-import { Dispatch } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
-import { AccountWithContracts } from "common/types";
+import type { AccountWithContracts } from "common/types";
 
 type Player = {
   hasSecret: boolean;
   username: string;
-  setUsername: Dispatch<React.SetStateAction<string>>;
-  setSecret: Dispatch<React.SetStateAction<string>>;
+  setUsername: Dispatch<SetStateAction<string>>;
+  setSecret: Dispatch<SetStateAction<string>>;
   aztec: AccountWithContracts | null;
 };
 

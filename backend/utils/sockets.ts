@@ -2,9 +2,9 @@ import { WebSocketServer, ServerOptions } from "ws";
 import { createPXEClient } from "@aztec/aztec.js";
 import { parse } from "url";
 
+import type { ClientSessionData } from "backend/types";
 import { BACKEND_WALLET } from "backend/utils/aztec";
 import { CLIENT_SESSION_DATA } from "backend/start";
-import { ClientSessionData } from "backend/types";
 import { createPXEService, destroyPXEService } from "common/utils/PXEManager";
 
 const HOST =

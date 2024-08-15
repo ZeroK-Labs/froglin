@@ -1,8 +1,9 @@
 import toast from "react-hot-toast";
-import { PXE, createPXEClient } from "@aztec/aztec.js";
+import type { PXE } from "@aztec/aztec.js";
+import { createPXEClient } from "@aztec/aztec.js";
 import { useEffect, useState } from "react";
 
-import { PXEState } from "frontend/types";
+import type { PXEState } from "frontend/types";
 import { StoreFactory } from "frontend/stores";
 import {
   CLIENT_SOCKET,

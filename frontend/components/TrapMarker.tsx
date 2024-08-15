@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Marker } from "react-map-gl";
 
-import { MapCoordinates } from "common/types";
+import type { MapCoordinates } from "common/types";
 import { PLAYER } from "frontend/settings";
 
 type Props = {

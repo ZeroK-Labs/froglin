@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 
+import type { KeyboardSymbol, LocationInfo } from "frontend/types";
+import type { MapCoordinates } from "common/types";
 import { AngleToRadian } from "common/utils/math";
-import { KeyboardSymbol, LocationInfo } from "frontend/types";
 import { LOCATION } from "frontend/settings";
-import { MapCoordinates } from "common/types";
 import { RADIANS_PER_METER_LATITUDE } from "common/utils/map";
 import { StoreFactory } from "frontend/stores";
 import { nullKeyboard, nullifyKeyboard } from "frontend/classes/Keyboard";

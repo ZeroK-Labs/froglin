@@ -1,4 +1,4 @@
-import { MapCoordinates } from "common/types";
+import type { MapCoordinates } from "common/types";
 import { TrapMarker } from "frontend/components";
 
 type Props = {

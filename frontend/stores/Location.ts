@@ -1,8 +1,8 @@
 import { FunctionComponent } from "react";
 
+import type { LocationInfo } from "frontend/types";
 import { DeviceLocationProvider, useDeviceLocation } from "./DeviceLocation";
 import { KeyboardLocationProvider, useKeyboardLocation } from "./KeyboardLocation";
-import { LocationInfo } from "frontend/types";
 import { mobileClient } from "frontend/utils/window";
 
 let LocationProvider: FunctionComponent<any>;

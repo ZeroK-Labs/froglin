@@ -1,7 +1,7 @@
 import { LngLatBoundsLike } from "mapbox-gl";
 
-import { Froglin } from "frontend/types";
-import { InterestPoint } from ".";
+import type { Froglin } from "frontend/types";
+import type { InterestPoint } from ".";
 
 type GameEventClient = {
   bounds: [number, number][][];

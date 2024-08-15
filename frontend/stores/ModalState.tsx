@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import StoreFactory from "./StoreFactory";
-import { ModalState } from "frontend/types";
+import type { ModalState } from "frontend/types";
 import { MODALS } from "frontend/enums";
 
 function createState(): ModalState {

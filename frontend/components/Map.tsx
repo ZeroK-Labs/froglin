@@ -1,4 +1,5 @@
-import { Map, MapRef } from "react-map-gl";
+import type { MapRef } from "react-map-gl";
+import { Map } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 
 import { MAP_VIEWS } from "frontend/enums";

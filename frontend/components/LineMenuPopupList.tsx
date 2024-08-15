@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
+import type { LineMenuProps } from "frontend/types";
 import { LineMenuPopupListItem } from "./LineMenuPopupListItem";
-import { LineMenuProps } from "frontend/types";
 import { MAP_VIEWS, MODALS } from "frontend/enums";
 import { VIEW } from "frontend/settings";
 import { useMapViewState, useModalState, usePlayer } from "frontend/stores";

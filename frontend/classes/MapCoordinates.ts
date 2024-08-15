@@ -1,4 +1,4 @@
-import { MapCoordinates } from "common/types";
+import type { MapCoordinates } from "common/types";
 
 export function nullMapCoordinates(): MapCoordinates {
   return { longitude: NaN, latitude: 0 };
