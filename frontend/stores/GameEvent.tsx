@@ -51,11 +51,11 @@ function createState(): GameEventClient {
   interestPointsRef.current = interestPoints;
 
   function getEventBounds(): [[number, number], [number, number]] {
-    const root = bounds[0];
-    return [root[0] as [number, number], root[2] as [number, number]];
+    return [bounds[0][0], bounds[0][2]];
   }
 
   function cacheInterestPointsToReveal() {
+    const hiddenInterestPointIds: InterestPoint["id"][] = [];
     revealedInterestPointsRef.current = [];
     for (let i = 0; i !== interestPointsRef.current.length; ++i) {
       const point = interestPointsRef.current[i];
@@ -64,8 +64,22 @@ function createState(): GameEventClient {
         inRange(point.coordinates, location.coordinates, PLAYER.REVEAL.RADIUS)
       ) {
         revealedInterestPointsRef.current.push(point);
+        hiddenInterestPointIds.push(point.id);
       }
     }
+
+    if (hiddenInterestPointIds.length === 0) return;
+
+    fetch(`${process.env.BACKEND_URL}/reveal`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sessionId: SESSION_ID,
+        hiddenInterestPointIds,
+      }),
+    });
   }
 
   function revealFroglins(radius: number) {
@@ -76,7 +90,6 @@ function createState(): GameEventClient {
 
     // reveal Froglins based on current radius
     const froglins: Froglin[] = [];
-    const hiddenInterestPointIds: InterestPoint["id"][] = [];
 
     for (let i = 0; i !== revealedInterestPointsRef.current.length; ++i) {
       const point = revealedInterestPointsRef.current[i];
@@ -87,7 +100,6 @@ function createState(): GameEventClient {
 
       // hide the point to start fade out animation
       point.visible = false;
-      hiddenInterestPointIds.push(point.id);
 
       // send some markers to the void
       const gone = Math.random();
@@ -105,26 +117,8 @@ function createState(): GameEventClient {
     // mark done when last step of reveal complete
     revealingRef.current = radius === PLAYER.REVEAL.RADIUS;
 
-    if (hiddenInterestPointIds.length === 0) return;
-
     // update state of interest points to hide them all in one go
     setInterestPoints([...interestPointsRef.current]);
-
-    if (CLIENT_SOCKET.readyState === WebSocket.OPEN) {
-      try {
-        fetch(`${process.env.BACKEND_URL}/reveal`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            sessionId: SESSION_ID,
-            hiddenInterestPointIds,
-          }),
-        });
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (_err) {}
-    }
 
     if (froglins.length === 0) return;
 
@@ -183,61 +177,47 @@ function createState(): GameEventClient {
       query.set("latitude", coordinates.latitude.toString());
     }
 
+    let event: GameEventBase;
     try {
       const response = await fetch(`${process.env.BACKEND_URL}/game?${query}`);
-      const event: GameEventBase = await response.json();
-
-      const restarted = epochCountRef.current === 0;
-      epochCountRef.current = event.epochCount;
-
-      if (revealingRef.current) {
-        interestPointsRef.current = event.interestPoints;
-        cacheInterestPointsToReveal();
-      }
-
-      for (let i = 0; i !== event.interestPoints.length; ++i) {
-        const point = event.interestPoints[i];
-        point.visible = true;
-      }
-
-      setBounds(event.bounds);
-      setEpochCount(event.epochCount);
-      setEpochDuration(event.epochDuration);
-      setEpochStartTime(event.epochStartTime);
-
-      if (!restarted) {
-        setInterestPoints(event.interestPoints);
-
-        const suffix = event.epochCount === 0 ? "" : "s";
-        const msg = `${event.epochCount + 1} epoch${suffix} left`;
-        toast(msg, { icon: "⏳" });
-
-        return;
-      }
-
-      setRevealedFroglins([]);
-
-      // TODO: direct call of setInterestPoints here leads to rendering of phantom
-      //       interestPoints when event is restarted
-
-      // hide the old points
-      setInterestPoints((old) => {
-        return old.map((point) => ({
-          ...point,
-          visible: false,
-        }));
-      });
-
-      // delay for the fade animation to complete and set the new points
-      setTimeout(
-        setInterestPoints,
-        FROGLIN.MARKER.TRANSITION_DURATION,
-        event.interestPoints,
-      );
-
-      toast("New event", { icon: "🎉" });
+      event = await response.json();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_err) {}
+    } catch (_err) {
+      return;
+    }
+
+    const restarted = epochCountRef.current === 0;
+    epochCountRef.current = event.epochCount;
+
+    for (let i = 0; i !== event.interestPoints.length; ++i) {
+      event.interestPoints[i].visible = true;
+    }
+
+    setBounds(event.bounds);
+    setEpochCount(event.epochCount);
+    setEpochDuration(event.epochDuration);
+    setEpochStartTime(event.epochStartTime);
+    setInterestPoints(event.interestPoints);
+
+    if (!restarted) {
+      const suffix = event.epochCount === 0 ? "" : "s";
+      toast(`${event.epochCount + 1} epoch${suffix} left`, { icon: "⏳" });
+
+      return;
+    }
+
+    // hide revealed Froglins
+    setRevealedFroglins((old) => {
+      return old.map((point) => ({
+        ...point,
+        visible: false,
+      }));
+    });
+
+    // delay for the fade animation to complete; clear revealed Froglins
+    setTimeout(setRevealedFroglins, FROGLIN.MARKER.TRANSITION_DURATION, []);
+
+    toast("New event", { icon: "🎉" });
   }
 
   // handle event initialization

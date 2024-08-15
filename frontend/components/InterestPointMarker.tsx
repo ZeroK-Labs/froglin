@@ -10,8 +10,9 @@ type Props = {
 
 export default function InterestPointMarker(props: Props) {
   const locationRef = useRef(props.point.coordinates);
+
   const [message, setMessage] = useState<string>("");
-  const [opacity, setOpacity] = useState(Number(props.point.visible ?? 0));
+  const [opacity, setOpacity] = useState(0);
 
   function showStats() {
     setMessage("A froglin?! My flute will reveal it!");
