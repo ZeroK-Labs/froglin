@@ -14,8 +14,7 @@ docker run                    \
   -v $HOME:$HOME              \
   -v cache:/cache             \
   -p $1:$1                    \
-  ${DOCKER_ENV:-}             \
-  ${DOCKER_HOST_BINDS:-}      \
-  ${DOCKER_USER:-}            \
+  -e AZTEC_PORT=$1            \
+  -e AZTEC_NODE_URL="$2"      \
   aztecprotocol/aztec:latest  \
-  start -p $1 --pxe nodeUrl=$2
+  start --pxe
