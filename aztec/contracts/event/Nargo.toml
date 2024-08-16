@@ -5,9 +5,9 @@ compiler_version = ">=0.30.0"
 type = "contract"
 
 [dependencies]
-aztec = { git="https://github.com/AztecProtocol/aztec-packages/", tag="aztec-packages-v0.47.1", directory="noir-projects/aztec-nr/aztec" }
-value_note = { git="https://github.com/AztecProtocol/aztec-packages/", tag="aztec-packages-v0.47.1", directory="noir-projects/aztec-nr/value-note"}
-authwit = { git="https://github.com/AztecProtocol/aztec-packages/", tag="aztec-packages-v0.47.1", directory="noir-projects/aztec-nr/authwit"}
+aztec = { git="https://github.com/AztecProtocol/aztec-packages/", tag="aztec-packages-v0.49.2", directory="noir-projects/aztec-nr/aztec" }
+value_note = { git="https://github.com/AztecProtocol/aztec-packages/", tag="aztec-packages-v0.49.2", directory="noir-projects/aztec-nr/value-note"}
+authwit = { git="https://github.com/AztecProtocol/aztec-packages/", tag="aztec-packages-v0.49.2", directory="noir-projects/aztec-nr/authwit"}
 
 zkl_utils = { path = "../../libs/utils" }
 zkl_froglin = { path = "../gateway" }
