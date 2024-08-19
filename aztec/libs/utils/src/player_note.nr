@@ -7,7 +7,7 @@ use dep::aztec::{
     oracle::unsafe_rand::unsafe_rand, keys::getters::get_nsk_app, context::PrivateContext
 };
 
-global PLAYER_NOTE_LEN: Field = 4;
+global PLAYER_NOTE_LEN: Field = 3;
 // PLAYER_NOTE_LEN * 32 + 32(storage_slot as bytes) + 32(note_type_id as bytes)
 global PLAYER_NOTE_BYTES_LEN: Field = PLAYER_NOTE_LEN * 32 + 64;
 
@@ -42,7 +42,7 @@ impl NoteInterface<PLAYER_NOTE_LEN, PLAYER_NOTE_BYTES_LEN> for PlayerNote {
 }
 
 impl PlayerNote {
-    pub fn new(name: Field, event: AztecAddress, npk_m_hash: Field) -> Self {
+    pub fn new(name: Field, npk_m_hash: Field) -> Self {
         let randomness = unsafe_rand();
         let header = NoteHeader::empty();
         PlayerNote { name, npk_m_hash, randomness, header }
