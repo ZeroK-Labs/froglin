@@ -13,7 +13,6 @@ global PLAYER_NOTE_BYTES_LEN: Field = PLAYER_NOTE_LEN * 32 + 64;
 
 #[aztec(note)]
 struct PlayerNote {
-    event: AztecAddress,
     name: Field,
     npk_m_hash: Field,
     randomness: Field,
@@ -46,20 +45,19 @@ impl PlayerNote {
     pub fn new(name: Field, event: AztecAddress, npk_m_hash: Field) -> Self {
         let randomness = unsafe_rand();
         let header = NoteHeader::empty();
-        PlayerNote { name, event, npk_m_hash, randomness, header }
+        PlayerNote { name, npk_m_hash, randomness, header }
     }
 }
 
 impl Serialize<PLAYER_NOTE_LEN> for PlayerNote {
     fn serialize(self) -> [Field; PLAYER_NOTE_LEN] {
-        [self.name, self.event.to_field(), self.npk_m_hash, self.randomness]
+        [self.name, self.npk_m_hash, self.randomness]
     }
 }
 
 impl Eq for PlayerNote {
     fn eq(self, other: Self) -> bool {
         (self.name == other.name) &
-        (self.event == other.event) &
         (self.npk_m_hash == other.npk_m_hash) &
         (self.randomness == other.randomness)
     }

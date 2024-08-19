@@ -2,15 +2,18 @@ contract FroglinGateway {
     use dep::value_note::value_note::ValueNote;
     use dep::aztec::{
         encrypted_logs::encrypted_note_emission::encode_and_encrypt_note_with_keys,
-        prelude::{AztecAddress, Map}, state_vars::PrivateMutable
+        prelude::{AztecAddress, Map, NoteViewerOptions, PrivateSet}, state_vars::PrivateMutable
     };
 
     use dep::zkl_utils::public_keys::PublicKeys;
     use dep::zkl_utils::player_note::PlayerNote;
 
+    global FROGLIN_COUNT = 12;
+
     #[aztec(storage)]
     struct Storage {
         accounts: Map<AztecAddress, PrivateMutable<PlayerNote>>,
+        stash: Map<AztecAddress, Map<Field, PrivateMutable<ValueNote>>>,
     }
 
     #[aztec(initializer)]
@@ -35,6 +38,9 @@ contract FroglinGateway {
     }
 
     #[aztec(private)]
+    fn capture_froglin(froglinType: Field) {}
+
+    #[aztec(private)]
     fn register(name: Field) {
         let player = context.msg_sender();
         _check_new(player);
@@ -53,19 +59,10 @@ contract FroglinGateway {
         let keys = PublicKeys::from_private_context(&mut context, context.msg_sender());
 
         let old_player_note = storage.accounts.at(player).get_note().note;
+        let x = view_name(player);
 
         let mut new_player_name = PlayerNote::new(name, old_player_note.event, keys.npk_hash);
         storage.accounts.at(context.msg_sender()).replace(&mut new_player_name).emit(encode_and_encrypt_note_with_keys(&mut context, keys.ovpk, keys.ivpk, player));
-    }
-
-    #[aztec(private)]
-    fn update_game_event_contract(address: AztecAddress) {
-        let player = context.msg_sender();
-        _check_registration(player);
-        // let note = storage.accounts.at(player).get_note().player;
-        // re-emit note: 71-74 in eventinfo contract
-        // do my thang
-        //
     }
 
     #[aztec(view)]
@@ -85,5 +82,18 @@ contract FroglinGateway {
         _check_registration(player);
 
         storage.accounts.at(player).view_note().name
+    }
+
+    #[aztec(view)]
+    unconstrained fn view_stash(player: AztecAddress) -> pub BoundedVec<Field, FROGLIN_COUNT> {
+        _check_registration(player);
+
+        let mut arr: BoundedVec<Field, FROGLIN_COUNT> = BoundedVec::new();
+
+        for i in 0..FROGLIN_COUNT {
+            arr.set(i, storage.stash.at(player).at(i as Field).view_note().value);
+        }
+
+        arr
     }
 }
