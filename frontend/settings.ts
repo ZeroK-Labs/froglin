@@ -43,8 +43,8 @@ const FAR_RANGE: PointGenerationRange = {
 };
 
 export const EVENT: EventSettings = {
-  EPOCH_COUNT: 21,
-  EPOCH_DURATION: 50_000,
+  EPOCH_COUNT: 5,
+  EPOCH_DURATION: 5_000,
   BOUNDS_SIDE_LENGTH: FAR_RANGE.TO * 2,
   MARKER_COUNT: 100,
   CLOSE_RANGE,

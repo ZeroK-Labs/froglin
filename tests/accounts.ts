@@ -61,15 +61,15 @@ export async function createAccounts() {
 
   const promises: Promise<any>[] = [
     createPXEWallet(ACCOUNTS.alice),
-    createPXEWallet(ACCOUNTS.bob),
-    createPXEWallet(ACCOUNTS.charlie),
+    // createPXEWallet(ACCOUNTS.bob),
+    // createPXEWallet(ACCOUNTS.charlie),
   ];
   await Promise.all(promises);
 }
 
 export function destroyAccounts() {
   for (const name in ACCOUNTS) {
-    const port = Number(ACCOUNTS[name].pxe_url.split(":")[2]);
+    const port = Number(ACCOUNTS[name].pxe_url?.split(":")[2]);
     destroyPXEService(port);
   }
 }
