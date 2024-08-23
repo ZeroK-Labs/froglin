@@ -60,7 +60,7 @@ export default () => {
         path: false,
         stream: false,
         tty: false,
-        util: false,
+        util: path.resolve("util"),
       },
     },
     //
