@@ -23,8 +23,13 @@ const HOST = process.env.SANDBOX_URL!.replace("localhost", getLocalIP());
 
 const allocatedPorts: number[] = [];
 
-export function createPXEService(): [number, ChildProcess] {
+export function createPXEService(
+  onReady: () => void,
+  onClose: (code?: number) => void,
+): [number, ChildProcess] {
   if (allocatedPorts.length === 32) throw "Max 32 PXE service instances";
+
+  console.log("Creating PXE...");
 
   // allocate a port sequentially
   let port = Number(process.env.SANDBOX_PORT) + 1;
@@ -40,17 +45,43 @@ export function createPXEService(): [number, ChildProcess] {
     },
   );
 
-  pxe.on("close", () => {
+  pxe.on("close", (code) => {
     const index = allocatedPorts.indexOf(port);
     if (index === -1) {
-      console.error(
-        `Failed to destroy PXE service: port ${port} is missing from registry`,
-      );
+      console.error(`Failed to destroy PXE service: unknown port ${port}`);
 
       return;
     }
     allocatedPorts.splice(index, 1);
+
+    onClose();
+
+    console.log(`PXE process exited with code ${code}`);
   });
+
+  function handleReady(data: string) {
+    if (!data.includes(`Aztec Server listening on port ${port}`)) return;
+
+    onReady();
+
+    pxe.stderr.off("data", handleReady);
+    pxe.stdout.off("data", handleReady);
+
+    console.log("PXE available on port", port);
+  }
+
+  pxe.stderr.on("data", handleReady);
+  pxe.stdout.on("data", handleReady);
+
+  // pxe.stderr.on("data", (data) => {
+  //   process.stderr.write(data);
+  //   handleReady(data);
+  // });
+
+  // pxe.stdout.on("data", (data) => {
+  //   process.stdout.write(data);
+  //   handleReady(data);
+  // });
 
   return [port, pxe];
 }

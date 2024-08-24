@@ -1,11 +1,12 @@
-import { WebSocketServer, ServerOptions } from "ws";
+import { ServerOptions, WebSocketServer } from "ws";
 import { createPXEClient } from "@aztec/aztec.js";
 import { parse } from "url";
+import { type ChildProcess } from "child_process";
 
-import type { ClientSessionData } from "backend/types";
 import { BACKEND_WALLET } from "backend/utils/aztec";
 import { CLIENT_SESSION_DATA } from "backend/start";
 import { createPXEService, destroyPXEService } from "common/utils/PXEManager";
+import { type ClientSessionData } from "backend/types";
 
 const HOST =
   process.env.BACKEND_HOST === "localhost"
@@ -53,43 +54,31 @@ export function createSocketServer(options?: ServerOptions) {
     if (clientData.PXE && clientData.PXE.reuseTimerId !== null) {
       // reuse PXE instance
       clearTimeout(clientData.PXE.reuseTimerId);
-      port = clientData.PXE!.port;
+      port = clientData.PXE.port;
       url = `${HOST}${port}`;
 
       socket.send(`pxe ${url}`);
     } //
     else {
-      let pxe;
-      [port, pxe] = createPXEService();
+      let pxe: ChildProcess;
+      [port, pxe] = createPXEService(
+        async () => {
+          url = `${HOST}${port}`;
+          clientData.PXE = { process: pxe, port, reuseTimerId: null };
 
-      // pxe.stderr!.on("data", (data) => {
-      //   process.stderr.write(data);
-      // });
+          // register contracts in PXE client
+          const pxeClient = createPXEClient(url);
+          await pxeClient.registerContract({
+            instance: BACKEND_WALLET.contracts.gateway.instance,
+            artifact: BACKEND_WALLET.contracts.gateway.artifact,
+          });
 
-      pxe.stdout!.on("data", async (data) => {
-        // process.stdout.write(data);
-
-        if (!data.includes(`Aztec Server listening on port ${port}`)) return;
-
-        url = `${HOST}${port}`;
-
-        // register contracts in PXE client
-        const pxeClient = createPXEClient(url);
-        await pxeClient.registerContract({
-          instance: BACKEND_WALLET.contracts.gateway.instance,
-          artifact: BACKEND_WALLET.contracts.gateway.artifact,
-        });
-
-        clientData.PXE = { process: pxe, port, reuseTimerId: null };
-
-        socket.send(`pxe ${url}`);
-        console.log("PXE ready", url);
-      });
-
-      pxe.on("close", (code) => {
-        clientData.PXE = null;
-        console.log(`PXE process exited with code ${code}`);
-      });
+          socket.send(`pxe ${url}`);
+        },
+        () => {
+          clientData.PXE = null;
+        },
+      );
     }
 
     socket.on("message", (message) => {
