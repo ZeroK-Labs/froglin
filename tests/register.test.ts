@@ -76,12 +76,21 @@ describe("Registration Tests", () => {
     ).rejects.toThrow("Assertion failed: player is already registered");
   });
 
+  test("fails when game master tries to register", () => {
+    expect(
+      GAME_MASTER.contracts.gateway.methods
+        .register(stringToBigInt("game master"))
+        .send()
+        .wait(),
+    ).rejects.toThrow("Assertion failed: game master cannot register as player");
+  });
+
   test("fails when an un-registered account tries to read its name", () => {
     expect(
       ACCOUNTS.bob.contracts.gateway.methods
         .view_name(ACCOUNTS.bob.wallet.getAddress())
         .simulate(),
-    ).rejects.toThrow("Assertion failed: method callable only by registered players");
+    ).rejects.toThrow("Assertion failed: only registered players can call this method");
   });
 
   test("fails when an un-registered account tries to read the name of a registered account", () => {
@@ -90,6 +99,14 @@ describe("Registration Tests", () => {
         .view_name(ACCOUNTS.alice.wallet.getAddress())
         .simulate(),
     ).rejects.toThrow("Assertion failed: Attempted to read past end of BoundedVec");
+  });
+
+  test("fails when a registered account tries to read the name of an un-registered account", () => {
+    expect(
+      ACCOUNTS.alice.contracts.gateway.methods
+        .view_name(ACCOUNTS.bob.wallet.getAddress())
+        .simulate(),
+    ).rejects.toThrow("Assertion failed: only registered players can call this method");
   });
 
   test(
@@ -129,10 +146,11 @@ describe("Registration Tests", () => {
   );
 
   test("fails when an un-registered account tries to update its name in the registry", () => {
-    const nameAsField = stringToBigInt("bob in wonderland");
-
     expect(
-      ACCOUNTS.bob.contracts.gateway.methods.update_name(nameAsField).send().wait(),
-    ).rejects.toThrow("Assertion failed: method callable only by registered players");
+      ACCOUNTS.bob.contracts.gateway.methods
+        .update_name(stringToBigInt("bob in wonderland"))
+        .send()
+        .wait(),
+    ).rejects.toThrow("Assertion failed: only registered players can call this method");
   });
 });

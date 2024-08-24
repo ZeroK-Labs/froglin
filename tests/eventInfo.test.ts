@@ -95,7 +95,7 @@ describe("EventInfo Tests", () => {
         .event!.methods.create_event_info_note(ACCOUNTS.bob.wallet.getAddress())
         .send()
         .wait(),
-    ).rejects.toThrow("Assertion failed: method callable only by registered players");
+    ).rejects.toThrow("Assertion failed: only registered players can call this method");
   });
 
   test(
@@ -126,7 +126,7 @@ describe("EventInfo Tests", () => {
     );
 
     // TODO: fix unconstrained vs private checking of player registration
-    //).rejects.toThrow("Assertion failed: method callable only by registered players");
+    //).rejects.toThrow("Assertion failed: only registered players can call this method");
   });
 
   test("fails when an un-registered account tries to read the event info note of a registered account", () => {

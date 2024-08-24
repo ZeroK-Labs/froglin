@@ -3,8 +3,8 @@
 # find all 1st level sub-directories within the base directory and split them into an array
 # IFS=$'\n' read -rd '' -a contracts <<< "$(find "aztec/contracts" -mindepth 1 -maxdepth 1 -type d)"
 
-# contracts=("aztec/contracts/gateway")
-contracts=("aztec/contracts/gateway" "aztec/contracts/event")
+contracts=("aztec/contracts/gateway")
+# contracts=("aztec/contracts/gateway" "aztec/contracts/event")
 
 printf "\nCompiling contracts...\n"
 

@@ -4,89 +4,161 @@ contract FroglinGateway {
     use dep::value_note::value_note::ValueNote;
     use dep::aztec::{
         keys::getters::get_current_public_keys,
-        encrypted_logs::encrypted_note_emission::{encode_and_encrypt_note_with_keys, encode_and_encrypt_note},
-        prelude::{AztecAddress, Map, NoteViewerOptions, PrivateSet}, state_vars::PrivateMutable
+        encrypted_logs::encrypted_note_emission::{encode_and_encrypt_note, encode_and_encrypt_note_with_keys},
+        prelude::{AztecAddress, Map, NoteViewerOptions, PrivateSet},
+        state_vars::{PrivateMutable, PublicMutable, SharedImmutable}
     };
 
     use crate::types::player_note::PlayerNote;
 
-    global FROGLIN_COUNT = 12;
+    global FROGLIN_TYPE_COUNT = 12 as u8;
 
     #[aztec(storage)]
     struct Storage {
+        game_master: SharedImmutable<AztecAddress>,
         accounts: Map<AztecAddress, PrivateMutable<PlayerNote>>,
         stash: Map<AztecAddress, Map<Field, PrivateMutable<ValueNote>>>,
-
+        froglin_count: PublicMutable<u8>,
+        epoch_count: PublicMutable<u8>,
+        epoch_duration: PublicMutable<u64>,
+        epoch_start_time: PublicMutable<u64>,
     }
-
-    #[aztec(initializer)]
-    #[aztec(private)]
-    fn construct_private() {}
 
     #[aztec(view)]
     #[aztec(internal)]
     unconstrained fn _check_registration(player: AztecAddress) {
-        assert(storage.accounts.at(player).is_initialized(), "method callable only by registered players");
+        assert(storage.accounts.at(player).is_initialized(), "only registered players can call this method");
     }
 
     #[aztec(view)]
     #[aztec(internal)]
-    unconstrained fn _check_new(player: AztecAddress) {
+    unconstrained fn _check_availability(player: AztecAddress) {
         assert(!storage.accounts.at(player).is_initialized(), "player is already registered");
     }
 
+    // for external calls from other contracts
     #[aztec(private)]
     fn check_registration(player: AztecAddress) {
-        _check_registration(player);
+        unsafe {
+            _check_registration(player);
+        }
     }
 
-    #[aztec(private)]
-    fn capture_froglin(froglinType: Field) -> pub Field {
-        let player = context.msg_sender();
-        _check_registration(player);
+    #[aztec(initializer)]
+    #[aztec(public)]
+    fn construct_public() {
+        let game_master = context.msg_sender();
+        storage.game_master.initialize(game_master);
 
-        let keys = get_current_public_keys(&mut context, player);
-
-        let mut player_stash = storage.stash.at(player);
-
-        let old_note = player_stash.at(froglinType).get_note().note;
-        let new_note = ValueNote::new(old_note.value + 1, keys.npk_m.hash());
-
-        player_stash.at(froglinType).replace(&mut new_note).emit(encode_and_encrypt_note(&mut context, player, player));
+        storage.froglin_count.write(0);
+        storage.epoch_count.write(0);
+        storage.epoch_duration.write(0);
+        storage.epoch_start_time.write(0);
     }
-    // 0(rock) 1(paper) 2(scissors) 3(lizard) 4(spock) 5(fire) 6(water) 7(air) 8(earth) 9(lightning) 10(metal) 11(wood)
-    // create battle -> select the type of froglin to battle and the type you want to battle with
-    // intru in battle screen -> aleg optiunile rock ,tock rock si apas pe battle daca expira counterul pierzi
+
     #[aztec(private)]
     fn register(name: Field) {
         let player = context.msg_sender();
-        _check_new(player);
+        unsafe {
+            _check_availability(player);
+        }
+
+        assert(player != storage.game_master.read_private(), "game master cannot register as player");
 
         let keys = get_current_public_keys(&mut context, player);
 
-        let mut player_name_note = PlayerNote::new(name, keys.npk_m.hash());
-        storage.accounts.at(context.msg_sender()).initialize(&mut player_name_note).emit(encode_and_encrypt_note(&mut context, player, player));
+        let mut player_note = PlayerNote::new(name, keys.npk_m.hash());
+        storage.accounts.at(context.msg_sender()).initialize(&mut player_note).emit(encode_and_encrypt_note(&mut context, player, player));
 
         let mut player_stash = storage.stash.at(player);
-        for i in 0..FROGLIN_COUNT {
-            let froglinType = i as Field;
-            let new_note = ValueNote::new(0, keys.npk_m.hash());
-            player_stash.at(froglinType).initialize(&mut new_note).emit(encode_and_encrypt_note(&mut context, player, player));
+        for i in 0..FROGLIN_TYPE_COUNT {
+            let froglin_type = i as Field;
+            let new_froglin_note = ValueNote::new(0, keys.npk_m.hash());
+            player_stash.at(froglin_type).initialize(&mut new_froglin_note).emit(encode_and_encrypt_note(&mut context, player, player));
         }
     }
 
     #[aztec(private)]
     fn update_name(name: Field) {
         let player = context.msg_sender();
-        _check_registration(player);
+        unsafe {
+            _check_registration(player);
+        }
 
         let keys = get_current_public_keys(&mut context, context.msg_sender());
 
-        let old_player_note = storage.accounts.at(player).get_note().note;
-        let x = view_name(player);
+        let mut new_player_note = PlayerNote::new(name, keys.npk_m.hash());
+        storage.accounts.at(context.msg_sender()).replace(&mut new_player_note).emit(encode_and_encrypt_note(&mut context, player, player));
+    }
 
-        let mut new_player_name = PlayerNote::new(name, keys.npk_m.hash());
-        storage.accounts.at(context.msg_sender()).replace(&mut new_player_name).emit(encode_and_encrypt_note(&mut context, player, player));
+    #[aztec(public)]
+    fn start_event(froglin_count: u8, epoch_count: u8, epoch_duration: u64, epoch_start_time: u64) {
+        let game_master = context.msg_sender();
+        assert_eq(game_master, storage.game_master.read_public(), "only game master can call this method");
+
+        assert(storage.epoch_count.read() == 0, "event already started");
+
+        let stored_epoch_start_time = storage.epoch_start_time.read();
+        let stored_epoch_duration = storage.epoch_duration.read();
+        if (epoch_start_time > 0) {
+            let elapsed_time = (epoch_start_time - stored_epoch_start_time);
+            assert(elapsed_time >= stored_epoch_duration, "too soon to start a new event");
+        }
+
+        if (froglin_count != storage.froglin_count.read()) {
+            storage.froglin_count.write(froglin_count);
+        }
+        if (epoch_start_time != stored_epoch_start_time) {
+            storage.epoch_start_time.write(epoch_start_time);
+        }
+        if (epoch_count != storage.epoch_count.read()) {
+            storage.epoch_count.write(epoch_count);
+        }
+        if (epoch_duration != stored_epoch_duration) {
+            storage.epoch_duration.write(epoch_duration);
+        }
+    }
+
+    #[aztec(public)]
+    fn advance_epoch() {
+        let game_master = context.msg_sender();
+        assert_eq(game_master, storage.game_master.read_public(), "only game master can call this method");
+
+        let epoch_count = storage.epoch_count.read();
+        assert(epoch_count != 0, "event expired");
+
+        storage.epoch_count.write(epoch_count - 1);
+        storage.epoch_start_time.write(storage.epoch_start_time.read() + storage.epoch_duration.read());
+    }
+
+    #[aztec(internal)]
+    #[aztec(public)]
+    fn _decrement_froglin_count() {
+        let froglin_count = storage.froglin_count.read();
+        storage.froglin_count.write(froglin_count - 1);
+    }
+
+    #[aztec(private)]
+    fn capture_froglin(froglin_type: u8) {
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+
+            assert(view_epoch_count() != 0, "event is stopped");
+            assert(view_froglin_count() != 0, "all available Froglins have been captured");
+        }
+        assert(froglin_type < FROGLIN_TYPE_COUNT, "unknown Froglin type");
+
+        let keys = get_current_public_keys(&mut context, player);
+
+        let mut player_stash = storage.stash.at(player);
+
+        let old_froglin_note = player_stash.at(froglin_type as Field).get_note().note;
+        let new_froglin_note = ValueNote::new(old_froglin_note.value + 1, keys.npk_m.hash());
+
+        player_stash.at(froglin_type as Field).replace(&mut new_froglin_note).emit(encode_and_encrypt_note(&mut context, player, player));
+
+        FroglinGateway::at(context.this_address())._decrement_froglin_count().enqueue(&mut context);
     }
 
     #[aztec(view)]
@@ -102,12 +174,36 @@ contract FroglinGateway {
     }
 
     #[aztec(view)]
-    unconstrained fn view_stash(player: AztecAddress) -> pub BoundedVec<Field, FROGLIN_COUNT> {
+    unconstrained fn view_froglin_count() -> pub u8 {
+        storage.froglin_count.read()
+    }
+
+    #[aztec(view)]
+    unconstrained fn view_epoch_count() -> pub u8 {
+        storage.epoch_count.read()
+    }
+
+    #[aztec(view)]
+    unconstrained fn view_epoch_duration() -> pub u64 {
+        storage.epoch_duration.read()
+    }
+
+    #[aztec(view)]
+    unconstrained fn view_epoch_start_time() -> pub u64 {
+        storage.epoch_start_time.read()
+    }
+
+    #[aztec(view)]
+    unconstrained fn view_stash(player: AztecAddress) -> pub BoundedVec<Field, FROGLIN_TYPE_COUNT> {
         _check_registration(player);
 
-        let mut arr: BoundedVec<Field, FROGLIN_COUNT> = BoundedVec::from_array([0; FROGLIN_COUNT]);
-        for i in 0..FROGLIN_COUNT {
-            arr.set(i, storage.stash.at(player).at(i as Field).view_note().value);
+        let mut arr: BoundedVec<Field, FROGLIN_TYPE_COUNT> = BoundedVec::from_array([0; FROGLIN_TYPE_COUNT]);
+        for i in 0..FROGLIN_TYPE_COUNT {
+            let froglin_type = i as Field;
+            arr.set(
+                i as u32,
+                storage.stash.at(player).at(froglin_type).view_note().value
+            );
         }
         arr
     }

@@ -48,7 +48,7 @@ contract FroglinEvent {
     // #[aztec(internal)]
     // unconstrained fn check_registration(player: AztecAddress) {
     //     assert(
-    //         FroglinGateway::at(AztecAddress::from_field(storage.gateway.view_note().value)).storage.accounts.at(player).is_initialized(), "method callable only by registered players"
+    //         FroglinGateway::at(AztecAddress::from_field(storage.gateway.view_note().value)).storage.accounts.at(player).is_initialized(), "only registered players can call this method"
     //     );
     // }
 
