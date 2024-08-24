@@ -14,6 +14,6 @@ export async function createWallet(secret: string, pxe: PXE): Promise<AccountWal
   const account = new AccountManager(pxe, secretKey, contract, Fr.ZERO);
 
   const wallet = await account.waitSetup();
-  console.log("wallet ready", wallet.getAddress().toString());
+  console.log("Wallet ready", wallet.getAddress().toString());
   return wallet;
 }
