@@ -66,11 +66,36 @@ describe("Stash Tests", () => {
   );
 
   test(
-    "fails when unregistered account tries to capture Froglin",
+    "fails when an un-registered account tries to capture Froglin",
     () => {
       expect(
         ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(1).send().wait(),
       ).rejects.toThrow("Assertion failed: method callable only by registered players");
+    },
+    timeout,
+  );
+
+  test("fails when an un-registered account tries view its stash", () => {
+    expect(
+      ACCOUNTS.bob.contracts.gateway.methods
+        .view_stash(ACCOUNTS.bob.wallet.getAddress())
+        .simulate(),
+    ).rejects.toThrow("Assertion failed: method callable only by registered players");
+  });
+
+  test(
+    "fails when an registered account tries to view the stash of a different registered account",
+    async () => {
+      await ACCOUNTS.charlie.contracts.gateway.methods
+        .register(stringToBigInt("charlie"))
+        .send()
+        .wait();
+
+      expect(
+        ACCOUNTS.charlie.contracts.gateway.methods
+          .view_stash(ACCOUNTS.alice.wallet.getAddress())
+          .simulate(),
+      ).rejects.toThrow("Assertion failed: Attempted to read past end of BoundedVec");
     },
     timeout,
   );
