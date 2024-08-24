@@ -1,5 +1,4 @@
 import { beforeAll, describe, expect, test } from "bun:test";
-import { TxStatus } from "@aztec/aztec.js";
 
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { GAME_MASTER, ACCOUNTS } from "./accounts";
@@ -37,37 +36,27 @@ describe("Stash Tests", () => {
     await Promise.all(promises);
 
     // create a contract instance per wallet
-    ACCOUNTS.alice.contracts.gateway = await FroglinGatewayContract.at(
-      GAME_MASTER.contracts.gateway.address,
+    ACCOUNTS.alice.contracts.gateway = GAME_MASTER.contracts.gateway.withWallet(
       ACCOUNTS.alice.wallet,
     );
     ACCOUNTS.bob.contracts.gateway = GAME_MASTER.contracts.gateway.withWallet(
       ACCOUNTS.bob.wallet,
     );
     ACCOUNTS.charlie.contracts.gateway = GAME_MASTER.contracts.gateway.withWallet(
-      ACCOUNTS.charlie.wallet,
+      ACCOUNTS.bob.wallet,
     );
   });
 
   test(
-    "registers player with expected name",
+    "registered account can capture Froglin",
     async () => {
-      const expectedNameAsBigInt = stringToBigInt("alice");
-
-      const tx = await ACCOUNTS.alice.contracts.gateway.methods
-        .register(expectedNameAsBigInt)
+      await ACCOUNTS.alice.contracts.gateway.methods
+        .register(stringToBigInt("alice"))
         .send()
         .wait();
 
-      expect(tx.status).toEqual(TxStatus.SUCCESS);
-    },
-    timeout,
-  );
-
-  test(
-    "capture froglin",
-    async () => {
       await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait();
+
       const stash = await ACCOUNTS.alice.contracts.gateway.methods
         .view_stash(ACCOUNTS.alice.wallet.getAddress())
         .simulate();
@@ -77,7 +66,7 @@ describe("Stash Tests", () => {
   );
 
   test(
-    "unregistered account cannot capture froglin",
+    "fails when unregistered account tries to capture Froglin",
     () => {
       expect(
         ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(1).send().wait(),

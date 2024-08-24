@@ -1,5 +1,4 @@
 import { beforeAll, describe, expect, test } from "bun:test";
-import { TxStatus } from "@aztec/aztec.js";
 
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { GAME_MASTER, ACCOUNTS } from "./accounts";
@@ -52,38 +51,30 @@ describe("Registration Tests", () => {
   test(
     "registers player with expected name",
     async () => {
-      const expectedNameAsBigInt = stringToBigInt("alice");
+      const nameAsBigInt = stringToBigInt("alice");
 
-      const tx = await ACCOUNTS.alice.contracts.gateway.methods
-        .register(expectedNameAsBigInt)
+      await ACCOUNTS.alice.contracts.gateway.methods
+        .register(nameAsBigInt)
         .send()
         .wait();
-
-      expect(tx.status).toEqual(TxStatus.SUCCESS);
-    },
-    timeout,
-  );
-
-  test("fails when trying to register the same player twice", () => {
-    const nameAsField = stringToBigInt("alice");
-    expect(
-      ACCOUNTS.alice.contracts.gateway.methods.register(nameAsField).send().wait(),
-    ).rejects.toThrow("Assertion failed: player is already registered");
-  });
-
-  test(
-    "reads expected name for a registered player",
-    async () => {
-      const expectedNameAsBigInt = stringToBigInt("alice");
 
       const storedNameAsBigInt = await ACCOUNTS.alice.contracts.gateway.methods
         .view_name(ACCOUNTS.alice.wallet.getAddress())
         .simulate();
 
-      expect(expectedNameAsBigInt).toBe(storedNameAsBigInt);
+      expect(storedNameAsBigInt).toBe(nameAsBigInt);
     },
     timeout,
   );
+
+  test("fails when trying to register the same player twice", () => {
+    expect(
+      ACCOUNTS.alice.contracts.gateway.methods
+        .register(stringToBigInt("alice"))
+        .send()
+        .wait(),
+    ).rejects.toThrow("Assertion failed: player is already registered");
+  });
 
   test("fails when an un-registered account tries to read its name", () => {
     expect(
@@ -104,10 +95,8 @@ describe("Registration Tests", () => {
   test(
     "fails when a registered account tries to read the name of a different registered account",
     async () => {
-      const nameAsField = stringToBigInt("charlie");
-
       await ACCOUNTS.charlie.contracts.gateway.methods
-        .register(nameAsField)
+        .register(stringToBigInt("charlie"))
         .send()
         .wait();
 
@@ -123,18 +112,18 @@ describe("Registration Tests", () => {
   test(
     "updates player with expected name",
     async () => {
-      const nameAsField = stringToBigInt("alice in wonderland");
+      const nameAsBigInt = stringToBigInt("alice in wonderland");
 
       await ACCOUNTS.alice.contracts.gateway.methods
-        .update_name(nameAsField)
+        .update_name(nameAsBigInt)
         .send()
         .wait();
 
-      const storedNameAsField = await ACCOUNTS.alice.contracts.gateway.methods
+      const storedNameAsBigInt = await ACCOUNTS.alice.contracts.gateway.methods
         .view_name(ACCOUNTS.alice.wallet.getAddress())
         .simulate();
 
-      expect(nameAsField).toBe(storedNameAsField);
+      expect(storedNameAsBigInt).toBe(nameAsBigInt);
     },
     timeout,
   );
