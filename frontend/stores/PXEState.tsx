@@ -1,9 +1,9 @@
 import toast from "react-hot-toast";
-import type { PXE } from "@aztec/aztec.js";
+import { type PXE } from "@aztec/aztec.js";
 import { createPXEClient } from "@aztec/aztec.js";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import type { PXEState } from "frontend/types";
+import { type PXEState } from "frontend/types";
 import { StoreFactory } from "frontend/stores";
 import {
   CLIENT_SOCKET,
@@ -13,21 +13,23 @@ import {
 } from "frontend/utils/sockets";
 
 function createState(): PXEState {
-  const [pxeClient, setPXEClient] = useState<PXE | null>(null);
+  const pxeRef = useRef<PXE | null>(null);
+
   const [pxeURL, setPXEURL] = useState("");
 
   useEffect(
     () => {
       let toastId = "";
       let timerId: Timer;
+
       function handleSocketOpen() {
         toastId = toast.loading("Waiting for PXE...");
       }
 
       function handleSocketClose() {
-        toast.dismiss(toastId);
+        if (toastId) toast.dismiss(toastId);
 
-        setPXEClient(null);
+        pxeRef.current = null;
         setPXEURL("");
       }
 
@@ -66,7 +68,7 @@ function createState(): PXEState {
           return;
         }
 
-        setPXEClient(pxe);
+        pxeRef.current = pxe;
         setPXEURL(url);
 
         toast.success("PXE available", { id: toastId });
@@ -92,7 +94,7 @@ function createState(): PXEState {
   );
 
   return {
-    pxeClient,
+    pxeClient: pxeRef.current,
     pxeURL,
   };
 }
