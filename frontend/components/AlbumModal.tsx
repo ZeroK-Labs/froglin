@@ -2,13 +2,34 @@ import { useEffect, useState } from "react";
 
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
-import { useModalState } from "frontend/stores";
+import { useModalState, usePlayer } from "frontend/stores";
 
 export default function AlbumModal() {
-  const [stash, setStash] = useState<number[] | []>([]);
+  const [stash, setStash] = useState<number[] | []>([
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ]);
+
   const { modal, setModal } = useModalState();
+  const { aztec } = usePlayer();
 
   const visible = modal === MODALS.ALBUM;
+
+  useEffect(() => {
+    if (!aztec) return;
+    const playerAddress = aztec?.wallet?.getAddress();
+    async function fetchStash() {
+      const stash = await aztec?.contracts.gateway.methods
+        .view_stash(playerAddress)
+        .simulate();
+      if (stash.storage.length === 0) {
+        return;
+      }
+      const numberList = stash.storage.map((bi: bigint) => Number(bi));
+      setStash(numberList);
+    }
+
+    fetchStash();
+  }, [aztec]);
 
   useEffect(
     () => {
@@ -29,24 +50,34 @@ export default function AlbumModal() {
 
   return (
     <Modal
-      className="top-4"
+      className="top-20"
       visible={visible}
     >
       <div className="max-h-[500px] flex flex-col">
-        <div className="max-h-[500px] relative p-4 overflow-y-scroll">
-          <div
-            className="px-2 pb-2 mb-2 text-[14px] font-bold border-b grid grid-cols-3 gap-5 justify-items-start items-center text-white"
-            style={{ gridTemplateColumns: "min-content auto min-content" }}
-          >
-            <span className="w-6 mr-4">Rank</span>
-            <span>Player</span>
-            <span>Captured</span>
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            {stash.map((count, index) => (
-              <div key={index}>tralalala</div>
-            ))}
-          </div>
+        <div
+          className="px-2 pb-2 mb-2 text-[18px] font-bold border-b justify-items-start items-center text-white"
+          style={{ gridTemplateColumns: "min-content auto min-content" }}
+        >
+          <span className="w-6 mr-4">Album</span>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          {stash.map((count, index) => (
+            <div key={index}>
+              <div
+                className={`relative left-0 top-0 w-fit h-fit p-1 border-[2px] transition-all duration-500 cursor-pointer ${"bg-main-purple border-main-purple-hover border-dashed"}`}
+              >
+                <img
+                  src={`/images/froglin${index}.png`}
+                  width="45px"
+                  height="45px"
+                  alt="froglin"
+                />
+                <span className={`absolute item-text text-md -bottom-0.5 right-1`}>
+                  {count}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </Modal>
