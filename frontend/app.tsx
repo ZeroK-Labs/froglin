@@ -19,6 +19,7 @@ import {
   ToastView,
   TutorialModal,
 } from "frontend/components";
+import AlbumModal from "./components/AlbumModal";
 
 function AppComponent() {
   const { hasSecret } = usePlayer();
@@ -31,11 +32,13 @@ function AppComponent() {
       <InfoBarsContainer />
       <CapturedFroglinList />
       <LineMenu />
-
       <TutorialModal />
       {pxeClient ? (
         hasSecret ? (
-          <LeaderBoardModal />
+          <>
+            <LeaderBoardModal />
+            <AlbumModal />
+          </>
         ) : (
           <>
             <AccountModal />

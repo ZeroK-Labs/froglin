@@ -10,7 +10,9 @@ export default function InfoBarsContainer() {
     <div
       className="fixed z-[9999] left-0 top-2 right-0 p-2 flex pointer-events-none transition-opacity duration-1000"
       style={{
-        opacity: modal !== MODALS.TUTORIAL && modal !== MODALS.LEADERBOARD ? 1 : 0,
+        opacity: ![MODALS.TUTORIAL, MODALS.LEADERBOARD, MODALS.ALBUM].includes(modal)
+          ? 1
+          : 0,
       }}
     >
       <PlaygroundViewInfoBar visible={mapView === MAP_VIEWS.PLAYGROUND} />
