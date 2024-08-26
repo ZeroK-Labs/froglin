@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import type { Froglin } from "frontend/types";
 import { FROGLIN, PLAYER } from "frontend/settings";
-import { StoreFactory, useLocation, usePXEState } from "frontend/stores";
+import { StoreFactory, useLocation, usePlayer, usePXEState } from "frontend/stores";
 import { inRange } from "common/utils/map";
 import {
   GameEventBase,
@@ -47,6 +47,7 @@ function createState(): GameEventClient {
 
   const location = useLocation();
   const { pxeClient } = usePXEState();
+  const { aztec } = usePlayer();
 
   interestPointsRef.current = interestPoints;
 
@@ -136,11 +137,20 @@ function createState(): GameEventClient {
         const froglin = old[i];
 
         if (froglinIds.indexOf(froglin.id) === -1) continue;
-
-        capturedFroglinsNew.push({ ...froglin, id: crypto.randomUUID() });
-        froglin.visible = false;
+        if (aztec) {
+          const toastId = toast.loading("Capturing Froglin...");
+          aztec?.contracts.gateway.methods
+            .capture_froglin(froglin.type)
+            .send()
+            .wait()
+            .then(() => {
+              toast.dismiss(toastId);
+              toast.success("Froglin captured!");
+              capturedFroglinsNew.push({ ...froglin, id: crypto.randomUUID() });
+              froglin.visible = false;
+            });
+        }
       }
-
       setCapturedFroglins((old) => [...old, ...capturedFroglinsNew]);
 
       setTimeout(setRevealedFroglins, FROGLIN.MARKER.TRANSITION_DURATION, (old) => {
