@@ -130,46 +130,41 @@ function createState(): GameEventClient {
   }
 
   function captureFroglins(froglinIds: Froglin["id"][]) {
-    setRevealedFroglins((old) => {
-      // copy captured from revealed and set invisibile
-      const capturedFroglinsNew: Froglin[] = [];
-      for (let i = 0; i !== old.length; ++i) {
-        const froglin = old[i];
+    const froglinsToCapture = revealedFroglins.filter((froglin) =>
+      froglinIds.includes(froglin.id),
+    );
 
-        if (froglinIds.indexOf(froglin.id) === -1) continue;
-        if (aztec) {
-          const toastId = toast.loading("Capturing Froglin...");
-          aztec?.contracts.gateway.methods
-            .capture_froglin(froglin.type)
-            .send()
-            .wait()
-            .then(() => {
-              toast.dismiss(toastId);
-              toast.success("Froglin captured!");
-              capturedFroglinsNew.push({ ...froglin, id: crypto.randomUUID() });
-              froglin.visible = false;
-            });
-        }
-      }
-      setCapturedFroglins((old) => [...old, ...capturedFroglinsNew]);
+    froglinsToCapture.forEach((froglin) => {
+      const toastId = toast.loading("Capturing Froglin...");
 
-      setTimeout(setRevealedFroglins, FROGLIN.MARKER.TRANSITION_DURATION, (old) => {
-        // delay removal from revealed list to allow fade animation to complete
-        const revealedFroglinsNew: Froglin[] = [];
-        for (let i = 0; i !== old.length; ++i) {
-          const froglin = old[i];
+      aztec?.contracts.gateway.methods
+        .capture_froglin(froglin.type)
+        .send()
+        .wait()
+        .then(() => {
+          toast.dismiss(toastId);
+          toast.success("Froglin captured!");
 
-          const index = froglinIds.indexOf(froglin.id);
-          if (index === -1) revealedFroglinsNew.push(froglin);
-          else froglinIds.slice(index, 1);
-        }
-
-        return revealedFroglinsNew;
-      });
-
-      // update state to hide revealed and start fade animation
-      return [...old];
+          setCapturedFroglins((oldCaptured) => [
+            ...oldCaptured,
+            { ...froglin, id: crypto.randomUUID(), visible: false },
+          ]);
+          // delay removal from revealed list to allow fade animation to complete
+          setTimeout(() => {
+            setRevealedFroglins((old) => old.filter((r) => r.id !== froglin.id));
+          }, FROGLIN.MARKER.TRANSITION_DURATION);
+        })
+        .catch((error) => {
+          toast.dismiss(toastId);
+          toast.error("Failed to capture Froglin!");
+          console.error("Error capturing Froglin:", error);
+        });
     });
+
+    // Remove Froglins from the list of revealed Froglins
+    setRevealedFroglins((oldRevealed) =>
+      oldRevealed.filter((froglin) => !froglinIds.includes(froglin.id)),
+    );
   }
 
   async function fetchData(coordinates?: MapCoordinates) {

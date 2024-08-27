@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
-import { useModalState, usePlayer } from "frontend/stores";
+import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
 
 export default function AlbumModal() {
   const [stash, setStash] = useState<number[] | []>([
@@ -11,6 +11,7 @@ export default function AlbumModal() {
 
   const { modal, setModal } = useModalState();
   const { aztec } = usePlayer();
+  const { capturedFroglins } = useGameEvent();
 
   const visible = modal === MODALS.ALBUM;
 
@@ -29,7 +30,7 @@ export default function AlbumModal() {
     }
 
     fetchStash();
-  }, [aztec]);
+  }, [aztec, capturedFroglins.length]);
 
   useEffect(
     () => {
