@@ -10,13 +10,13 @@ export default function AlbumModal() {
   ]);
 
   const { modal, setModal } = useModalState();
-  const { aztec } = usePlayer();
+  const { aztec, username } = usePlayer();
   const { capturedFroglins } = useGameEvent();
 
   const visible = modal === MODALS.ALBUM;
 
   useEffect(() => {
-    if (!aztec) return;
+    if (!aztec || !username) return;
     const playerAddress = aztec?.wallet?.getAddress();
     async function fetchStash() {
       const stash = await aztec?.contracts.gateway.methods
@@ -30,7 +30,7 @@ export default function AlbumModal() {
     }
 
     fetchStash();
-  }, [aztec, capturedFroglins.length]);
+  }, [aztec, capturedFroglins.length, username]);
 
   useEffect(
     () => {
@@ -68,9 +68,9 @@ export default function AlbumModal() {
                 className={`relative left-0 top-0 w-fit h-fit p-1 border-[2px] transition-all duration-500 cursor-pointer ${"bg-main-purple border-main-purple-hover border-dashed"}`}
               >
                 <img
-                  src={`/images/froglin${index}.png`}
-                  width="45px"
-                  height="45px"
+                  src={`/images/froglin${index + 1}.webp`}
+                  width="69px"
+                  height="69px"
                   alt="froglin"
                 />
                 <span className={`absolute item-text text-md -bottom-0.5 right-1`}>
