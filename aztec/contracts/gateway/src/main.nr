@@ -12,6 +12,8 @@ contract FroglinGateway {
     use crate::types::player_note::PlayerNote;
 
     global FROGLIN_TYPE_COUNT = 12 as u8;
+    global LEADERBOARD_RETURN_SIZE = 10 as u8;
+    global MAX_PLAYERS = 32 as u8;
 
     #[aztec(storage)]
     struct Storage {
@@ -22,6 +24,9 @@ contract FroglinGateway {
         epoch_count: PublicMutable<u8>,
         epoch_duration: PublicMutable<u64>,
         epoch_start_time: PublicMutable<u64>,
+        leaderboard: Map<AztecAddress, PublicMutable<u8>>,
+        leaderboard_participants: Map<Field, PublicMutable<AztecAddress>>,
+        leaderboard_size: PublicMutable<u8>
     }
 
     #[aztec(view)]
@@ -50,10 +55,11 @@ contract FroglinGateway {
         let game_master = context.msg_sender();
         storage.game_master.initialize(game_master);
 
-        storage.froglin_count.write(0);
-        storage.epoch_count.write(0);
+        storage.froglin_count.write(20);
+        storage.epoch_count.write(1);
         storage.epoch_duration.write(0);
         storage.epoch_start_time.write(0);
+        storage.leaderboard_size.write(0);
     }
 
     #[aztec(private)]
@@ -71,6 +77,7 @@ contract FroglinGateway {
         storage.accounts.at(context.msg_sender()).initialize(&mut player_note).emit(encode_and_encrypt_note(&mut context, player, player));
 
         let mut player_stash = storage.stash.at(player);
+        // initialize player stash with 0 Froglins
         for i in 0..FROGLIN_TYPE_COUNT {
             let froglin_type = i as Field;
             let new_froglin_note = ValueNote::new(0, keys.npk_m.hash());
@@ -143,9 +150,8 @@ contract FroglinGateway {
         let player = context.msg_sender();
         unsafe {
             _check_registration(player);
-
-            assert(view_epoch_count() != 0, "event is stopped");
-            assert(view_froglin_count() != 0, "all available Froglins have been captured");
+            // assert(view_epoch_count() != 0, "event is stopped");
+            // assert(view_froglin_count() != 0, "all available Froglins have been captured");
         }
         assert(froglin_type < FROGLIN_TYPE_COUNT, "unknown Froglin type");
 
@@ -159,6 +165,32 @@ contract FroglinGateway {
         player_stash.at(froglin_type as Field).replace(&mut new_froglin_note).emit(encode_and_encrypt_note(&mut context, player, player));
 
         FroglinGateway::at(context.this_address())._decrement_froglin_count().enqueue(&mut context);
+        FroglinGateway::at(context.this_address())._increment_leaderboard(player).enqueue(&mut context);
+    }
+
+    #[aztec(public)]
+    #[aztec(internal)]
+    fn _increment_leaderboard(player: AztecAddress) {
+        let current_score = storage.leaderboard.at(player).read();
+        let new_score = current_score + 1;
+        storage.leaderboard.at(player).write(new_score);
+
+        let current_size = storage.leaderboard_size.read();
+
+        // Check if the player is already in the leaderboard
+        let mut player_found = false;
+        for i in 0..current_size {
+            if storage.leaderboard_participants.at(i as Field).read() == player {
+                player_found = true;
+                break;
+            }
+        }
+
+        // If player is not in the leaderboard, add him
+        if !player_found {
+            storage.leaderboard_participants.at(current_size as Field).write(player);
+            storage.leaderboard_size.write(current_size + 1);
+        }
     }
 
     #[aztec(view)]
@@ -206,5 +238,26 @@ contract FroglinGateway {
             );
         }
         arr
+    }
+
+    #[aztec(view)]
+    unconstrained fn _read_first_10_places() -> pub BoundedVec<(AztecAddress, u8), 10> {
+        let leaderboard_size = storage.leaderboard_size.read();
+        let mut all_entries: [(AztecAddress, u8); MAX_PLAYERS] = [(AztecAddress::zero(), 0); MAX_PLAYERS];
+
+        for i in 0..leaderboard_size {
+            let player = storage.leaderboard_participants.at(i as Field).read();
+            let score = storage.leaderboard.at(player).read();
+            all_entries[i] = ((player, score));
+        }
+
+        let sorted_descending = all_entries.sort_via(|a: (AztecAddress, u8), b: (AztecAddress, u8)| a.1 > b.1);
+
+        let mut result: BoundedVec<(AztecAddress, u8), LEADERBOARD_RETURN_SIZE> = BoundedVec::new();
+        for i in 0..LEADERBOARD_RETURN_SIZE {
+            result.push(sorted_descending[i]);
+        }
+
+        result
     }
 }
