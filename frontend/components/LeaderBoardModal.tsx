@@ -2,12 +2,7 @@ import { useEffect, useState } from "react";
 
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
-import { useModalState } from "frontend/stores";
-
-type LeaderBoardData = {
-  username: string;
-  froglins: number;
-};
+import { useModalState, usePlayer } from "frontend/stores";
 
 function getPodiumIcon(index: number): string {
   if (index === 0) return "🥇";
@@ -18,29 +13,32 @@ function getPodiumIcon(index: number): string {
 }
 
 export default function LeaderBoardModal() {
-  const [leaderBoardData, setLeaderBoardData] = useState<LeaderBoardData[]>([]);
+  const [leaderBoardData, setLeaderBoardData] = useState<number[]>([]);
+  const { aztec, username } = usePlayer();
 
   const { modal, setModal } = useModalState();
 
   const visible = modal === MODALS.LEADERBOARD;
 
-  useEffect(
-    () => {
-      async function fetchLeaderBoard() {
-        try {
-          const response = await fetch(`${process.env.BACKEND_URL}/leaderboard`);
-          const data = await response.json();
-          setLeaderBoardData(data);
-          //
-        } catch (error) {
-          console.error("Failed to fetch leaderboard data", error);
-        }
-      }
+  useEffect(() => {
+    if (!aztec || !username) return;
 
-      fetchLeaderBoard();
-    }, //
-    [],
-  );
+    async function fetchStash() {
+      const stash = await aztec?.contracts.gateway.methods
+        .read_leaderboard()
+        .simulate();
+      if (stash.storage.length === 0) {
+        return;
+      }
+      const numberList = stash.storage
+        .map((bi: bigint) => Number(bi))
+        .sort((a: number, b: number) => b - a)
+        .slice(0, 5);
+      setLeaderBoardData(numberList);
+    }
+
+    fetchStash();
+  }, [aztec, username]);
 
   useEffect(
     () => {
@@ -75,14 +73,13 @@ export default function LeaderBoardModal() {
             <span>Captured</span>
           </div>
 
-          {leaderBoardData.map(({ username, froglins }, index) => (
+          {leaderBoardData.map((froglins, index) => (
             <div
               key={index}
-              className="p-2 font-bold text-sm grid grid-cols-3 gap-5 justify-items-start items-center text-white"
+              className="p-2 font-bold text-sm grid grid-cols-2 gap-5 justify-items-start items-center text-white"
               style={{ gridTemplateColumns: "min-content auto min-content" }}
             >
               <span className="w-6 mr-4">{getPodiumIcon(index) ?? index + 1}</span>
-              <span className="max-w-[150px] truncate">{username}</span>
               <span className="whitespace-nowrap">{froglins}</span>
             </div>
           ))}
