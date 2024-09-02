@@ -1,131 +1,113 @@
+import type { GameEventServer } from "common/types";
+import { BACKEND_WALLET } from "backend/utils/aztec";
 import { CLIENT_SESSION_DATA } from "backend/start";
 import { EVENT } from "frontend/settings";
-import type { GameEventServer, MapCoordinates } from "common/types";
-import { getInterestPoints, getBoundsForCoordinate } from "common/utils/map";
+import { generateInterestPoints } from "backend/utils/InterestPoints";
 
-function getFarInterestPoints(coords: MapCoordinates, count: number) {
-  return getInterestPoints(coords, count, EVENT.FAR_RANGE.FROM, EVENT.FAR_RANGE.TO);
-}
-
-function getNearInterestPoints(coords: MapCoordinates, count: number) {
-  return getInterestPoints(coords, count, EVENT.NEAR_RANGE.FROM, EVENT.NEAR_RANGE.TO);
-}
-
-function getCloseInterestPoints(coords: MapCoordinates, count: number) {
-  return getInterestPoints(coords, count, EVENT.CLOSE_RANGE.FROM, EVENT.CLOSE_RANGE.TO);
-}
+const PRE_ADVANCE_DURATION = 7_000;
 
 function notifyNewEpoch(sessionId: string) {
   const socket = CLIENT_SESSION_DATA[sessionId].Socket;
   if (socket && socket.readyState === WebSocket.OPEN) socket.send("newEpoch");
 }
 
-function sessionAlive(sessionId: string, contextInfo: string) {
-  if (
-    CLIENT_SESSION_DATA[sessionId] &&
-    CLIENT_SESSION_DATA[sessionId].Socket &&
-    CLIENT_SESSION_DATA[sessionId].Socket.readyState === WebSocket.OPEN
-  ) {
-    return true;
-  }
-
-  console.error(
-    `Failed to ${contextInfo} game event: client socket connection required`,
-  );
-  return false;
-}
-
-export function createGameEvent(
-  sessionId: string,
-  location: MapCoordinates,
-): GameEventServer | null {
-  if (!sessionAlive(sessionId, "create")) return null;
-
-  let epochIntervalId: Timer;
+function createGameEventServer(): GameEventServer {
+  let epochIntervalId: Timer | undefined;
   const event: GameEventServer = {
-    location,
-    bounds: getBoundsForCoordinate(location),
-    epochCount: 0,
-    epochDuration: EVENT.EPOCH_DURATION,
-    epochStartTime: 0,
-    interestPoints: [],
+    start: async function () {
+      const epochCount = Number(
+        await BACKEND_WALLET.contracts.gateway.methods.view_epoch_count().simulate(),
+      );
+      const epochStartTime = Number(
+        await BACKEND_WALLET.contracts.gateway.methods
+          .view_epoch_start_time()
+          .simulate(),
+      );
 
-    start: function () {
-      if (event.epochCount !== 0 && event.epochStartTime !== 0) {
-        console.error("Failed to start event: already in progress");
+      if (epochCount !== 0 && epochStartTime !== 0) {
+        console.log("Reusing event");
+
+        epochIntervalId = setTimeout(
+          () => {
+            epochIntervalId = setTimeout(
+              () => {
+                epochIntervalId = setInterval(event.advanceEpoch, EVENT.EPOCH_DURATION);
+              }, //
+              EVENT.EPOCH_DURATION - PRE_ADVANCE_DURATION,
+            );
+            event.advanceEpoch();
+          }, //
+          Math.max(0, EVENT.EPOCH_DURATION - (Date.now() - epochStartTime)),
+        );
 
         return;
       }
 
-      if (!sessionAlive(sessionId, "start")) {
-        CLIENT_SESSION_DATA[sessionId].GameEvent = null;
+      epochIntervalId = setTimeout(
+        () => {
+          epochIntervalId = setInterval(event.advanceEpoch, EVENT.EPOCH_DURATION);
+        }, //
+        EVENT.EPOCH_DURATION - PRE_ADVANCE_DURATION,
+      );
 
-        return;
+      await BACKEND_WALLET.contracts.gateway.methods
+        .start_event(
+          EVENT.MARKER_COUNT,
+          EVENT.EPOCH_COUNT - 1, // epochs left
+          EVENT.EPOCH_DURATION,
+          Date.now(),
+        )
+        .send()
+        .wait();
+
+      console.log("newGame");
+
+      for (const sessionId in CLIENT_SESSION_DATA) {
+        notifyNewEpoch(sessionId);
       }
-
-      console.log(sessionId, "newGame");
-
-      event.epochCount = EVENT.EPOCH_COUNT;
-      event.interestPoints = Array.from({ length: EVENT.MARKER_COUNT }, (_, i) => ({
-        id: "_" + i, // frontend React needs a string id
-        coordinates: { longitude: 0, latitude: 0 },
-      }));
-
-      event.advanceEpoch();
-      epochIntervalId = setInterval(event.advanceEpoch, event.epochDuration);
     },
 
     stop: function () {
       clearInterval(epochIntervalId);
+      epochIntervalId = undefined;
     },
 
-    advanceEpoch: function () {
-      if (event.epochCount === 0) {
+    advanceEpoch: async function () {
+      const epochCount = Number(
+        await BACKEND_WALLET.contracts.gateway.methods.view_epoch_count().simulate(),
+      );
+
+      if (epochCount === 0) {
         clearInterval(epochIntervalId);
+        epochIntervalId = undefined;
 
         event.start();
 
         return;
       }
 
-      console.log(sessionId, "epoch", event.epochCount);
+      await BACKEND_WALLET.contracts.gateway.methods.advance_epoch().send().wait();
 
-      event.epochCount -= 1;
-      event.epochStartTime = Date.now();
+      console.log("epoch", epochCount - 1);
 
-      const totalCount = event.interestPoints.length;
-      if (totalCount === 0) {
+      for (const sessionId in CLIENT_SESSION_DATA) {
+        const session = CLIENT_SESSION_DATA[sessionId];
+
+        if (!session.interestPoints) continue;
+
+        const totalCount = session.interestPoints.length;
+        if (totalCount === 0) {
+          notifyNewEpoch(sessionId);
+          continue;
+        }
+
+        generateInterestPoints(session, totalCount);
         notifyNewEpoch(sessionId);
-
-        return;
       }
-
-      // generate new coordinates for the interest points
-      const nearCount = Math.min(Math.floor(totalCount * 0.15) ?? 0, 15);
-      const closeCount = Math.min(Math.floor(totalCount * 0.15) ?? 1, 5);
-
-      const coordinates: MapCoordinates[] = [
-        ...getFarInterestPoints(event.location, totalCount - nearCount - closeCount),
-        ...getNearInterestPoints(event.location, nearCount),
-        ...getCloseInterestPoints(event.location, closeCount),
-      ];
-
-      // set new coordinates
-      for (let i = 0; i !== totalCount; ++i) {
-        event.interestPoints[i].coordinates = coordinates[i];
-      }
-
-      notifyNewEpoch(sessionId);
-    },
-
-    revealInterestPoints: function (interestPointIds: string[]) {
-      const filteredInterestPoints = event.interestPoints.filter(
-        (interestPoint) => !interestPointIds.includes(interestPoint.id),
-      );
-
-      event.interestPoints = filteredInterestPoints;
     },
   };
 
   return event;
 }
+
+export const GAME_EVENT = createGameEventServer();

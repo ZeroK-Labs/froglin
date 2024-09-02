@@ -7,6 +7,7 @@ import https from "https";
 import path from "path";
 
 import type { ClientSessionData } from "backend/types";
+import { GAME_EVENT } from "./stores/GameEvent";
 import { createAccount } from "./utils/aztec";
 import { createSocketServer, destroySocketServer } from "./utils/sockets";
 import {
@@ -14,10 +15,12 @@ import {
   startSandboxWatcher,
 } from "./utils/SandboxWatcher";
 import {
+  getEventBounds,
   getGatewayAddress,
-  getGame,
+  getInterestPoints,
   getLeaderboard,
   revealFroglins,
+  setPlayerLocation,
 } from "./endpoints";
 
 export const CLIENT_SESSION_DATA: { [key: string]: ClientSessionData } = {};
@@ -44,9 +47,11 @@ app.use(express.json());
 
 // ENDPOINTS
 app.get("/gateway", getGatewayAddress);
-app.get("/game", getGame);
 app.get("/leaderboard", getLeaderboard);
+app.get("/interest-points", getInterestPoints);
+app.get("/event-bounds", getEventBounds);
 
+app.post("/location", setPlayerLocation);
 app.post("/reveal", revealFroglins);
 
 // HTML SERVER
@@ -69,6 +74,8 @@ async function handleSandboxFound() {
   html_server = https.createServer(options, app);
   createSocketServer({ server: html_server });
 
+  GAME_EVENT.start();
+
   // START
   html_server.listen(Number(process.env.BACKEND_PORT), () => {
     console.log(
@@ -83,8 +90,9 @@ function handleSandboxLost() {
   destroySocketServer();
   if (html_server) html_server.close();
 
+  GAME_EVENT.stop();
+
   for (const sessionId in CLIENT_SESSION_DATA) {
-    CLIENT_SESSION_DATA[sessionId].GameEvent?.stop();
     delete CLIENT_SESSION_DATA[sessionId];
   }
 }

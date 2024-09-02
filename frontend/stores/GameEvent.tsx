@@ -2,15 +2,10 @@ import toast from "react-hot-toast";
 import { useEffect, useRef, useState } from "react";
 
 import type { Froglin } from "frontend/types";
+import type { GameEventClient, InterestPoint } from "common/types";
 import { FROGLIN, PLAYER } from "frontend/settings";
-import { StoreFactory, useLocation, usePlayer, usePXEState } from "frontend/stores";
+import { StoreFactory, useLocation, usePlayer } from "frontend/stores";
 import { inRange } from "common/utils/map";
-import {
-  GameEventBase,
-  GameEventClient,
-  InterestPoint,
-  MapCoordinates,
-} from "common/types";
 import {
   CLIENT_SOCKET,
   SESSION_ID,
@@ -46,7 +41,6 @@ function createState(): GameEventClient {
   const [capturedFroglins, setCapturedFroglins] = useState<Froglin[]>([]);
 
   const location = useLocation();
-  const { pxeClient } = usePXEState();
   const { aztec } = usePlayer();
 
   interestPointsRef.current = interestPoints;
@@ -167,49 +161,106 @@ function createState(): GameEventClient {
     );
   }
 
-  async function fetchData(coordinates?: MapCoordinates) {
+  function fetchBlockchainData() {
+    if (!aztec) return;
+
+    aztec.contracts.gateway.methods
+      .registered(aztec.wallet.getAddress())
+      .simulate()
+      .then((registered) => {
+        if (!registered) return;
+
+        aztec.contracts.gateway.methods
+          .view_epoch_duration()
+          .simulate()
+          .then((epoch_duration) => {
+            setEpochDuration(Number(epoch_duration));
+          });
+
+        aztec.contracts.gateway.methods
+          .view_epoch_count()
+          .simulate()
+          .then((epoch_count) => {
+            epoch_count = Number(epoch_count);
+
+            epochCountRef.current = epoch_count;
+            setEpochCount(epoch_count);
+
+            const suffix = epoch_count === 0 ? "" : "s";
+            toast(`${epoch_count + 1} epoch${suffix} left`, { icon: "⏳" });
+          });
+
+        aztec.contracts.gateway.methods
+          .view_epoch_start_time()
+          .simulate()
+          .then((epoch_start_time) => {
+            epoch_start_time = Number(epoch_start_time);
+            setEpochStartTime(epoch_start_time);
+            console.log(Date.now() - epoch_start_time);
+          });
+      });
+
+    // const registered = await aztec.contracts.gateway.methods
+    //   .registered(aztec.wallet.getAddress())
+    //   .simulate();
+    // if (!registered) return;
+
+    // const epoch_duration = Number(
+    //   await aztec.contracts.gateway.methods.view_epoch_duration().simulate(),
+    // );
+
+    // setEpochDuration(epoch_duration);
+
+    // const epoch_count = Number(
+    //   await aztec.contracts.gateway.methods.view_epoch_count().simulate(),
+    // );
+
+    // epochCountRef.current = epoch_count;
+    // setEpochCount(epoch_count);
+
+    // const suffix = epoch_count === 0 ? "" : "s";
+    // toast(`${epoch_count + 1} epoch${suffix} left`, { icon: "⏳" });
+
+    // const epoch_start_time = Number(
+    //   await aztec.contracts.gateway.methods.view_epoch_start_time().simulate(),
+    // );
+    // setEpochStartTime(epoch_start_time);
+    // console.log(Date.now() - epoch_start_time);
+  }
+
+  async function fetchData() {
     if (CLIENT_SOCKET.readyState !== WebSocket.OPEN) return;
 
-    if (!SESSION_ID) {
-      console.error("Failed to fetch game event data: missing SESSION_ID");
-
-      return;
-    }
-
     const query = new URLSearchParams({ sessionId: SESSION_ID });
-    if (coordinates) {
-      query.set("longitude", coordinates.longitude.toString());
-      query.set("latitude", coordinates.latitude.toString());
-    }
 
-    let event: GameEventBase;
+    let interestPoints: InterestPoint[];
     try {
-      const response = await fetch(`${process.env.BACKEND_URL}/game?${query}`);
-      event = await response.json();
+      const response = await fetch(
+        `${process.env.BACKEND_URL}/interest-points?${query}`,
+      );
+      interestPoints = await response.json();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_err) {
       return;
     }
 
-    const restarted = epochCountRef.current === 0;
-    epochCountRef.current = event.epochCount;
-
-    for (let i = 0; i !== event.interestPoints.length; ++i) {
-      event.interestPoints[i].visible = true;
+    for (let i = 0; i !== interestPoints.length; ++i) {
+      interestPoints[i].visible = true;
     }
 
-    setBounds(event.bounds);
-    setEpochCount(event.epochCount);
-    setEpochDuration(event.epochDuration);
-    setEpochStartTime(event.epochStartTime);
-    setInterestPoints(event.interestPoints);
+    setInterestPoints(interestPoints);
 
-    if (!restarted) {
-      const suffix = event.epochCount === 0 ? "" : "s";
-      toast(`${event.epochCount + 1} epoch${suffix} left`, { icon: "⏳" });
-
+    let bounds: [number, number][][];
+    try {
+      const response = await fetch(`${process.env.BACKEND_URL}/event-bounds?${query}`);
+      bounds = await response.json();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_err) {
       return;
     }
+    setBounds(bounds);
+
+    if (epochCountRef.current !== 0) return;
 
     // hide revealed Froglins
     setRevealedFroglins((old) => {
@@ -225,46 +276,68 @@ function createState(): GameEventClient {
     toast("New event", { icon: "🎉" });
   }
 
+  useEffect(
+    () => {
+      if (CLIENT_SOCKET.readyState !== WebSocket.OPEN) return;
+
+      if (
+        location.coordinates.longitude == null ||
+        isNaN(location.coordinates.longitude) ||
+        location.coordinates.latitude == null ||
+        isNaN(location.coordinates.latitude)
+      ) {
+        return;
+      }
+
+      async function initializeEventLocation() {
+        await fetch(`${process.env.BACKEND_URL}/location`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sessionId: SESSION_ID,
+            longitude: location.coordinates.longitude,
+            latitude: location.coordinates.latitude,
+          }),
+        });
+      }
+
+      initializeEventLocation();
+    }, //
+    [location.coordinates, CLIENT_SOCKET.readyState],
+  );
+
   // handle event initialization
   useEffect(
     () => {
-      if (!pxeClient) return;
+      if (!aztec || !aztec.wallet) return;
 
       function handleServerEpochUpdate(event: MessageEvent<any>) {
-        if (event.data === "newEpoch") fetchData();
+        if (!aztec || !aztec.wallet || event.data !== "newEpoch") return;
+
+        fetchBlockchainData();
+        fetchData();
       }
 
-      async function initializeEvent() {
-        if (
-          location.coordinates.longitude != null &&
-          isFinite(location.coordinates.longitude) &&
-          location.coordinates.latitude != null &&
-          isFinite(location.coordinates.latitude)
-        ) {
-          await fetchData(location.coordinates);
+      fetchBlockchainData();
+      fetchData();
 
-          addSocketEventHandler("message", handleServerEpochUpdate);
-        }
-      }
-      initializeEvent();
+      addSocketEventHandler("message", handleServerEpochUpdate);
 
       return () => {
         removeSocketEventHandler("message", handleServerEpochUpdate);
       };
     }, //
-    [pxeClient],
+    [aztec],
   );
 
   return {
     bounds,
-    setBounds,
-    epochCount,
-    setEpochCount,
-    epochDuration,
-    setEpochDuration,
-    epochStartTime,
-    setEpochStartTime,
     getEventBounds,
+    epochCount,
+    epochDuration,
+    epochStartTime,
     interestPoints,
     revealedFroglins,
     revealFroglins,

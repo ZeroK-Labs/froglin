@@ -19,12 +19,16 @@ export default function AlbumModal() {
     if (!aztec || !username) return;
     const playerAddress = aztec?.wallet?.getAddress();
     async function fetchStash() {
-      const stash = await aztec?.contracts.gateway.methods
+      const registered = await aztec!.contracts.gateway.methods
+        .registered(aztec!.wallet.getAddress())
+        .simulate();
+      if (!registered) return;
+
+      const stash = await aztec!.contracts.gateway.methods
         .view_stash(playerAddress)
         .simulate();
-      if (stash.storage.length === 0) {
-        return;
-      }
+      if (stash.storage.length === 0) return;
+
       const numberList = stash.storage.map((bi: bigint) => Number(bi));
       setStash(numberList);
     }

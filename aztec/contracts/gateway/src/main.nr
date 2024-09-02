@@ -56,7 +56,7 @@ contract FroglinGateway {
         storage.game_master.initialize(game_master);
 
         storage.froglin_count.write(20);
-        storage.epoch_count.write(1);
+        storage.epoch_count.write(0);
         storage.epoch_duration.write(0);
         storage.epoch_start_time.write(0);
         storage.leaderboard_size.write(0);
@@ -112,15 +112,9 @@ contract FroglinGateway {
             assert(elapsed_time >= stored_epoch_duration, "too soon to start a new event");
         }
 
-        if (froglin_count != storage.froglin_count.read()) {
-            storage.froglin_count.write(froglin_count);
-        }
-        if (epoch_start_time != stored_epoch_start_time) {
-            storage.epoch_start_time.write(epoch_start_time);
-        }
-        if (epoch_count != storage.epoch_count.read()) {
-            storage.epoch_count.write(epoch_count);
-        }
+        storage.froglin_count.write(froglin_count);
+        storage.epoch_start_time.write(epoch_start_time);
+        storage.epoch_count.write(epoch_count);
         if (epoch_duration != stored_epoch_duration) {
             storage.epoch_duration.write(epoch_duration);
         }
@@ -145,6 +139,30 @@ contract FroglinGateway {
         storage.froglin_count.write(froglin_count - 1);
     }
 
+    #[aztec(internal)]
+    #[aztec(public)]
+    fn _increment_leaderboard(player: AztecAddress) {
+        let current_score = storage.leaderboard.at(player).read();
+        let new_score = current_score + 1;
+        storage.leaderboard.at(player).write(new_score);
+
+        let current_size = storage.leaderboard_size.read();
+
+        // Check if the player is already in the leaderboard
+        let mut player_found = false;
+        for i in 0..current_size {
+            if !player_found {
+                player_found = storage.leaderboard_participants.at(i as Field).read() == player;
+            }
+        }
+
+        // If player is not in the leaderboard, add him
+        if !player_found {
+            storage.leaderboard_participants.at(current_size as Field).write(player);
+            storage.leaderboard_size.write(current_size + 1);
+        }
+    }
+
     #[aztec(private)]
     fn capture_froglin(froglin_type: u8) {
         let player = context.msg_sender();
@@ -166,31 +184,6 @@ contract FroglinGateway {
 
         FroglinGateway::at(context.this_address())._decrement_froglin_count().enqueue(&mut context);
         FroglinGateway::at(context.this_address())._increment_leaderboard(player).enqueue(&mut context);
-    }
-
-    #[aztec(public)]
-    #[aztec(internal)]
-    fn _increment_leaderboard(player: AztecAddress) {
-        let current_score = storage.leaderboard.at(player).read();
-        let new_score = current_score + 1;
-        storage.leaderboard.at(player).write(new_score);
-
-        let current_size = storage.leaderboard_size.read();
-
-        // Check if the player is already in the leaderboard
-        let mut player_found = false;
-        for i in 0..current_size {
-            if storage.leaderboard_participants.at(i as Field).read() == player {
-                player_found = true;
-                break;
-            }
-        }
-
-        // If player is not in the leaderboard, add him
-        if !player_found {
-            storage.leaderboard_participants.at(current_size as Field).write(player);
-            storage.leaderboard_size.write(current_size + 1);
-        }
     }
 
     #[aztec(view)]
