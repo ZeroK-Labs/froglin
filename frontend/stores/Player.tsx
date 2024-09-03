@@ -16,7 +16,8 @@ function createState(): Player {
   const [wallet, setWallet] = useState<AccountWallet | null>(null);
   const [gateway, setGateway] = useState<FroglinGatewayContract | null>(null);
   const [secret, setSecret] = useState(getSecret);
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState<string>("");
+  const [registered, setRegistered] = useState<boolean>(false);
 
   const { pxeClient, pxeURL } = usePXEState();
 
@@ -82,7 +83,7 @@ function createState(): Player {
           const name = bigIntToString(nameAsBigInt);
 
           setUsername(name);
-
+          setRegistered(true);
           toast(`Welcome ${name}!`);
 
           return;
@@ -100,7 +101,7 @@ function createState(): Player {
 
         const nameAsBigInt = stringToBigInt(username);
         await contract.methods.register(nameAsBigInt).send().wait();
-
+        setRegistered(true);
         toast.success("Player registered!", { id: toastId });
         setTimeout(toast, 750, `Welcome ${username}!`);
       }
@@ -113,6 +114,7 @@ function createState(): Player {
   return {
     username,
     setUsername,
+    registered,
     hasSecret: !!secret,
     setSecret: (newSecret: SetStateAction<string>) => {
       if (typeof newSecret === "function") newSecret = newSecret(secret);

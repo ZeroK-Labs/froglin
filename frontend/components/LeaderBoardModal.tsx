@@ -14,14 +14,14 @@ function getPodiumIcon(index: number): string {
 
 export default function LeaderBoardModal() {
   const [leaderBoardData, setLeaderBoardData] = useState<number[]>([]);
-  const { aztec, username } = usePlayer();
+  const { aztec, registered } = usePlayer();
 
   const { modal, setModal } = useModalState();
 
   const visible = modal === MODALS.LEADERBOARD;
 
   useEffect(() => {
-    if (!aztec || !username) return;
+    if (!aztec || !registered) return;
 
     async function fetchStash() {
       const stash = await aztec?.contracts.gateway.methods
@@ -38,7 +38,7 @@ export default function LeaderBoardModal() {
     }
 
     fetchStash();
-  }, [aztec, username]);
+  }, [aztec, registered]);
 
   useEffect(
     () => {
