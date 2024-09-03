@@ -70,6 +70,7 @@ export const FROGLIN: FroglinSettings = {
     TRANSITION_DURATION: 500,
     MESSAGE_TIMEOUT: 3_000,
   },
+  TYPE_COUNT: 12,
 } as const;
 
 export const LOCATION: LocationSettings = {

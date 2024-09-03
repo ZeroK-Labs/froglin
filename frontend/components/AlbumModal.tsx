@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 
+import { FROGLIN } from "frontend/settings";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
 
 export default function AlbumModal() {
-  const [stash, setStash] = useState<number[] | []>(Array(10).fill(0));
+  const [stash, setStash] = useState<number[]>(() => Array(FROGLIN.TYPE_COUNT).fill(0));
 
   const { modal, setModal } = useModalState();
   const { aztec, registered } = usePlayer();
@@ -14,21 +15,22 @@ export default function AlbumModal() {
   const visible = modal === MODALS.ALBUM;
 
   useEffect(() => {
-    if (!aztec || !registered) return;
-    const playerAddress = aztec?.wallet?.getAddress();
     async function fetchStash() {
-      const stash = await aztec?.contracts.gateway.methods
+      if (!aztec || !registered) return;
+
+      const playerAddress = aztec.wallet.getAddress();
+      const stash = await aztec.contracts.gateway.methods
         .view_stash(playerAddress)
         .simulate();
-      if (stash.storage.length === 0) {
-        return;
-      }
+
+      if (!stash || stash.length === 0) return;
+
       const numberList = stash.storage.map((bi: bigint) => Number(bi));
       setStash(numberList);
     }
 
     fetchStash();
-  }, [aztec, capturedFroglins.length, registered]);
+  }, [aztec, registered, capturedFroglins.length]);
 
   useEffect(
     () => {

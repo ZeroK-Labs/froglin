@@ -146,6 +146,10 @@ export type FroglinSettings = {
    * Settings for the map marker
    */
   readonly MARKER: MarkerSettings;
+  /**
+   * Total number of the different Froglins types available
+   */
+  readonly TYPE_COUNT: number;
 };
 
 type DeviceLocationSettings = {
