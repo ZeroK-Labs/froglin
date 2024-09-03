@@ -1,6 +1,6 @@
-import { type AztecAddress } from "@aztec/aztec.js";
 import { useEffect, useState } from "react";
 
+import type { LeaderBoardEntry } from "common/types";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { useModalState, usePlayer } from "frontend/stores";
@@ -13,13 +13,8 @@ function getPodiumIcon(index: number): string | null {
   return null;
 }
 
-type LeaderboardEntry = {
-  player: AztecAddress;
-  score: number;
-};
-
 export default function LeaderBoardModal() {
-  const [leaderBoardData, setLeaderBoardData] = useState<LeaderboardEntry[]>([]);
+  const [leaderBoardData, setLeaderBoardData] = useState<LeaderBoardEntry[]>([]);
   const { aztec, registered } = usePlayer();
 
   const { modal, setModal } = useModalState();
@@ -39,11 +34,11 @@ export default function LeaderBoardModal() {
 
         setLeaderBoardData(
           leaderboard
-            .map((entry: LeaderboardEntry) => {
+            .map((entry: LeaderBoardEntry) => {
               entry.score = Number(entry.score);
               return entry;
             })
-            .sort((a: LeaderboardEntry, b: LeaderboardEntry) => b.score - a.score),
+            .sort((a: LeaderBoardEntry, b: LeaderBoardEntry) => b.score - a.score),
         );
       }
 
@@ -80,7 +75,7 @@ export default function LeaderBoardModal() {
           <span className="col-span-4 mr-4">Player</span>
           <span className="w-full">Captured</span>
         </div>
-        {leaderBoardData.map((entry: LeaderboardEntry, index) => (
+        {leaderBoardData.map((entry: LeaderBoardEntry, index) => (
           <div
             key={index}
             className="p-2 text-sm font-bold grid grid-cols-6 gap-5 justify-items-start items-center text-white"
