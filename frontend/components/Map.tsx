@@ -31,7 +31,7 @@ export default function MapScreen() {
   const [map, setMap] = useState<mapboxgl.Map>();
 
   const location = useLocation();
-  const { mapView } = useMapViewState();
+  const { mapView, setMapView } = useMapViewState();
   const { getEventBounds, interestPoints, revealedFroglins } = useGameEvent();
 
   function mapCallback(node: MapRef) {
@@ -72,8 +72,20 @@ export default function MapScreen() {
       _window.__map_load_duration = VIEW.TRANSITION_DURATION;
     } //
     else if (mapView === MAP_VIEWS.EVENT) {
+      // revert when event is yet to be initialized from the server
+      const bounds = getEventBounds();
+      if (
+        bounds[0][0] === 0 &&
+        bounds[0][1] === 0 &&
+        bounds[1][0] === 0 &&
+        bounds[1][1] === 0
+      ) {
+        setMapView(MAP_VIEWS.PLAYGROUND);
+        return;
+      }
+
       map.once("idle", map.enableEventActions);
-      map.fitBounds(getEventBounds(), {
+      map.fitBounds(bounds, {
         zoom: VIEW.EVENT.ZOOM - 0.5,
         pitch: VIEW.EVENT.PITCH,
         bearing: VIEW.EVENT.BEARING,
