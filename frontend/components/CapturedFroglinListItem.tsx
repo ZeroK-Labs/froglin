@@ -26,7 +26,7 @@ export default function CapturedFroglinListItem({
       }`}
     >
       <img
-        src={`/images/froglin${item.type}.png`}
+        src={`/images/froglin${item.type}.webp`}
         width="32px"
         height="32px"
         alt=""

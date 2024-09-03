@@ -54,7 +54,7 @@ contract FroglinGateway {
         let game_master = context.msg_sender();
         storage.game_master.initialize(game_master);
 
-        storage.froglin_count.write(0);
+        storage.froglin_count.write(20);
         storage.epoch_count.write(0);
         storage.epoch_duration.write(0);
         storage.epoch_start_time.write(0);
@@ -141,6 +141,7 @@ contract FroglinGateway {
     #[aztec(public)]
     fn _decrement_froglin_count() {
         let froglin_count = storage.froglin_count.read();
+        assert(froglin_count != 0, "all available Froglins have been captured");
         storage.froglin_count.write(froglin_count - 1);
     }
 
@@ -149,8 +150,8 @@ contract FroglinGateway {
         let player = context.msg_sender();
         unsafe {
             _check_registration(player);
-            assert(view_epoch_count() != 0, "event is stopped");
-            assert(view_froglin_count() != 0, "all available Froglins have been captured");
+            // assert(view_epoch_count() != 0, "event is stopped");
+            // assert(view_froglin_count() != 0, "all available Froglins have been captured");
         }
         assert(froglin_type < FROGLIN_TYPE_COUNT, "unknown Froglin type");
 
@@ -162,7 +163,6 @@ contract FroglinGateway {
         let new_froglin_note = ValueNote::new(old_froglin_note.value + 1, keys.npk_m.hash());
 
         player_stash.at(froglin_type as Field).replace(&mut new_froglin_note).emit(encode_and_encrypt_note(&mut context, player, player));
-
         FroglinGateway::at(context.this_address())._decrement_froglin_count().enqueue(&mut context);
         FroglinGateway::at(context.this_address())._increment_leaderboard(player).enqueue(&mut context);
     }

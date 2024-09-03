@@ -27,10 +27,10 @@ export default function LeaderBoardModal() {
       const stash = await aztec?.contracts.gateway.methods
         .read_leaderboard()
         .simulate();
-      if (stash.storage.length === 0) {
+      if (!stash || stash.length === 0) {
         return;
       }
-      const numberList = stash.storage
+      const numberList = stash
         .map((bi: bigint) => Number(bi))
         .sort((a: number, b: number) => b - a)
         .slice(0, 5);
@@ -72,7 +72,6 @@ export default function LeaderBoardModal() {
             <span>Player</span>
             <span>Captured</span>
           </div>
-
           {leaderBoardData.map((froglins, index) => (
             <div
               key={index}
@@ -83,6 +82,7 @@ export default function LeaderBoardModal() {
               <span className="whitespace-nowrap">{froglins}</span>
             </div>
           ))}
+          Say sm
         </div>
       </div>
     </Modal>

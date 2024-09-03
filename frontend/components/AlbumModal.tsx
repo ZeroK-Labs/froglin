@@ -5,18 +5,16 @@ import { Modal } from "frontend/components";
 import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
 
 export default function AlbumModal() {
-  const [stash, setStash] = useState<number[] | []>([
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  ]);
+  const [stash, setStash] = useState<number[] | []>(Array(10).fill(0));
 
   const { modal, setModal } = useModalState();
-  const { aztec, username } = usePlayer();
+  const { aztec, registered } = usePlayer();
   const { capturedFroglins } = useGameEvent();
 
   const visible = modal === MODALS.ALBUM;
 
   useEffect(() => {
-    if (!aztec || !username) return;
+    if (!aztec || !registered) return;
     const playerAddress = aztec?.wallet?.getAddress();
     async function fetchStash() {
       const stash = await aztec?.contracts.gateway.methods
@@ -30,7 +28,7 @@ export default function AlbumModal() {
     }
 
     fetchStash();
-  }, [aztec, capturedFroglins.length, username]);
+  }, [aztec, capturedFroglins.length, registered]);
 
   useEffect(
     () => {
