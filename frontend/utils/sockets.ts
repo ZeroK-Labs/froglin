@@ -108,6 +108,19 @@ function handleClose(ev: CloseEvent) {
     CLIENT_SOCKET.removeEventListener("message", handleMessage);
     CLIENT_SOCKET.removeEventListener("message", handleMessageWrapper);
 
+    // notify server to remove location
+    fetch(`${process.env.BACKEND_URL}/location`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sessionId: SESSION_ID,
+        longitude: NaN,
+        latitude: NaN,
+      }),
+    }).catch(() => {});
+
     _window.__socket_closed = true;
     for (const handler of handlers["close"]) handler(ev);
   }

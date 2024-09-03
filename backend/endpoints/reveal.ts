@@ -20,14 +20,18 @@ export function revealFroglins(req: Request, res: Response) {
     return;
   }
 
-  const gameEvent = CLIENT_SESSION_DATA[sessionId].GameEvent;
+  const session = CLIENT_SESSION_DATA[sessionId];
 
-  if (!gameEvent) {
-    res.json("Missing game event");
+  if (!session) {
+    res.json(`Missing player session ${session}`);
     return;
   }
 
-  gameEvent.revealInterestPoints(hiddenInterestPointIds);
+  const filteredInterestPoints = session.interestPoints.filter(
+    (interestPoint) => !hiddenInterestPointIds.includes(interestPoint.id),
+  );
+
+  session.interestPoints = filteredInterestPoints;
 
   res.statusCode = 200;
   res.json("Reveal complete");
