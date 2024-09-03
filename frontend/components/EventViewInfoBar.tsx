@@ -24,7 +24,7 @@ export default function EventViewInfoBar({ visible }: Props) {
           <div className="flex justify-center font-bold">Event Stats</div>
 
           <div className="flex items-center space-x-1 font-semibold">
-            Epochs remaining: {epochCount + 1}
+            Epochs remaining: {epochCount}
           </div>
           <div className="flex items-center space-x-1">
             {/* <TimerIcon className="h-6 w-6" /> */}

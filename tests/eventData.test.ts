@@ -102,7 +102,7 @@ describe("Event Lifetime Tests", () => {
       const epoch_count = Number(
         await GAME_MASTER.contracts.gateway.methods.view_epoch_count().simulate(),
       );
-      expect(epoch_count).toEqual(EPOCH_COUNT - 1);
+      expect(epoch_count).toEqual(EPOCH_COUNT);
 
       const epoch_duration = Number(
         await GAME_MASTER.contracts.gateway.methods.view_epoch_duration().simulate(),
@@ -179,12 +179,12 @@ describe("Event Lifetime Tests", () => {
   test(
     "fails when game master tries to advance the epoch after the event expires",
     async () => {
-      // there are two epochs in total and we already advanced the epoch once in the tests above
+      // there are three epochs in total and we already advanced the epoch once in the tests above
 
       const epoch_count = Number(
         await GAME_MASTER.contracts.gateway.methods.view_epoch_count().simulate(),
       );
-      assert(epoch_count === 1, `epoch_count expected to be 1, found ${epoch_count}`);
+      assert(epoch_count === 2, `epoch_count expected to be 2, found ${epoch_count}`);
 
       await advance_epoch();
 
@@ -192,8 +192,8 @@ describe("Event Lifetime Tests", () => {
         await GAME_MASTER.contracts.gateway.methods.view_epoch_count().simulate(),
       );
       assert(
-        new_epoch_count === 0,
-        `epoch_count expected to be 0, found ${new_epoch_count}`,
+        new_epoch_count === 1,
+        `epoch_count expected to be 1, found ${new_epoch_count}`,
       );
 
       expect(advance_epoch()).rejects.toThrow("Assertion failed: event expired");
@@ -207,7 +207,7 @@ describe("Event Lifetime Tests", () => {
       const epoch_count = Number(
         await GAME_MASTER.contracts.gateway.methods.view_epoch_count().simulate(),
       );
-      assert(epoch_count === 0, `epoch_count expected to be 0, found ${epoch_count}`);
+      assert(epoch_count === 1, `epoch_count expected to be 1, found ${epoch_count}`);
 
       expect(
         GAME_MASTER.contracts.gateway.methods

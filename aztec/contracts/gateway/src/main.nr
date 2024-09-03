@@ -115,7 +115,8 @@ contract FroglinGateway {
         let game_master = context.msg_sender();
         assert_eq(game_master, storage.game_master.read_public(), "only game master can call this method");
 
-        assert(storage.epoch_count.read() == 0, "event already started");
+        let stored_epoch_count = storage.epoch_count.read();
+        assert((stored_epoch_count == 1) | (stored_epoch_count == 0), "event already started");
 
         let stored_epoch_start_time = storage.epoch_start_time.read();
         let stored_epoch_duration = storage.epoch_duration.read();
@@ -130,7 +131,7 @@ contract FroglinGateway {
         storage.epoch_start_time.write(epoch_start_time);
 
         assert(epoch_count >= 3, "epoch count should be at least 3");
-        storage.epoch_count.write(epoch_count - 1); // store epochs left
+        storage.epoch_count.write(epoch_count);
 
         assert(epoch_duration >= 20_000, "epoch duration should be at least 20 seconds");
         storage.epoch_duration.write(epoch_duration);
@@ -142,7 +143,7 @@ contract FroglinGateway {
         assert_eq(game_master, storage.game_master.read_public(), "only game master can call this method");
 
         let epoch_count = storage.epoch_count.read();
-        assert(epoch_count != 0, "event expired");
+        assert(epoch_count > 1, "event expired");
 
         storage.epoch_count.write(epoch_count - 1);
         storage.epoch_start_time.write(storage.epoch_start_time.read() + storage.epoch_duration.read());
