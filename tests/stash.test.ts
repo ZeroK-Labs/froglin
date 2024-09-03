@@ -8,8 +8,8 @@ import { assert } from "console";
 describe("Stash Tests", () => {
   const timeout = 40_000;
   const FROGLIN_COUNT = 5;
-  const EPOCH_COUNT = 2;
-  const EPOCH_DURATION = 10_000;
+  const EPOCH_COUNT = 3;
+  const EPOCH_DURATION = 20_000;
 
   beforeAll(async () => {
     console.log("Deploying contract...");

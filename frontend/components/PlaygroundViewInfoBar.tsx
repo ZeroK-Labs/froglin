@@ -10,14 +10,22 @@ type Props = {
 
 export default function PlaygroundViewInfoBar({ visible }: Props) {
   const epochTickerRef = useRef<Timer>();
+  const timeNowRef = useRef(0);
+
   const [secondsLeft, setSecondsLeft] = useState(0);
 
   const { epochDuration, epochStartTime } = useGameEvent();
   const { metersTravelled } = useLocation();
 
+  timeNowRef.current = Date.now();
+
   useEffect(
     () => {
-      let timeLeft = epochDuration - (Date.now() - epochStartTime);
+      if (epochDuration === 0) return;
+
+      let timeLeft = epochDuration - (timeNowRef.current - epochStartTime);
+      console.log(timeLeft, timeNowRef.current - epochStartTime);
+
       setSecondsLeft(Math.floor(timeLeft * 0.001));
 
       epochTickerRef.current = setInterval(

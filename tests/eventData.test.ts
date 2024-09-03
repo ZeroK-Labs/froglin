@@ -7,9 +7,9 @@ import { assert } from "console";
 
 describe("Event Lifetime Tests", () => {
   const timeout = 40_000;
-  const FROGLIN_COUNT = 1;
-  const EPOCH_COUNT = 2;
-  const EPOCH_DURATION = 10_000;
+  const FROGLIN_COUNT = 5;
+  const EPOCH_COUNT = 3;
+  const EPOCH_DURATION = 20_000;
 
   function advance_epoch() {
     return new Promise(async (resolve, reject) => {
@@ -57,8 +57,35 @@ describe("Event Lifetime Tests", () => {
     );
   });
 
+  test("fails when game master tries to start the event with froglin count less than minimum allowed", () => {
+    expect(
+      GAME_MASTER.contracts.gateway.methods
+        .start_event(0, EPOCH_COUNT, EPOCH_DURATION, Date.now())
+        .send()
+        .wait(),
+    ).rejects.toThrow("Assertion failed: froglin count should be at least 5");
+  });
+
+  test("fails when game master tries to start the event with epoch count less than minimum allowed", () => {
+    expect(
+      GAME_MASTER.contracts.gateway.methods
+        .start_event(FROGLIN_COUNT, 0, EPOCH_DURATION, Date.now())
+        .send()
+        .wait(),
+    ).rejects.toThrow("Assertion failed: epoch count should be at least 3");
+  });
+
+  test("fails when game master tries to start the event with epoch duration less than minimum allowed", () => {
+    expect(
+      GAME_MASTER.contracts.gateway.methods
+        .start_event(FROGLIN_COUNT, EPOCH_COUNT, 0, Date.now())
+        .send()
+        .wait(),
+    ).rejects.toThrow("Assertion failed: epoch duration should be at least 20 seconds");
+  });
+
   test(
-    "game master can start the event",
+    "game master can start the event with acceptable parameters",
     async () => {
       const start_time = Date.now();
 
@@ -68,14 +95,14 @@ describe("Event Lifetime Tests", () => {
         .wait();
 
       const froglin_count = Number(
-        await ACCOUNTS.alice.contracts.gateway.methods.view_froglin_count().simulate(),
+        await GAME_MASTER.contracts.gateway.methods.view_froglin_count().simulate(),
       );
       expect(froglin_count).toEqual(FROGLIN_COUNT);
 
       const epoch_count = Number(
         await GAME_MASTER.contracts.gateway.methods.view_epoch_count().simulate(),
       );
-      expect(epoch_count).toEqual(EPOCH_COUNT);
+      expect(epoch_count).toEqual(EPOCH_COUNT - 1);
 
       const epoch_duration = Number(
         await GAME_MASTER.contracts.gateway.methods.view_epoch_duration().simulate(),

@@ -21,23 +21,23 @@ export default function LeaderBoardModal() {
   const visible = modal === MODALS.LEADERBOARD;
 
   useEffect(() => {
-    if (!aztec || !registered) return;
+    async function fetchLeaderBoard() {
+      if (!aztec || !registered) return;
 
-    async function fetchStash() {
-      const stash = await aztec?.contracts.gateway.methods
-        .read_leaderboard()
+      const leaderboard = await aztec.contracts.gateway.methods
+        .view_leaderboard()
         .simulate();
-      if (!stash || stash.length === 0) {
-        return;
-      }
-      const numberList = stash
+
+      if (!leaderboard || leaderboard.length === 0) return;
+
+      const numberList = leaderboard
         .map((bi: bigint) => Number(bi))
         .sort((a: number, b: number) => b - a)
         .slice(0, 5);
       setLeaderBoardData(numberList);
     }
 
-    fetchStash();
+    fetchLeaderBoard();
   }, [aztec, registered]);
 
   useEffect(
