@@ -8,6 +8,8 @@ type Props = {
   visible: boolean;
 };
 
+const TICK_DURATION = 1_000;
+
 export default function PlaygroundViewInfoBar({ visible }: Props) {
   const epochTickerRef = useRef<Timer>();
   const timeNowRef = useRef(0);
@@ -24,20 +26,20 @@ export default function PlaygroundViewInfoBar({ visible }: Props) {
       if (epochDuration === 0) return;
 
       let timeLeft = epochDuration - (timeNowRef.current - epochStartTime);
-      console.log(timeLeft, timeNowRef.current - epochStartTime);
-
       setSecondsLeft(Math.floor(timeLeft * 0.001));
 
       epochTickerRef.current = setInterval(
         () => {
-          timeLeft -= 1_000;
-          if (timeLeft > 0) setSecondsLeft(Math.floor(timeLeft * 0.001));
+          if (timeLeft > TICK_DURATION) {
+            timeLeft -= TICK_DURATION;
+            setSecondsLeft(Math.floor(timeLeft * 0.001));
+          } //
           else {
             setSecondsLeft(0);
             clearInterval(epochTickerRef.current);
           }
         }, //
-        1_000,
+        TICK_DURATION,
       );
 
       return () => {
