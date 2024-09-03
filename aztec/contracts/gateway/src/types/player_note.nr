@@ -1,8 +1,6 @@
 use dep::aztec::{
-    protocol_types::{
-    address::AztecAddress, traits::{Deserialize, Serialize}, constants::GENERATOR_INDEX__NOTE_NULLIFIER,
-    hash::poseidon2_hash_with_separator
-},
+    protocol_types::{traits::Serialize, constants::GENERATOR_INDEX__NOTE_NULLIFIER},
+    hash::poseidon2_hash_with_separator,
     note::{note_header::NoteHeader, note_interface::NoteInterface, utils::compute_note_hash_for_nullify},
     oracle::unsafe_rand::unsafe_rand, keys::getters::get_nsk_app, context::PrivateContext
 };
