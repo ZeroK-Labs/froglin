@@ -9,7 +9,7 @@ contract FroglinGateway {
     };
 
     use crate::types::player_note::PlayerNote;
-    use crate::types::leaderboard_entry::LeaderboardEntry;
+    use crate::types::leaderboard_entry::LeaderBoardEntry;
 
     global FROGLIN_TYPE_COUNT = 12 as u8;
     global MAX_PLAYERS = 32 as u8;
@@ -24,7 +24,7 @@ contract FroglinGateway {
         epoch_duration: PublicMutable<u64>,
         epoch_start_time: PublicMutable<u64>,
         stash: Map<AztecAddress, Map<u8, PrivateMutable<ValueNote>>>,
-        leaderboard: Map<u8, PublicMutable<LeaderboardEntry>>,
+        leaderboard: Map<u8, PublicMutable<LeaderBoardEntry>>,
     }
 
     #[aztec(view)]
@@ -62,10 +62,10 @@ contract FroglinGateway {
 
     #[aztec(internal)]
     #[aztec(public)]
-    fn _register(player: AztecAddress) {
-        let new_accounts_size = storage.accounts_size.read() + 1;
-        storage.accounts_size.write(new_accounts_size);
-        storage.leaderboard.at(new_accounts_size).write(LeaderboardEntry::new(player, 0));
+    unconstrained fn _register(player: AztecAddress) {
+        let accounts_size = storage.accounts_size.read();
+        storage.leaderboard.at(accounts_size).write(LeaderBoardEntry::new(player, 0));
+        storage.accounts_size.write(accounts_size + 1);
     }
 
     #[aztec(private)]
@@ -156,13 +156,19 @@ contract FroglinGateway {
         storage.froglin_count.write(new_froglin_count);
 
         let accounts_size = storage.accounts_size.read();
-        let mut player_index = 0;
+        let mut player_index = MAX_PLAYERS;
         for i in 0..accounts_size {
             if (player == storage.leaderboard.at(i).read().player) {
                 player_index = i;
                 break;
             }
         }
+
+        // // add player to leaderboard when missing
+        // if (player_index == MAX_PLAYERS) {
+        //     player_index = storage.accounts_size.read() - 1;
+        //     storage.leaderboard.at(player_index).write(LeaderBoardEntry::new(player, 0));
+        // }
 
         let mut new_leaderboard_entry = storage.leaderboard.at(player_index).read();
         new_leaderboard_entry.score = new_leaderboard_entry.score + 1;
@@ -246,9 +252,9 @@ contract FroglinGateway {
     }
 
     #[aztec(view)]
-    unconstrained fn view_leaderboard() -> pub [LeaderboardEntry; MAX_PLAYERS] {
+    unconstrained fn view_leaderboard() -> pub [LeaderBoardEntry; MAX_PLAYERS] {
         let accounts_size = storage.accounts_size.read();
-        let mut leaderboard: [LeaderboardEntry; MAX_PLAYERS] = [LeaderboardEntry::zero(); MAX_PLAYERS];
+        let mut leaderboard: [LeaderBoardEntry; MAX_PLAYERS] = [LeaderBoardEntry::zero(); MAX_PLAYERS];
         for i in 0..accounts_size {
             leaderboard[i] = storage.leaderboard.at(i).read();
         }

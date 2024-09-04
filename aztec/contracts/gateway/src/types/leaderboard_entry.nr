@@ -1,11 +1,13 @@
-use dep::aztec::{prelude::AztecAddress, protocol_types::traits::{Deserialize, Serialize}};
+use dep::aztec::{prelude::AztecAddress, protocol_types::{traits::{Deserialize, Serialize}}};
 
-struct LeaderboardEntry {
+global FIELD_COUNT = 2;
+
+struct LeaderBoardEntry {
     player: AztecAddress,
-    score: u32
+    score: u32,
 }
 
-impl LeaderboardEntry {
+impl LeaderBoardEntry {
     pub fn zero() -> Self {
         Self { player: AztecAddress::zero(), score: 0 }
     }
@@ -15,14 +17,17 @@ impl LeaderboardEntry {
     }
 }
 
-impl Deserialize<2> for LeaderboardEntry {
-    fn deserialize(values: [Field; 2]) -> Self {
-        LeaderboardEntry::new(AztecAddress::from_field(values[0]), values[1] as u32)
+impl Deserialize<FIELD_COUNT> for LeaderBoardEntry {
+    fn deserialize(values: [Field; FIELD_COUNT]) -> Self {
+        Self {
+            player: AztecAddress::from_field(values[0]),
+            score: values[1] as u32,
+        }
     }
 }
 
-impl Serialize<2> for LeaderboardEntry {
-    fn serialize(self) -> [Field; 2] {
-        [self.player.inner, self.score as Field]
+impl Serialize<FIELD_COUNT> for LeaderBoardEntry {
+    fn serialize(self) -> [Field; FIELD_COUNT] {
+        [self.player.to_field(), self.score as Field]
     }
 }
