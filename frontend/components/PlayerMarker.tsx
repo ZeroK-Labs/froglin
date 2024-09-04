@@ -19,7 +19,7 @@ import {
 export default function PlayerMarker() {
   const navRef = useRef<HTMLDivElement>(null);
   const revealingRef = useRef(false);
-  const { username } = usePlayer();
+  const { username, registered } = usePlayer();
   const [trapPoints, setTrapPoints] = useState<MapCoordinates[]>([]);
   const [duplicateTrapIndex, setDuplicateTrapIndex] = useState<number | null>(null);
   const [open, setOpen] = useState<boolean>(false);
@@ -206,7 +206,7 @@ export default function PlayerMarker() {
             <div
               className={`absolute -top-4 px-2 text-xs leading-5 whitespace-nowrap bg-main-purple text-white transition-opacity duration-500 ${open ? "opacity-0" : ""}`}
             >
-              {username ? username : "Jules Verne"}
+              {registered && username ? username : "Jules Verne"}
             </div>
             <PlayerMarkerImage
               size="60px"
