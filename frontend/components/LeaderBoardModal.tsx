@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { LeaderBoardEntry } from "common/types";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
-import { useModalState, usePlayer } from "frontend/stores";
+import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
 
 function getPodiumIcon(index: number): string | null {
   if (index === 0) return "🥇";
@@ -15,8 +15,9 @@ function getPodiumIcon(index: number): string | null {
 
 export default function LeaderBoardModal() {
   const [leaderBoardData, setLeaderBoardData] = useState<LeaderBoardEntry[]>([]);
-  const { aztec, registered } = usePlayer();
 
+  const { capturedFroglins } = useGameEvent();
+  const { aztec, registered } = usePlayer();
   const { modal, setModal } = useModalState();
 
   const visible = modal === MODALS.LEADERBOARD;
@@ -44,7 +45,7 @@ export default function LeaderBoardModal() {
 
       fetchLeaderBoard();
     }, //
-    [aztec, registered],
+    [aztec, registered, capturedFroglins.length],
   );
 
   useEffect(
