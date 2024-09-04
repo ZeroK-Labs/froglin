@@ -1,9 +1,9 @@
+import { TxStatus } from "@aztec/aztec.js";
+import { assert } from "console";
 import { beforeAll, describe, expect, test } from "bun:test";
 
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { GAME_MASTER, ACCOUNTS } from "./accounts";
-import { TxStatus } from "@aztec/aztec.js";
-import { assert } from "console";
 
 describe("Event Lifetime Tests", () => {
   const timeout = 40_000;
