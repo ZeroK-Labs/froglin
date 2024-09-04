@@ -13,6 +13,13 @@ function getPodiumIcon(index: number): string | null {
   return null;
 }
 
+function formatPlayerName(name: string): string {
+  if (name.length > 8) {
+    return `${name.slice(0, 4)} ... ${name.slice(-4)}`;
+  }
+  return name;
+}
+
 export default function LeaderBoardModal() {
   const [leaderBoardData, setLeaderBoardData] = useState<LeaderBoardEntry[]>([]);
 
@@ -39,7 +46,8 @@ export default function LeaderBoardModal() {
               entry.score = Number(entry.score);
               return entry;
             })
-            .sort((a: LeaderBoardEntry, b: LeaderBoardEntry) => b.score - a.score),
+            .sort((a: LeaderBoardEntry, b: LeaderBoardEntry) => b.score - a.score)
+            .slice(0, 10),
         );
       }
 
@@ -73,7 +81,7 @@ export default function LeaderBoardModal() {
       <div className="max-w-[500px] max-h-[800px] flex flex-col p-4 overflow-y-scroll">
         <div className="px-2 pb-0.5 text-[14px] font-bold border-b grid grid-cols-6 gap-5 justify-items-start items-center text-white">
           <span className="w-full">Rank</span>
-          <span className="col-span-4 mr-4">Player</span>
+          <span className="col-span-3 mr-4">Player</span>
           <span className="w-full">Captured</span>
         </div>
         {leaderBoardData.map((entry: LeaderBoardEntry, index) => (
@@ -83,12 +91,12 @@ export default function LeaderBoardModal() {
           >
             <span className="w-full">{getPodiumIcon(index) ?? index + 1}</span>
             <span
-              className="w-full col-span-4 overflow-hidden text-ellipsis whitespace-nowrap"
+              className="w-full col-span-3 overflow-hidden whitespace-nowrap"
               style={{ maxWidth: "100%" }} // Ensure it fits within the column
             >
-              {entry.player.toString()}
+              {entry.score > 0 ? formatPlayerName(entry.player.toString()) : "-"}
             </span>
-            <span className="w-full">{entry.score}</span>
+            <span className="w-full">{entry.score > 0 ? entry.score : "-"}</span>
           </div>
         ))}
       </div>
