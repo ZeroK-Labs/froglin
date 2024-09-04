@@ -11,7 +11,7 @@ export default function InterestPointMarker(props: Props) {
       coordinates={props.point.coordinates}
       visible={props.point.visible}
       message="A froglin?! My flute will reveal it!"
-      imageSrc="/images/froglin1.png"
+      imageSrc="/images/froglin-icon.png"
       imageWidth="28px"
       imageHeight="28px"
     />
