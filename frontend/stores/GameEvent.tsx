@@ -106,7 +106,7 @@ function createState(): GameEventClient {
         id: "R" + point.id,
         coordinates: point.coordinates,
         visible: true,
-        type: getRandomInRange(2, 7),
+        type: getRandomInRange(0, FROGLIN.TYPE_COUNT - 1),
       });
     }
 
@@ -126,7 +126,6 @@ function createState(): GameEventClient {
 
   async function captureFroglins(froglinIds: Froglin["id"][]) {
     if (!aztec || !registered) return;
-    console.log("Capturing Froglins:", froglinIds);
     // remove captured from the list of revealed Froglins
     setRevealedFroglins((oldRevealed) =>
       oldRevealed.filter((froglin) => !froglinIds.includes(froglin.id)),

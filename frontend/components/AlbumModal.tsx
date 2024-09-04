@@ -22,7 +22,6 @@ const names = [
 
 export default function AlbumModal() {
   const [stash, setStash] = useState<number[]>(() => Array(FROGLIN.TYPE_COUNT).fill(0));
-
   const { modal, setModal } = useModalState();
   const { aztec, registered } = usePlayer();
   const { capturedFroglins } = useGameEvent();
@@ -85,7 +84,7 @@ export default function AlbumModal() {
                 className={`relative left-0 top-0 w-fit h-fit p-1 border-[2px] transition-all duration-500 cursor-pointer ${"bg-main-purple border-main-purple-hover border-dashed"}`}
               >
                 <img
-                  src={`/images/froglin${index + 1}.webp`}
+                  src={`/images/froglin${index}.webp`}
                   width="75px"
                   height="75px"
                   alt="froglin"
