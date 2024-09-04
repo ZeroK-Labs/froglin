@@ -5,6 +5,21 @@ import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
 
+const names = [
+  "Quagalia",
+  "Hopsette",
+  "Jumplina",
+  "Gillywog",
+  "Swampella",
+  "Paddlette",
+  "Croakston",
+  "Boggart",
+  "Mudrick",
+  "Leapster",
+  "Fennmarsh",
+  "Splatter",
+];
+
 export default function AlbumModal() {
   const [stash, setStash] = useState<number[]>(() => Array(FROGLIN.TYPE_COUNT).fill(0));
 
@@ -48,13 +63,14 @@ export default function AlbumModal() {
     }, //
     [visible],
   );
+  // say something when the picure is clicked
 
   return (
     <Modal
       className="top-20"
       visible={visible}
     >
-      <div className="max-h-[500px] flex flex-col">
+      <div className="max-h-[650px] flex flex-col">
         <div
           className="px-2 pb-2 mb-2 text-[18px] font-bold border-b justify-items-start items-center text-white"
           style={{ gridTemplateColumns: "min-content auto min-content" }}
@@ -64,13 +80,14 @@ export default function AlbumModal() {
         <div className="grid grid-cols-3 gap-4">
           {stash.map((count, index) => (
             <div key={index}>
+              <span>{names[index]}</span>
               <div
                 className={`relative left-0 top-0 w-fit h-fit p-1 border-[2px] transition-all duration-500 cursor-pointer ${"bg-main-purple border-main-purple-hover border-dashed"}`}
               >
                 <img
                   src={`/images/froglin${index + 1}.webp`}
-                  width="69px"
-                  height="69px"
+                  width="75px"
+                  height="75px"
                   alt="froglin"
                 />
                 <span className={`absolute item-text text-md -bottom-0.5 right-1`}>
