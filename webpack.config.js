@@ -8,6 +8,7 @@ import webpack from "webpack";
 // import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
 
 import "./common/loadenv.js";
+import { assert } from "console";
 
 export default () => {
   // extract 'mode' from command-line args
@@ -61,6 +62,7 @@ export default () => {
         stream: false,
         tty: false,
         util: path.resolve("util/"),
+        assert: path.resolve("assert/"),
       },
     },
     //
