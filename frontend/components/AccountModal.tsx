@@ -4,7 +4,7 @@ import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { useModalState, usePXEState, usePlayer } from "frontend/stores";
 
-const INPUT_KEY_LENGTH = 100;
+const INPUT_KEY_LENGTH = 50;
 const INPUT_TIMEOUT = 150;
 
 const colors = [
