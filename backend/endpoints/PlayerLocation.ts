@@ -5,19 +5,6 @@ import { getBoundsForCoordinate } from "common/utils/map";
 import { BACKEND_WALLET } from "backend/utils/aztec";
 import { generateInterestPoints } from "backend/utils/InterestPoints";
 
-type MapCoordinates = {
-  longitude: number;
-  latitude: number;
-  altitude?: number;
-};
-
-export function nullifyMapCoordinates(coordinates: MapCoordinates): MapCoordinates {
-  coordinates.longitude = NaN;
-  coordinates.latitude = 0;
-
-  return coordinates;
-}
-
 export async function setPlayerLocation(req: Request, res: Response) {
   res.setHeader("content-type", "text/json");
 
@@ -35,18 +22,21 @@ export async function setPlayerLocation(req: Request, res: Response) {
     return;
   }
 
+  const session = CLIENT_SESSION_DATA[sessionId];
+
   const longitude = Number(req.body.longitude);
   const latitude = Number(req.body.latitude);
 
   if (isNaN(latitude) && isNaN(longitude)) {
-    const session = CLIENT_SESSION_DATA[sessionId];
+    session.location.longitude = NaN;
+    session.location.latitude = NaN;
 
-    nullifyMapCoordinates(session.location);
     session.bounds = [];
     session.interestPoints = [];
 
     res.statusCode = 200;
     res.json("Location reset");
+
     return;
   }
 
@@ -63,8 +53,6 @@ export async function setPlayerLocation(req: Request, res: Response) {
     longitude,
     latitude,
   };
-
-  const session = CLIENT_SESSION_DATA[sessionId];
 
   session.location = location;
   session.bounds = getBoundsForCoordinate(location);
