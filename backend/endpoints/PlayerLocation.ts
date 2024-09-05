@@ -4,7 +4,19 @@ import { CLIENT_SESSION_DATA } from "backend/start";
 import { getBoundsForCoordinate } from "common/utils/map";
 import { BACKEND_WALLET } from "backend/utils/aztec";
 import { generateInterestPoints } from "backend/utils/InterestPoints";
-import { nullifyMapCoordinates } from "frontend/classes/MapCoordinates";
+
+type MapCoordinates = {
+  longitude: number;
+  latitude: number;
+  altitude?: number;
+};
+
+export function nullifyMapCoordinates(coordinates: MapCoordinates): MapCoordinates {
+  coordinates.longitude = NaN;
+  coordinates.latitude = 0;
+
+  return coordinates;
+}
 
 export async function setPlayerLocation(req: Request, res: Response) {
   res.setHeader("content-type", "text/json");
@@ -57,15 +69,10 @@ export async function setPlayerLocation(req: Request, res: Response) {
   session.location = location;
   session.bounds = getBoundsForCoordinate(location);
 
-  const keys = Object.keys(CLIENT_SESSION_DATA);
-  const count =
-    keys.length === 1
-      ? Number(
-          await BACKEND_WALLET.contracts.gateway.methods
-            .view_froglin_count()
-            .simulate(),
-        )
-      : CLIENT_SESSION_DATA[keys[0]].interestPoints.length;
+  const count = Number(
+    await BACKEND_WALLET.contracts.gateway.methods.view_froglin_count().simulate(),
+  );
+
   session.interestPoints = Array.from({ length: count }, (_, i) => ({
     id: "_" + i, // frontend React needs a string id
     coordinates: { longitude: 0, latitude: 0 },

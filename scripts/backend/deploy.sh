@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # do a production build
-scripts/aztec/compile.sh || { exit 1; }
+# scripts/aztec/compile.sh || { exit 1; }
 
 # load required env vars
 eval $(node -e "
@@ -23,8 +23,6 @@ eval $(node -e "
 printf "\nSyncing files...\n"
 
 items=(
-  "aztec/contracts/event/artifact"
-  "aztec/contracts/event/target"
   "aztec/contracts/gateway/artifact"
   "aztec/contracts/gateway/target"
   "backend"
