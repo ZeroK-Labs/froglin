@@ -2,18 +2,17 @@ use dep::aztec::{
     protocol_types::{traits::Serialize, constants::GENERATOR_INDEX__NOTE_NULLIFIER},
     hash::poseidon2_hash_with_separator,
     note::{note_header::NoteHeader, note_interface::NoteInterface, utils::compute_note_hash_for_nullify},
-    oracle::unsafe_rand::unsafe_rand, keys::getters::get_nsk_app, context::PrivateContext
+    keys::getters::get_nsk_app, context::PrivateContext
 };
 
-global PLAYER_NOTE_LEN: Field = 3;
+global PLAYER_NOTE_LEN: Field = 2;
 // PLAYER_NOTE_LEN * 32 + 32(storage_slot as bytes) + 32(note_type_id as bytes)
 global PLAYER_NOTE_BYTES_LEN: Field = PLAYER_NOTE_LEN * 32 + 64;
 
 #[aztec(note)]
 struct PlayerNote {
-    name: Field,
     npk_m_hash: Field,
-    randomness: Field,
+    name: Field,
 }
 
 impl NoteInterface<PLAYER_NOTE_LEN, PLAYER_NOTE_BYTES_LEN> for PlayerNote {
@@ -41,22 +40,19 @@ impl NoteInterface<PLAYER_NOTE_LEN, PLAYER_NOTE_BYTES_LEN> for PlayerNote {
 
 impl PlayerNote {
     pub fn new(name: Field, npk_m_hash: Field) -> Self {
-        let randomness = unsafe_rand();
-        let header = NoteHeader::empty();
-        PlayerNote { name, npk_m_hash, randomness, header }
+        PlayerNote { header: NoteHeader::empty(), npk_m_hash, name }
     }
 }
 
 impl Serialize<PLAYER_NOTE_LEN> for PlayerNote {
     fn serialize(self) -> [Field; PLAYER_NOTE_LEN] {
-        [self.name, self.npk_m_hash, self.randomness]
+        [self.npk_m_hash, self.name]
     }
 }
 
 impl Eq for PlayerNote {
     fn eq(self, other: Self) -> bool {
-        (self.name == other.name) &
         (self.npk_m_hash == other.npk_m_hash) &
-        (self.randomness == other.randomness)
+        (self.name == other.name)
     }
 }

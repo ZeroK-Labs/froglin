@@ -13,7 +13,7 @@ type GameEventClient = {
   revealedFroglins: Froglin[];
   revealFroglins: (radius: number) => void;
 
-  capturing: boolean;
+  // capturing: boolean;
   capturedFroglins: Froglin[];
   captureFroglins: (froglinIds: Froglin["id"][]) => void;
 };
