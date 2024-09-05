@@ -22,7 +22,7 @@ const names = [
 
 export default function AlbumModal() {
   const [stash, setStash] = useState<number[]>(() => Array(FROGLIN.TYPE_COUNT).fill(0));
-  const { modal, setModal } = useModalState();
+  const { modal } = useModalState();
   const { aztec, registered } = usePlayer();
   const { capturedFroglins } = useGameEvent();
 
@@ -46,22 +46,23 @@ export default function AlbumModal() {
     fetchStash();
   }, [aztec, registered, capturedFroglins.length]);
 
-  useEffect(
-    () => {
-      if (visible) return;
+  // useEffect(
+  //   () => {
+  //     if (visible) return;
 
-      function handleKeyPress(ev: KeyboardEvent) {
-        if (ev.key === "l") setTimeout(setModal, 0, MODALS.ALBUM);
-      }
+  //     function handleKeyPress(ev: KeyboardEvent) {
+  //       if (ev.key === "b") setTimeout(setModal, 0, MODALS.ALBUM);
+  //     }
 
-      document.addEventListener("keypress", handleKeyPress);
+  //     document.addEventListener("keypress", handleKeyPress);
 
-      return () => {
-        document.removeEventListener("keypress", handleKeyPress);
-      };
-    }, //
-    [visible],
-  );
+  //     return () => {
+  //       document.removeEventListener("keypress", handleKeyPress);
+  //     };
+  //   }, //
+  //   [visible],
+  // );
+
   // say something when the picure is clicked
 
   return (

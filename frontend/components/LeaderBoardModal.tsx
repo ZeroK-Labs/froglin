@@ -25,7 +25,7 @@ export default function LeaderBoardModal() {
 
   const { capturedFroglins } = useGameEvent();
   const { aztec, registered } = usePlayer();
-  const { modal, setModal } = useModalState();
+  const { modal } = useModalState();
 
   const visible = modal === MODALS.LEADERBOARD;
 
@@ -56,22 +56,22 @@ export default function LeaderBoardModal() {
     [aztec, registered, capturedFroglins.length],
   );
 
-  useEffect(
-    () => {
-      if (visible) return;
+  // useEffect(
+  //   () => {
+  //     if (visible) return;
 
-      function handleKeyPress(ev: KeyboardEvent) {
-        if (ev.key === "l") setTimeout(setModal, 0, MODALS.LEADERBOARD);
-      }
+  //     function handleKeyPress(ev: KeyboardEvent) {
+  //       if (ev.key === "l") setTimeout(setModal, 0, MODALS.LEADERBOARD);
+  //     }
 
-      document.addEventListener("keypress", handleKeyPress);
+  //     document.addEventListener("keypress", handleKeyPress);
 
-      return () => {
-        document.removeEventListener("keypress", handleKeyPress);
-      };
-    }, //
-    [visible],
-  );
+  //     return () => {
+  //       document.removeEventListener("keypress", handleKeyPress);
+  //     };
+  //   }, //
+  //   [visible],
+  // );
 
   return (
     <Modal

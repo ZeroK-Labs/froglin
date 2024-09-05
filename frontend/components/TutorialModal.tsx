@@ -29,22 +29,22 @@ export default function TutorialModal() {
     [],
   );
 
-  useEffect(
-    () => {
-      if (visible) return;
+  // useEffect(
+  //   () => {
+  //     if (visible) return;
 
-      function handleKeyPress(ev: KeyboardEvent) {
-        if (ev.key === "t") setTimeout(setModal, 0, MODALS.TUTORIAL);
-      }
+  //     function handleKeyPress(ev: KeyboardEvent) {
+  //       if (ev.key === "t") setTimeout(setModal, 0, MODALS.TUTORIAL);
+  //     }
 
-      document.addEventListener("keypress", handleKeyPress);
+  //     document.addEventListener("keypress", handleKeyPress);
 
-      return () => {
-        document.removeEventListener("keypress", handleKeyPress);
-      };
-    }, //
-    [visible],
-  );
+  //     return () => {
+  //       document.removeEventListener("keypress", handleKeyPress);
+  //     };
+  //   }, //
+  //   [visible],
+  // );
 
   return (
     <Modal

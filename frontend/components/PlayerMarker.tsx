@@ -144,25 +144,25 @@ export default function PlayerMarker() {
     [trapPoints],
   );
 
-  // Ring Menu keyboard actions
-  useEffect(
-    () => {
-      function handleKeyPress(ev: KeyboardEvent) {
-        setOpen(false);
+  // // Ring Menu keyboard actions
+  // useEffect(
+  //   () => {
+  //     function handleKeyPress(ev: KeyboardEvent) {
+  //       setOpen(false);
 
-        if (ev.key === "f") handleFluteButtonClick();
-        else if (ev.key === " ") handleTrapButtonClick();
-      }
+  //       if (ev.key === "f") handleFluteButtonClick();
+  //       else if (ev.key === " ") handleTrapButtonClick();
+  //     }
 
-      document.addEventListener("keypress", handleKeyPress);
+  //     document.addEventListener("keypress", handleKeyPress);
 
-      return () => {
-        document.removeEventListener("keypress", handleKeyPress);
-      };
-    }, //
-    // TODO: need all below for trap to work correctly using keys
-    [trapPoints, coordinates.longitude, coordinates.latitude],
-  );
+  //     return () => {
+  //       document.removeEventListener("keypress", handleKeyPress);
+  //     };
+  //   }, //
+  //   // TODO: need all below for trap to work correctly using keys
+  //   [trapPoints, coordinates.longitude, coordinates.latitude],
+  // );
 
   // Ring Menu mouse actions
   useEffect(

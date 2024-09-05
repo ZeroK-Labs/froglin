@@ -119,20 +119,20 @@ function createState(): LocationInfo {
         }
       }
 
-      function handleKeydown(ev: KeyboardEvent) {
-        if (ev.key === "z") setDisabled((d) => !d);
-      }
+      // function handleKeydown(ev: KeyboardEvent) {
+      //   if (ev.key === "z") setDisabled((d) => !d);
+      // }
 
       pollPosition();
       const pollerId = setInterval(pollPosition, LOCATION.DEVICE.GPS_OPTIONS.timeout);
 
       document.addEventListener("visibilitychange", handleLostFocus);
-      document.addEventListener("keydown", handleKeydown);
+      // document.addEventListener("keydown", handleKeydown);
 
       return () => {
         clearInterval(pollerId);
 
-        document.removeEventListener("keydown", handleKeydown);
+        // document.removeEventListener("keydown", handleKeydown);
         document.removeEventListener("visibilitychange", handleLostFocus);
       };
     }, //
