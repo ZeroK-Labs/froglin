@@ -13,7 +13,7 @@ export default function ToastView() {
           fontSize: "16pt",
         },
         loading: {
-          duration: 6_000,
+          duration: Infinity,
         },
         success: {
           duration: 2_000,

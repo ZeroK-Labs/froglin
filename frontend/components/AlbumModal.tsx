@@ -89,8 +89,9 @@ export default function AlbumModal() {
                   width="75px"
                   height="75px"
                   alt="froglin"
+                  className={count === 0 ? "grayscale" : ""}
                 />
-                <span className={`absolute item-text text-md -bottom-0.5 right-1`}>
+                <span className={`absolute item-text -bottom-0.5 right-1`}>
                   {count}
                 </span>
               </div>

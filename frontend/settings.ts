@@ -78,7 +78,7 @@ export const LOCATION: LocationSettings = {
     GPS_OPTIONS: {
       enableHighAccuracy: true,
       maximumAge: 0,
-      timeout: 3_000,
+      timeout: 5_000,
     },
     SESSION_DURATION: 3_000,
   },
