@@ -7,7 +7,7 @@ type Props = {
 };
 
 export default function FroglinMarker(props: Props) {
-  const { captureFroglins /*, capturing*/ } = useGameEvent();
+  const { captureFroglins, capturing } = useGameEvent();
 
   return (
     <BaseMarker
@@ -16,10 +16,8 @@ export default function FroglinMarker(props: Props) {
       imageSrc={`/images/froglin${props.froglin.type}.webp`}
       imageWidth="36px"
       imageHeight="36px"
-      message="Tap here to capture"
-      onMessageClick={() => captureFroglins([props.froglin.id])}
-      // message={capturing ? "Be patient cowboy!" : "Tap here to capture"}
-      // onMessageClick={capturing ? () => {} : () => captureFroglins([props.froglin.id])}
+      message={capturing ? "Be patient cowboy!" : "Tap here to capture"}
+      onMessageClick={capturing ? () => {} : () => captureFroglins([props.froglin.id])}
     />
   );
 }

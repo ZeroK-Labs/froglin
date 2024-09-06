@@ -39,7 +39,7 @@ function createState(): GameEventClient {
   const [interestPoints, setInterestPoints] = useState<InterestPoint[]>([]);
   const [revealedFroglins, setRevealedFroglins] = useState<Froglin[]>([]);
   const [capturedFroglins, setCapturedFroglins] = useState<Froglin[]>([]);
-  // const [capturing, setCapturing] = useState<boolean>(false);
+  const [capturing, setCapturing] = useState<boolean>(false);
 
   const location = useLocation();
   const { aztec, registered } = usePlayer();
@@ -140,7 +140,7 @@ function createState(): GameEventClient {
 
       const toastId = toast.loading("Capturing Froglin...");
 
-      // setCapturing(true);
+      setCapturing(true);
       try {
         await aztec.contracts.gateway.methods
           .capture_froglin(froglin.type)
@@ -150,8 +150,9 @@ function createState(): GameEventClient {
       } catch (error) {
         toast.error("Failed to capture Froglin!", { id: toastId });
         console.error("Error capturing Froglin:", error);
+        return;
       }
-      // setCapturing(false);
+      setCapturing(false);
 
       toast.success("Froglin captured!", { id: toastId });
 
@@ -309,7 +310,7 @@ function createState(): GameEventClient {
     interestPoints,
     revealedFroglins,
     revealFroglins,
-    // capturing,
+    capturing,
     capturedFroglins,
     captureFroglins,
   };
