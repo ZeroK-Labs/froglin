@@ -24,6 +24,8 @@ function createState(): GameEventClient {
   const interestPointsRef = useRef<InterestPoint[]>([]);
   const revealedInterestPointsRef = useRef<InterestPoint[]>([]);
   const epochCountRef = useRef(0);
+  const epochStartTimeRef = useRef(0);
+  const epochDurationRef = useRef(0);
   const revealingRef = useRef(false);
 
   const [bounds, setBounds] = useState<[number, number][][]>([
@@ -186,11 +188,14 @@ function createState(): GameEventClient {
   function fetchBlockchainData() {
     if (!aztec || !registered) return;
 
+    // TODO: handle out-of-sync
+
     aztec.contracts.gateway.methods
       .view_epoch_duration()
       .simulate()
       .then((epoch_duration) => {
         setEpochDuration(Number(epoch_duration));
+        epochDurationRef.current = Number(epoch_duration);
       });
 
     aztec.contracts.gateway.methods
@@ -201,15 +206,15 @@ function createState(): GameEventClient {
 
         epochCountRef.current = epoch_count;
         setEpochCount(epoch_count);
-
-        const suffix = epoch_count === 1 ? "" : "s";
-        toast(`${epoch_count} epoch${suffix} left`, { icon: "⏳" });
       });
 
     aztec.contracts.gateway.methods
       .view_epoch_start_time()
       .simulate()
-      .then((epoch_start_time) => setEpochStartTime(Number(epoch_start_time)));
+      .then((epoch_start_time) => {
+        setEpochStartTime(Number(epoch_start_time));
+        epochStartTimeRef.current = Number(epoch_start_time);
+      });
   }
 
   async function fetchWebServerData() {
@@ -300,7 +305,14 @@ function createState(): GameEventClient {
       function handleServerEpochUpdate(event: MessageEvent<any>) {
         if (!aztec || !aztec.wallet || event.data !== "newEpoch") return;
 
-        fetchBlockchainData();
+        setEpochCount(epochCountRef.current - 1);
+        setEpochStartTime(epochStartTimeRef.current + epochDurationRef.current);
+
+        const suffix = epochCountRef.current === 1 ? "" : "s";
+        toast(`${epochCountRef.current} epoch${suffix} left`, { icon: "⏳" });
+
+        // TODO: handle out-of-sync
+        setTimeout(fetchBlockchainData, 10_000);
         fetchWebServerData();
       }
 

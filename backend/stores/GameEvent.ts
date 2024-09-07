@@ -4,8 +4,6 @@ import { CLIENT_SESSION_DATA } from "backend/start";
 import { EVENT } from "frontend/settings";
 import { generateInterestPoints } from "backend/utils/InterestPoints";
 
-const PRE_ADVANCE_DURATION = 8_000;
-
 function notifyNewEpoch(sessionId: string) {
   const socket = CLIENT_SESSION_DATA[sessionId].Socket;
   if (socket && socket.readyState === WebSocket.OPEN) socket.send("newEpoch");
@@ -15,17 +13,6 @@ function createGameEventServer(): GameEventServer {
   let epochIntervalId: Timer | undefined;
   const event: GameEventServer = {
     start: async function () {
-      // send the command to advance the epoch *before* the epoch duration expires (PRE_ADVANCE_DURATION time)
-      function startInterval() {
-        epochIntervalId = setTimeout(
-          () => {
-            event.advanceEpoch();
-            epochIntervalId = setInterval(event.advanceEpoch, EVENT.EPOCH_DURATION);
-          }, //
-          EVENT.EPOCH_DURATION - PRE_ADVANCE_DURATION,
-        );
-      }
-
       const epochCount = Number(
         await BACKEND_WALLET.contracts.gateway.methods.view_epoch_count().simulate(),
       );
@@ -41,21 +28,17 @@ function createGameEventServer(): GameEventServer {
         // sync with an event which is already started
         epochIntervalId = setTimeout(
           () => {
-            startInterval();
-            event.advanceEpoch();
+            epochIntervalId = setInterval(event.advanceEpoch, EVENT.EPOCH_DURATION);
           }, //
-          Math.max(
-            0,
-            EVENT.EPOCH_DURATION - PRE_ADVANCE_DURATION - (Date.now() - epochStartTime),
-          ),
+          Math.max(0, EVENT.EPOCH_DURATION - (Date.now() - epochStartTime)),
         );
 
         return;
       }
 
-      startInterval();
+      epochIntervalId = setInterval(event.advanceEpoch, EVENT.EPOCH_DURATION);
 
-      await BACKEND_WALLET.contracts.gateway.methods
+      BACKEND_WALLET.contracts.gateway.methods
         .start_event(
           EVENT.MARKER_COUNT,
           EVENT.EPOCH_COUNT,
@@ -87,19 +70,14 @@ function createGameEventServer(): GameEventServer {
         clearInterval(epochIntervalId);
         epochIntervalId = undefined;
 
-        epochIntervalId = setTimeout(event.start, PRE_ADVANCE_DURATION);
+        epochIntervalId = setTimeout(event.start, EVENT.EPOCH_DURATION);
 
         return;
       }
 
-      await BACKEND_WALLET.contracts.gateway.methods.advance_epoch().send().wait();
+      BACKEND_WALLET.contracts.gateway.methods.advance_epoch().send().wait();
 
-      BACKEND_WALLET.contracts.gateway.methods
-        .view_epoch_count()
-        .simulate()
-        .then((epoch_count) => {
-          console.log(Number(epoch_count), "epochs left");
-        });
+      console.log(epochCount - 1, "epochs left");
 
       for (const sessionId in CLIENT_SESSION_DATA) {
         const session = CLIENT_SESSION_DATA[sessionId];
