@@ -14,10 +14,7 @@ function getPodiumIcon(index: number): string | null {
 }
 
 function formatPlayerName(name: string): string {
-  if (name.length > 8) {
-    return `${name.slice(0, 6)} ... ${name.slice(-4)}`;
-  }
-  return name;
+  return `${name.slice(0, 6)} ... ${name.slice(-4)}`;
 }
 
 export default function LeaderBoardModal() {
@@ -78,21 +75,21 @@ export default function LeaderBoardModal() {
       className="top-4"
       visible={visible}
     >
-      <div className="max-w-[500px] max-h-[800px] flex flex-col p-4 overflow-y-scroll">
-        <div className="px-2 pb-0.5 text-[14px] font-bold border-b grid grid-cols-6 gap-5 justify-items-start items-center text-white">
+      <div className="max-h-[800px] flex flex-col p-4">
+        <div className="px-2 pb-0.5 text-[14px] font-bold border-b grid grid-cols-4 gap-5 justify-items-start items-center text-white">
           <span className="w-full">Rank</span>
-          <span className="col-span-4 mr-2">Player</span>
+          <span className="col-span-2">Player</span>
           <span className="w-full">Captured</span>
         </div>
         {leaderBoardData.map((entry: LeaderBoardEntry, index) => (
           <div
             key={index}
-            className="p-2 text-sm font-bold grid grid-cols-6 gap-5 justify-items-start items-center text-white"
+            className="p-2 text-sm font-bold grid grid-cols-4 gap-5 justify-items-start items-center text-white"
           >
             <span className="w-full">{getPodiumIcon(index) ?? index + 1}</span>
             <span
-              className="col-span-4 overflow-hidden whitespace-nowrap"
-              style={{ maxWidth: "100%" }} // Ensure it fits within the column
+              className="col-span-2 overflow-hidden whitespace-nowrap"
+              style={{ maxWidth: "100%" }} // ensure it fits within the column
             >
               {entry.score > 0 ? formatPlayerName(entry.player.toString()) : "-"}
             </span>
