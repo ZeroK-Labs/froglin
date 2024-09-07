@@ -12,12 +12,12 @@ global STASH_NOTE_BYTES_LEN: Field = STASH_NOTE_LEN * 32 + 64;
 #[aztec(note)]
 struct StashNote {
     npk_m_hash: Field,
-    froglin_0: Field,
     froglin_1: Field,
     froglin_2: Field,
     froglin_3: Field,
     froglin_4: Field,
     froglin_5: Field,
+    froglin_6: Field,
 }
 
 impl NoteInterface<STASH_NOTE_LEN, STASH_NOTE_BYTES_LEN> for StashNote {
@@ -48,12 +48,12 @@ impl StashNote {
         Self {
             header: NoteHeader::empty(),
             npk_m_hash,
-            froglin_0: 0,
             froglin_1: 0,
             froglin_2: 0,
             froglin_3: 0,
             froglin_4: 0,
-            froglin_5: 0
+            froglin_5: 0,
+            froglin_6: 0
         }
     }
 
@@ -65,34 +65,22 @@ impl StashNote {
         Self {
             header: NoteHeader::empty(),
             npk_m_hash,
-            froglin_0: other.froglin_0,
             froglin_1: other.froglin_1,
             froglin_2: other.froglin_2,
             froglin_3: other.froglin_3,
             froglin_4: other.froglin_4,
             froglin_5: other.froglin_5,
+            froglin_6: other.froglin_6
         }
     }
 
     pub fn increment_slot(&mut self, slot: u8) {
-        if (slot == 0) {
-            self.froglin_0 += 1;
-        } //
-        else if (slot == 1) {
-            self.froglin_1 += 1;
-        }
-        else if (slot == 2) {
-            self.froglin_2 += 1;
-        } //
-        else if (slot == 3) {
-            self.froglin_3 += 1;
-        } //
-        else if (slot == 4) {
-            self.froglin_4 += 1;
-        } //
-        else if (slot == 5) {
-            self.froglin_5 += 1;
-        }
+        if      (slot == 1) { self.froglin_1 += 1; }
+        else if (slot == 2) { self.froglin_2 += 1; }
+        else if (slot == 3) { self.froglin_3 += 1; }
+        else if (slot == 4) { self.froglin_4 += 1; }
+        else if (slot == 5) { self.froglin_5 += 1; }
+        else if (slot == 6) { self.froglin_6 += 1; }
     }
 }
 
@@ -101,12 +89,12 @@ impl Deserialize<STASH_NOTE_LEN> for StashNote {
         Self {
             header: NoteHeader::empty(),
             npk_m_hash : values[0],
-            froglin_0 : values[1],
-            froglin_1 : values[2],
-            froglin_2 : values[3],
-            froglin_3 : values[4],
-            froglin_4 : values[5],
-            froglin_5 : values[6],
+            froglin_1: values[1],
+            froglin_2: values[2],
+            froglin_3: values[3],
+            froglin_4: values[4],
+            froglin_5: values[5],
+            froglin_6: values[6],
         }
     }
 }
@@ -115,12 +103,12 @@ impl Serialize<STASH_NOTE_LEN> for StashNote {
     fn serialize(self) -> [Field; STASH_NOTE_LEN] {
         [
             self.npk_m_hash,
-            self.froglin_0,
             self.froglin_1,
             self.froglin_2,
             self.froglin_3,
             self.froglin_4,
             self.froglin_5,
+            self.froglin_6,
         ]
     }
 }
@@ -128,11 +116,11 @@ impl Serialize<STASH_NOTE_LEN> for StashNote {
 impl Eq for StashNote {
     fn eq(self, other: Self) -> bool {
         (self.npk_m_hash == other.npk_m_hash) &
-        (self.froglin_0 == other.froglin_0) &
         (self.froglin_1 == other.froglin_1) &
         (self.froglin_2 == other.froglin_2) &
         (self.froglin_3 == other.froglin_3) &
         (self.froglin_4 == other.froglin_4) &
-        (self.froglin_5 == other.froglin_5)
+        (self.froglin_5 == other.froglin_5) &
+        (self.froglin_6 == other.froglin_6)
     }
 }

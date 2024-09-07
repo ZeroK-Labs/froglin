@@ -4,7 +4,7 @@ import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/Froglin
 import { GAME_MASTER, ACCOUNTS } from "./accounts";
 import { stringToBigInt } from "common/utils/bigint";
 
-describe("Registration Tests", () => {
+describe("Registration", () => {
   const timeout = 40_000;
 
   beforeAll(async () => {

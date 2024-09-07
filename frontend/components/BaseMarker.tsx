@@ -7,6 +7,7 @@ import { FROGLIN } from "frontend/settings";
 type BaseMarkerProps = {
   coordinates: MapCoordinates;
   visible?: boolean;
+  grayscale?: boolean;
   message: string;
   imageSrc: string;
   imageWidth: string;
@@ -69,7 +70,7 @@ export default function BaseMarker(props: BaseMarkerProps) {
         )}
 
         <img
-          className="z-10 rounded-full"
+          className={`z-10 rounded-full ${props.grayscale ? "grayscale" : ""}`}
           src={props.imageSrc}
           width={props.imageWidth}
           height={props.imageHeight}

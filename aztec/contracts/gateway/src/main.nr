@@ -1,5 +1,5 @@
-mod types;
 mod settings;
+mod types;
 
 contract FroglinGateway {
     use dep::aztec::{
@@ -8,11 +8,13 @@ contract FroglinGateway {
         state_vars::{PrivateMutable, PublicMutable, SharedImmutable}
     };
 
+    use crate::settings;
     use crate::types::leaderboard_entry::LeaderBoardEntry;
     use crate::types::player_note::PlayerNote;
     use crate::types::stash_note::StashNote;
+    use std::array;
 
-    global MAX_PLAYERS = 32 as u8;
+    global stash_midpoint_index = settings::FROGLIN_TYPE_COUNT / 2;
 
     #[aztec(storage)]
     struct Storage {
@@ -38,6 +40,12 @@ contract FroglinGateway {
     #[aztec(internal)]
     unconstrained fn _check_availability(player: AztecAddress) {
         assert(!storage.accounts.at(player).is_initialized(), "player is already registered");
+    }
+
+    #[aztec(internal)]
+    #[aztec(view)]
+    unconstrained fn _view_stash(player: AztecAddress) -> pub (StashNote, StashNote) {
+        (storage.stashes_1.at(player).view_note(), storage.stashes_2.at(player).view_note())
     }
 
     // for external calls from other contracts
@@ -72,7 +80,7 @@ contract FroglinGateway {
     #[aztec(private)]
     fn register(name: Field) {
         unsafe {
-            assert(view_accounts_size() <= MAX_PLAYERS, "registration is fully booked");
+            assert(view_accounts_size() <= settings::PLAYER_COUNT, "registration is fully booked");
         }
 
         let player = context.msg_sender();
@@ -152,12 +160,12 @@ contract FroglinGateway {
 
     #[aztec(internal)]
     #[aztec(public)]
-    fn _capture_froglin(player: AztecAddress) {
-        let new_froglin_count = storage.froglin_count.read() - 1;
+    fn _capture_froglins(player: AztecAddress, count: u8) {
+        let new_froglin_count = storage.froglin_count.read() - count;
         storage.froglin_count.write(new_froglin_count);
 
         let accounts_size = storage.accounts_size.read();
-        let mut player_index = MAX_PLAYERS;
+        let mut player_index = settings::PLAYER_COUNT;
         for i in 0..accounts_size {
             if (player == storage.leaderboard.at(i).read().player) {
                 player_index = i;
@@ -166,38 +174,67 @@ contract FroglinGateway {
         }
 
         let mut new_leaderboard_entry = storage.leaderboard.at(player_index).read();
-        new_leaderboard_entry.score = new_leaderboard_entry.score + 1;
-
+        new_leaderboard_entry.score += count as u32;
         storage.leaderboard.at(player_index).write(new_leaderboard_entry);
     }
 
     #[aztec(private)]
-    fn capture_froglin(froglin_type: u8) {
+    fn capture_froglins(froglins: [u8; settings::CAPTURE_COUNT]) {
         let player = context.msg_sender();
         unsafe {
             _check_registration(player);
             assert(view_epoch_count() != 0, "event is stopped");
-            assert(view_froglin_count() != 0, "all available Froglins have been captured");
         }
-        assert(froglin_type < crate::settings::FROGLIN_TYPE_COUNT, "unknown Froglin type");
+
+        // count Froglins to capture
+        let mut froglin_count = 0 as u8;
+        for i in 0..settings::CAPTURE_COUNT {
+            let froglin_type = froglins[i];
+            if (froglin_type != 0) {
+                assert(
+                    froglin_type <= settings::FROGLIN_TYPE_COUNT, "tried to capture an unknown Froglin type"
+                );
+                froglin_count += 1;
+            }
+        }
+        assert(froglin_count != 0, "at least 1 Froglin should be captured");
+        unsafe {
+            assert(view_froglin_count() >= froglin_count, "only available Froglins can be captured");
+        }
 
         let keys = get_current_public_keys(&mut context, player);
 
-        // create new note for selected stash
-        let stash_midpoint_index = crate::settings::FROGLIN_TYPE_COUNT / 2;
-        if (froglin_type <= stash_midpoint_index) {
-            let mut new_stash = StashNote::copy(storage.stashes_1.at(player).get_note().note, keys.npk_m.hash());
-            new_stash.increment_slot(froglin_type);
-            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, player, player));
-        } //
-        else {
-            let mut new_stash = StashNote::copy(storage.stashes_2.at(player).get_note().note, keys.npk_m.hash());
-            new_stash.increment_slot(froglin_type - stash_midpoint_index);
-            storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, player, player));
+        // update stash quantities
+        let (stash_old_note_1, stash_old_note_2) = unsafe {
+            _view_stash(player)
+        };
+        let mut stash_new_note_1 = StashNote::copy(stash_old_note_1, keys.npk_m.hash());
+        let mut stash_new_note_2 = StashNote::copy(stash_old_note_2, keys.npk_m.hash());
+        let mut stash_changed_1 = false;
+        let mut stash_changed_2 = false;
+        for i in 0..settings::CAPTURE_COUNT {
+            let froglin_type = froglins[i];
+
+            if (froglin_type != 0) {
+                if (froglin_type <= stash_midpoint_index) {
+                    stash_changed_1 = true;
+                    stash_new_note_1.increment_slot(froglin_type);
+                } //
+                else {
+                    stash_changed_2 = true;
+                    stash_new_note_2.increment_slot(froglin_type - stash_midpoint_index);
+                }
+            }
+        }
+        if (stash_changed_1) {
+            storage.stashes_1.at(player).replace(&mut stash_new_note_1).emit(encode_and_encrypt_note(&mut context, player, player));
+        }
+        if (stash_changed_2) {
+            storage.stashes_2.at(player).replace(&mut stash_new_note_2).emit(encode_and_encrypt_note(&mut context, player, player));
         }
 
         // modify public data
-        FroglinGateway::at(context.this_address())._capture_froglin(player).enqueue(&mut context);
+        FroglinGateway::at(context.this_address())._capture_froglins(player, froglin_count).enqueue(&mut context);
     }
 
     #[aztec(view)]
@@ -238,34 +275,32 @@ contract FroglinGateway {
     }
 
     #[aztec(view)]
-    unconstrained fn view_stash(player: AztecAddress) -> pub BoundedVec<Field, crate::settings::FROGLIN_TYPE_COUNT> {
+    unconstrained fn view_stash(player: AztecAddress) -> pub [Field; settings::FROGLIN_TYPE_COUNT] {
         _check_registration(player);
-
-        let mut arr: BoundedVec<Field, crate::settings::FROGLIN_TYPE_COUNT> = BoundedVec::from_array([0; crate::settings::FROGLIN_TYPE_COUNT]);
 
         let stash_1 = storage.stashes_1.at(player).view_note();
         let stash_2 = storage.stashes_2.at(player).view_note();
 
-        arr.set(0, stash_1.froglin_0);
-        arr.set(1, stash_1.froglin_1);
-        arr.set(2, stash_1.froglin_2);
-        arr.set(3, stash_1.froglin_3);
-        arr.set(4, stash_1.froglin_4);
-        arr.set(5, stash_1.froglin_5);
-        arr.set(6, stash_2.froglin_0);
-        arr.set(7, stash_2.froglin_1);
-        arr.set(8, stash_2.froglin_2);
-        arr.set(9, stash_2.froglin_3);
-        arr.set(10, stash_2.froglin_4);
-        arr.set(11, stash_2.froglin_5);
-
-        arr
+        [
+            stash_1.froglin_1,
+            stash_1.froglin_2,
+            stash_1.froglin_3,
+            stash_1.froglin_4,
+            stash_1.froglin_5,
+            stash_1.froglin_6,
+            stash_2.froglin_1,
+            stash_2.froglin_2,
+            stash_2.froglin_3,
+            stash_2.froglin_4,
+            stash_2.froglin_5,
+            stash_2.froglin_6,
+        ]
     }
 
     #[aztec(view)]
-    unconstrained fn view_leaderboard() -> pub [LeaderBoardEntry; MAX_PLAYERS] {
+    unconstrained fn view_leaderboard() -> pub [LeaderBoardEntry; settings::PLAYER_COUNT] {
         let accounts_size = storage.accounts_size.read();
-        let mut leaderboard: [LeaderBoardEntry; MAX_PLAYERS] = [LeaderBoardEntry::zero(); MAX_PLAYERS];
+        let mut leaderboard: [LeaderBoardEntry; settings::PLAYER_COUNT] = [LeaderBoardEntry::zero(); settings::PLAYER_COUNT];
         for i in 0..accounts_size {
             leaderboard[i] = storage.leaderboard.at(i).read();
         }

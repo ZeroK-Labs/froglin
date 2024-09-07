@@ -19,17 +19,22 @@ import {
 export default function PlayerMarker() {
   const navRef = useRef<HTMLDivElement>(null);
   const revealingRef = useRef(false);
-  const { username, registered } = usePlayer();
+  const capturingRef = useRef(false);
+
   const [trapPoints, setTrapPoints] = useState<MapCoordinates[]>([]);
   const [duplicateTrapIndex, setDuplicateTrapIndex] = useState<number | null>(null);
   const [open, setOpen] = useState<boolean>(false);
 
+  const { username, registered } = usePlayer();
+  const { revealedFroglins, revealFroglins, capturing, captureFroglins } =
+    useGameEvent();
   const { coordinates, lost } = useLocation();
   const { mapView } = useMapViewState();
   const { setVisible, setSize } = useRevealingCircleState();
-  const { revealedFroglins, revealFroglins, captureFroglins } = useGameEvent();
 
   const cssMenuButton = `${open ? "" : "opacity-0"} menu-item`;
+
+  capturingRef.current = capturing;
 
   function handleMenuStateChange(ev: ChangeEvent<HTMLInputElement>) {
     setOpen(ev.target.checked);
@@ -77,6 +82,8 @@ export default function PlayerMarker() {
   }
 
   function handleTrapButtonClick() {
+    if (capturingRef.current) return;
+
     setOpen(false);
 
     if (trapPoints.length === 3) return;
@@ -104,6 +111,8 @@ export default function PlayerMarker() {
   // capture Froglin on location change
   useEffect(
     () => {
+      if (capturingRef.current) return;
+
       const froglinIds: Froglin["id"][] = [];
       for (let i = 0; i !== revealedFroglins.length; ++i) {
         const froglin = revealedFroglins[i];
@@ -123,7 +132,7 @@ export default function PlayerMarker() {
   // capture Froglin on trap placement
   useEffect(
     () => {
-      if (trapPoints.length !== 3) return;
+      if (capturingRef.current || trapPoints.length !== 3) return;
 
       // reset trap points
       setTimeout(setTrapPoints, FROGLIN.MARKER.TRANSITION_DURATION, []);

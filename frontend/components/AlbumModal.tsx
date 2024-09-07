@@ -29,23 +29,25 @@ export default function AlbumModal() {
 
   const visible = modal === MODALS.ALBUM;
 
-  useEffect(() => {
-    async function fetchStash() {
-      if (!aztec || !registered) return;
+  useEffect(
+    () => {
+      async function fetchStash() {
+        if (!aztec || !registered) return;
 
-      const playerAddress = aztec.wallet.getAddress();
-      const stash = await aztec.contracts.gateway.methods
-        .view_stash(playerAddress)
-        .simulate();
+        const playerAddress = aztec.wallet.getAddress();
+        const stash = await aztec.contracts.gateway.methods
+          .view_stash(playerAddress)
+          .simulate();
 
-      if (!stash || stash.length === 0) return;
+        if (!stash || stash.length === 0) return;
 
-      const numberList = stash.storage.map((bi: bigint) => Number(bi));
-      setStash(numberList);
-    }
+        setStash(stash);
+      }
 
-    fetchStash();
-  }, [aztec, registered, capturedFroglins.length]);
+      fetchStash();
+    }, //
+    [aztec, registered, capturedFroglins.length],
+  );
 
   // useEffect(
   //   () => {
@@ -84,11 +86,11 @@ export default function AlbumModal() {
               <span>{names[index]}</span>
               <div className="relative left-0 top-0 w-fit h-fit p-1 border-[2px] transition-all duration-500 cursor-pointer bg-main-purple border-main-purple-hover border-dashed">
                 <img
-                  src="/images/froglin${index}.webp"
+                  className={count === 0 ? "grayscale" : ""}
+                  src={`/images/froglin${index}.webp`}
                   width="75px"
                   height="75px"
                   alt="froglin"
-                  className={count === 0 ? "grayscale" : ""}
                 />
                 <span className="absolute item-text -bottom-0.5 right-1">{count}</span>
               </div>

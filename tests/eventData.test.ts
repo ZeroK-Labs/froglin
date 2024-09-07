@@ -5,7 +5,7 @@ import { beforeAll, describe, expect, test } from "bun:test";
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { GAME_MASTER, ACCOUNTS } from "./accounts";
 
-describe("Event Lifetime Tests", () => {
+describe("Event Data", () => {
   const timeout = 40_000;
   const FROGLIN_COUNT = 5;
   const EPOCH_COUNT = 3;

@@ -6,9 +6,9 @@ import { stringToBigInt } from "common/utils/bigint";
 
 const MAX_PLAYERS = 32;
 
-describe("Leaderboard Tests", () => {
+describe("Leaderboard", () => {
   const timeout = 40_000;
-  const FROGLIN_COUNT = 5;
+  const FROGLIN_COUNT = 8;
   const EPOCH_COUNT = 3;
   const EPOCH_DURATION = 20_000;
 
@@ -57,7 +57,7 @@ describe("Leaderboard Tests", () => {
       .wait();
   });
 
-  test("any account can view leaderboard", () => {
+  test("can be viewed by any account", () => {
     expect(
       GAME_MASTER.contracts.gateway.methods.view_leaderboard().simulate(),
     ).resolves.pass();
@@ -72,14 +72,14 @@ describe("Leaderboard Tests", () => {
     ).resolves.pass();
   });
 
-  test("initially leaderboard has max players entries", () => {
+  test("has max players entries after initialization", () => {
     expect(
       GAME_MASTER.contracts.gateway.methods.view_leaderboard().simulate(),
     ).resolves.toHaveLength(MAX_PLAYERS);
   });
 
   test(
-    "initially all leaderboard scores are 0",
+    "has all scores set to 0 after initialization",
     async () => {
       const leaderboard = await GAME_MASTER.contracts.gateway.methods
         .view_leaderboard()
@@ -91,7 +91,7 @@ describe("Leaderboard Tests", () => {
   );
 
   test(
-    "initially all leaderboard addresses are 0",
+    "has all addresses set to 0 after initialization",
     async () => {
       const leaderboard = await GAME_MASTER.contracts.gateway.methods
         .view_leaderboard()
@@ -103,7 +103,7 @@ describe("Leaderboard Tests", () => {
   );
 
   test(
-    "leaderboard address is updated when a new player registers",
+    "address list is updated when a new player registers",
     async () => {
       await ACCOUNTS.alice.contracts.gateway.methods
         .register(stringToBigInt("alice"))
@@ -125,11 +125,11 @@ describe("Leaderboard Tests", () => {
   );
 
   test(
-    "leaderboard score is increased when registered account captures Froglin",
+    "score is increased when a registered account captures a Froglin",
     async () => {
-      const froglin_type = 1;
+      const capture_array = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
       await ACCOUNTS.alice.contracts.gateway.methods
-        .capture_froglin(froglin_type)
+        .capture_froglins(capture_array)
         .send()
         .wait();
 
@@ -141,7 +141,50 @@ describe("Leaderboard Tests", () => {
         player: ACCOUNTS.alice.wallet.getAddress(),
         score: 1n,
       };
+      expect(leaderboard).toContainEqual(expectedEntry);
+    },
+    timeout,
+  );
 
+  test(
+    "score is increased when a registered account captures multiple Froglins of the same type",
+    async () => {
+      const capture_array = [1, 1, 1, 0, 0, 0, 0, 0, 0, 0];
+      await ACCOUNTS.alice.contracts.gateway.methods
+        .capture_froglins(capture_array)
+        .send()
+        .wait();
+
+      const leaderboard = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_leaderboard()
+        .simulate();
+
+      const expectedEntry = {
+        player: ACCOUNTS.alice.wallet.getAddress(),
+        score: 4n,
+      };
+      expect(leaderboard).toContainEqual(expectedEntry);
+    },
+    timeout,
+  );
+
+  test(
+    "score is increased when a registered account captures multiple Froglins of mixed types",
+    async () => {
+      const capture_array = [2, 3, 4, 0, 0, 0, 0, 0, 0, 0];
+      await ACCOUNTS.alice.contracts.gateway.methods
+        .capture_froglins(capture_array)
+        .send()
+        .wait();
+
+      const leaderboard = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_leaderboard()
+        .simulate();
+
+      const expectedEntry = {
+        player: ACCOUNTS.alice.wallet.getAddress(),
+        score: 7n,
+      };
       expect(leaderboard).toContainEqual(expectedEntry);
     },
     timeout,

@@ -16,6 +16,7 @@ export default function FroglinMarker(props: Props) {
       imageSrc={`/images/froglin${props.froglin.type}.webp`}
       imageWidth="36px"
       imageHeight="36px"
+      grayscale={capturing}
       message={capturing ? "Be patient cowboy!" : "Tap here to capture"}
       onMessageClick={capturing ? () => {} : () => captureFroglins([props.froglin.id])}
     />
