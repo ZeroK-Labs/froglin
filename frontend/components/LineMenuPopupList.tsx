@@ -61,12 +61,12 @@ export function LineMenuPopupList({ open, setOpen }: LineMenuProps) {
     >
       <ul>
         <LineMenuPopupListItem
-          text={mapView === MAP_VIEWS.EVENT ? "🌇" : "🗺️"}
-          onClick={toggleView}
-        />
-        <LineMenuPopupListItem
           text="📖"
           onClick={handleTutorialClick}
+        />
+        <LineMenuPopupListItem
+          text={mapView === MAP_VIEWS.EVENT ? "🌇" : "🗺️"}
+          onClick={toggleView}
         />
         {aztec ? (
           <LineMenuPopupListItem
