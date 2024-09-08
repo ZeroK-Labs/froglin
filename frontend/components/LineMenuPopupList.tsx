@@ -64,21 +64,21 @@ export function LineMenuPopupList({ open, setOpen }: LineMenuProps) {
           text="📖"
           onClick={handleTutorialClick}
         />
-        <LineMenuPopupListItem
-          text={mapView === MAP_VIEWS.EVENT ? "🌇" : "🗺️"}
-          onClick={toggleView}
-        />
         {aztec ? (
-          <LineMenuPopupListItem
-            text="🏆"
-            onClick={handleLeaderBoardClick}
-          />
-        ) : null}
-        {aztec ? (
-          <LineMenuPopupListItem
-            text="📸"
-            onClick={handleAlbumClick}
-          />
+          <>
+            <LineMenuPopupListItem
+              text={mapView === MAP_VIEWS.EVENT ? "🌇" : "🗺️"}
+              onClick={toggleView}
+            />
+            <LineMenuPopupListItem
+              text="🏆"
+              onClick={handleLeaderBoardClick}
+            />
+            <LineMenuPopupListItem
+              text="📸"
+              onClick={handleAlbumClick}
+            />
+          </>
         ) : null}
       </ul>
     </nav>
