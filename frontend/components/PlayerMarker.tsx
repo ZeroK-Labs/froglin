@@ -15,6 +15,10 @@ import {
   usePlayer,
   useRevealingCircleState,
 } from "frontend/stores";
+import {
+  addKeyboardShortcut,
+  removeKeyboardShortcut,
+} from "frontend/utils/KeyboardShortcuts";
 
 export default function PlayerMarker() {
   const navRef = useRef<HTMLDivElement>(null);
@@ -153,25 +157,25 @@ export default function PlayerMarker() {
     [trapPoints],
   );
 
-  // // Ring Menu keyboard actions
-  // useEffect(
-  //   () => {
-  //     function handleKeyPress(ev: KeyboardEvent) {
-  //       setOpen(false);
+  // Ring Menu keyboard actions
+  useEffect(
+    () => {
+      function handleKeyPress(ev: KeyboardEvent) {
+        setOpen(false);
 
-  //       if (ev.key === "f") handleFluteButtonClick();
-  //       else if (ev.key === " ") handleTrapButtonClick();
-  //     }
+        if (ev.key === "f") handleFluteButtonClick();
+        else if (ev.key === " ") handleTrapButtonClick();
+      }
 
-  //     document.addEventListener("keypress", handleKeyPress);
+      addKeyboardShortcut(handleKeyPress);
 
-  //     return () => {
-  //       document.removeEventListener("keypress", handleKeyPress);
-  //     };
-  //   }, //
-  //   // TODO: need all below for trap to work correctly using keys
-  //   [trapPoints, coordinates.longitude, coordinates.latitude],
-  // );
+      return () => {
+        removeKeyboardShortcut(handleKeyPress);
+      };
+    }, //
+    // TODO: need all below for trap to work correctly using keys
+    [trapPoints, coordinates.longitude, coordinates.latitude],
+  );
 
   // Ring Menu mouse actions
   useEffect(

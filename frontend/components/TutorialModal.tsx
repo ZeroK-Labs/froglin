@@ -3,6 +3,10 @@ import { useEffect } from "react";
 import { MODALS } from "frontend/enums";
 import { Modal, PlayerMarkerImage } from "frontend/components";
 import { useModalState } from "frontend/stores";
+import {
+  addKeyboardShortcut,
+  removeKeyboardShortcut,
+} from "frontend/utils/KeyboardShortcuts";
 
 export default function TutorialModal() {
   const { modal, setModal } = useModalState();
@@ -29,22 +33,22 @@ export default function TutorialModal() {
     [],
   );
 
-  // useEffect(
-  //   () => {
-  //     if (visible) return;
+  useEffect(
+    () => {
+      if (visible) return;
 
-  //     function handleKeyPress(ev: KeyboardEvent) {
-  //       if (ev.key === "t") setTimeout(setModal, 0, MODALS.TUTORIAL);
-  //     }
+      function handleKeyPress(ev: KeyboardEvent) {
+        if (ev.key === "t") setTimeout(setModal, 0, MODALS.TUTORIAL);
+      }
 
-  //     document.addEventListener("keypress", handleKeyPress);
+      addKeyboardShortcut(handleKeyPress);
 
-  //     return () => {
-  //       document.removeEventListener("keypress", handleKeyPress);
-  //     };
-  //   }, //
-  //   [visible],
-  // );
+      return () => {
+        removeKeyboardShortcut(handleKeyPress);
+      };
+    }, //
+    [visible],
+  );
 
   return (
     <Modal

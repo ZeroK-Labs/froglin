@@ -4,6 +4,10 @@ import type { LeaderBoardEntry } from "common/types";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
+import {
+  addKeyboardShortcut,
+  removeKeyboardShortcut,
+} from "frontend/utils/KeyboardShortcuts";
 
 function getPodiumIcon(index: number): string | null {
   if (index === 0) return "🥇";
@@ -22,7 +26,7 @@ export default function LeaderBoardModal() {
 
   const { capturedFroglins } = useGameEvent();
   const { aztec, registered } = usePlayer();
-  const { modal } = useModalState();
+  const { modal, setModal } = useModalState();
 
   const visible = modal === MODALS.LEADERBOARD;
 
@@ -53,22 +57,22 @@ export default function LeaderBoardModal() {
     [aztec, registered, capturedFroglins.length],
   );
 
-  // useEffect(
-  //   () => {
-  //     if (visible) return;
+  useEffect(
+    () => {
+      if (visible) return;
 
-  //     function handleKeyPress(ev: KeyboardEvent) {
-  //       if (ev.key === "l") setTimeout(setModal, 0, MODALS.LEADERBOARD);
-  //     }
+      function handleKeyPress(ev: KeyboardEvent) {
+        if (ev.key === "l") setTimeout(setModal, 0, MODALS.LEADERBOARD);
+      }
 
-  //     document.addEventListener("keypress", handleKeyPress);
+      addKeyboardShortcut(handleKeyPress);
 
-  //     return () => {
-  //       document.removeEventListener("keypress", handleKeyPress);
-  //     };
-  //   }, //
-  //   [visible],
-  // );
+      return () => {
+        removeKeyboardShortcut(handleKeyPress);
+      };
+    }, //
+    [visible],
+  );
 
   return (
     <Modal

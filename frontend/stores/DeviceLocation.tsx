@@ -119,7 +119,7 @@ function createState(): LocationInfo {
         }
       }
 
-      // function handleKeydown(ev: KeyboardEvent) {
+      // function handleKeyPress(ev: KeyboardEvent) {
       //   if (ev.key === "z") setDisabled((d) => !d);
       // }
 
@@ -127,12 +127,12 @@ function createState(): LocationInfo {
       const pollerId = setInterval(pollPosition, LOCATION.DEVICE.GPS_OPTIONS.timeout);
 
       document.addEventListener("visibilitychange", handleLostFocus);
-      // document.addEventListener("keydown", handleKeydown);
+      // addKeyboardShortcut(handleKeyPress);
 
       return () => {
         clearInterval(pollerId);
 
-        // document.removeEventListener("keydown", handleKeydown);
+        // removeKeyboardShortcut(handleKeyPress);
         document.removeEventListener("visibilitychange", handleLostFocus);
       };
     }, //

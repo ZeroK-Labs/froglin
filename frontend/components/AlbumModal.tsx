@@ -4,6 +4,10 @@ import { FROGLIN } from "frontend/settings";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
+import {
+  addKeyboardShortcut,
+  removeKeyboardShortcut,
+} from "frontend/utils/KeyboardShortcuts";
 
 const names = [
   "Quagalia",
@@ -23,7 +27,7 @@ const names = [
 export default function AlbumModal() {
   const [stash, setStash] = useState<number[]>(() => Array(FROGLIN.TYPE_COUNT).fill(0));
 
-  const { modal } = useModalState();
+  const { modal, setModal } = useModalState();
   const { aztec, registered } = usePlayer();
   const { capturedFroglins } = useGameEvent();
 
@@ -49,22 +53,22 @@ export default function AlbumModal() {
     [aztec, registered, capturedFroglins.length],
   );
 
-  // useEffect(
-  //   () => {
-  //     if (visible) return;
+  useEffect(
+    () => {
+      if (visible) return;
 
-  //     function handleKeyPress(ev: KeyboardEvent) {
-  //       if (ev.key === "b") setTimeout(setModal, 0, MODALS.ALBUM);
-  //     }
+      function handleKeyPress(ev: KeyboardEvent) {
+        if (ev.key === "b") setTimeout(setModal, 0, MODALS.ALBUM);
+      }
 
-  //     document.addEventListener("keypress", handleKeyPress);
+      addKeyboardShortcut(handleKeyPress);
 
-  //     return () => {
-  //       document.removeEventListener("keypress", handleKeyPress);
-  //     };
-  //   }, //
-  //   [visible],
-  // );
+      return () => {
+        removeKeyboardShortcut(handleKeyPress);
+      };
+    }, //
+    [visible],
+  );
 
   // say something when the picure is clicked
 

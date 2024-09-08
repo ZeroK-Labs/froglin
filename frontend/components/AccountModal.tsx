@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { useModalState, usePXEState, usePlayer } from "frontend/stores";
+import { disableShortcuts, enableShortcuts } from "frontend/utils/KeyboardShortcuts";
 
 const INPUT_KEY_LENGTH = 50;
 const INPUT_TIMEOUT = 150;
@@ -131,6 +132,8 @@ export default function AccountModal() {
             className="w-56 p-2 mt-4 mb-2 border rounded text-sm text-gray-800"
             placeholder="Enter a name (min 3 characters)"
             onChange={handleUsernameChanged}
+            onFocus={disableShortcuts}
+            onBlur={enableShortcuts}
             value={username}
           />
           {error ? <label className="text-sm text-red-700">{error}</label> : null}
