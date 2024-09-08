@@ -8,6 +8,7 @@ import { RADIANS_PER_METER_LATITUDE } from "common/utils/map";
 import { StoreFactory } from "frontend/stores";
 import { nullKeyboard, nullifyKeyboard } from "frontend/classes/Keyboard";
 import { nullMapCoordinates } from "frontend/classes/MapCoordinates";
+import { shortcutsDisabled } from "frontend/utils/KeyboardShortcuts";
 
 const KEYBOARD = nullKeyboard();
 
@@ -37,6 +38,11 @@ function createState(): LocationInfo {
       let pollerId: Timer;
 
       function pollKeys() {
+        if (shortcutsDisabled()) {
+          nullifyKeyboard(KEYBOARD);
+          return;
+        }
+
         if (KEYBOARD.z) setDisabled((d) => !d);
 
         const changed_latitude = KEYBOARD.w || KEYBOARD.s;
