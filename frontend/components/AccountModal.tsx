@@ -128,6 +128,7 @@ export default function AccountModal() {
       >
         <div className="flex flex-col overflow-visible">
           <input
+            id="txtPlayerName"
             type="text"
             className="w-56 p-2 mt-4 mb-2 border rounded text-sm text-gray-800"
             placeholder="Enter a name (min 3 characters)"

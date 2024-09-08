@@ -8,6 +8,8 @@ export default function CreateAccountButton() {
 
   function handleCreateAccountClick(ev: React.MouseEvent) {
     setModal(MODALS.ACCOUNT);
+    const inputElement = document.getElementById("txtPlayerName") as HTMLInputElement;
+    inputElement.focus();
     ev.stopPropagation(); // prevent Modal from closing due to click outside its bounds
   }
 
