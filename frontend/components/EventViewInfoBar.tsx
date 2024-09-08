@@ -20,31 +20,33 @@ export default function EventViewInfoBar({ visible }: Props) {
           pointerEvents: "none",
         }}
       >
-        <div className="flex flex-col w-full">
-          <div className="flex justify-center font-bold">Event Stats</div>
+        <div className="w-full flex flex-col justify-center items-center">
+          <div className="mb-4 flex justify-center font-bold">Event Stats</div>
 
-          <div className="flex items-center space-x-1 font-semibold">
-            Epochs remaining: {epochCount}
-          </div>
-          <div className="flex items-center space-x-1">
-            {/* <TimerIcon className="h-6 w-6" /> */}
-            <div className="font-semibold">Epoch duration:</div>
-            <span className="pl-1 font-semibold">
-              {CountDownTimer(epochDuration / 1000)}
-            </span>
-          </div>
-          <div className="flex items-center space-x-1">
-            {/* <TimerIcon className="h-6 w-6" /> */}
-            <div className="font-semibold">Event ends in:</div>
-            <span className="pl-1 font-semibold">
-              {CountDownTimer((epochCount * epochDuration) / 1000, false)}
-            </span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <div className="font-semibold">Captured: </div>
-            <span className="pl-1 font-semibold">
-              {capturedFroglins.length} / {interestPoints.length}
-            </span>
+          <div className="flex flex-col">
+            <div className="flex items-center space-x-1">
+              <div className="ml-0.5">⏳ Epochs remaining:</div>
+              <span className="ml-1 font-semibold">{epochCount}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div>⏱️ Epoch duration:</div>
+              <span className="ml-1 font-semibold">
+                {CountDownTimer(epochDuration / 1000)}
+              </span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div>📆 Event ends in:</div>
+              <span className="ml-1 font-semibold">
+                {CountDownTimer((epochCount * epochDuration) / 1000, false)}
+              </span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div>🐸 Captured: </div>
+              <span className="ml-1 font-semibold text-gray-800">
+                {capturedFroglins.length}{" "}
+              </span>
+              <span className="font-semibold">/ {interestPoints.length}</span>
+            </div>
           </div>
         </div>
       </div>
