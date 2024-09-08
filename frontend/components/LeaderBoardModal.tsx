@@ -77,6 +77,8 @@ export default function LeaderBoardModal() {
   return (
     <Modal
       className="top-4"
+      icon="🏆"
+      title="Leaderboard"
       visible={visible}
     >
       <div className="max-h-[800px] flex flex-col p-4">
@@ -85,6 +87,7 @@ export default function LeaderBoardModal() {
           <span className="col-span-2">Player</span>
           <span className="w-full">Captured</span>
         </div>
+
         {leaderBoardData.map((entry: LeaderBoardEntry, index) => (
           <div
             key={index}

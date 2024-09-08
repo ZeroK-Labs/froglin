@@ -72,7 +72,9 @@ export default function Modal({
       }}
     >
       {icon ? <p className="absolute left-2 top-1 text-xl">{icon}</p> : null}
-      {title ? <p className="mb-3 text-2xl font-bold justify-center">{title}</p> : null}
+      {title ? (
+        <p className="mt-1 mb-2 text-2xl font-bold justify-center">{title}</p>
+      ) : null}
       <button
         ref={buttonRef}
         className="absolute right-2.5 top-1 text-xl text-shadow-default hover:text-shadow-hover cursor-pointer fa-solid fa-xmark"

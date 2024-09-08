@@ -45,7 +45,8 @@ export default function AlbumModal() {
 
         if (!stash || stash.length === 0) return;
 
-        setStash(stash);
+        const numberList = stash.map((bi: bigint) => Number(bi));
+        setStash(numberList);
       }
 
       fetchStash();
@@ -74,17 +75,18 @@ export default function AlbumModal() {
 
   return (
     <Modal
-      className="top-20"
+      className="top-4"
+      icon="📸"
+      title="Album"
       visible={visible}
     >
+      <div
+        className="px-2 py-1 h-2 text-[18px] font-bold border-b justify-items-start items-center text-white"
+        style={{ gridTemplateColumns: "min-content auto min-content" }}
+      />
+
       <div className="max-h-[650px] flex flex-col">
-        <div
-          className="px-2 pb-2 mb-2 text-[18px] font-bold border-b justify-items-start items-center text-white"
-          style={{ gridTemplateColumns: "min-content auto min-content" }}
-        >
-          <span className="w-6 mr-4">Album</span>
-        </div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="mt-3 mb-4 grid grid-cols-3 gap-4">
           {stash.map((count, index) => (
             <div key={index}>
               <span>{names[index]}</span>
