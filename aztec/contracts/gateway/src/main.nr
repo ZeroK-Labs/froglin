@@ -44,8 +44,14 @@ contract FroglinGateway {
 
     #[aztec(internal)]
     #[aztec(view)]
-    unconstrained fn _view_stash(player: AztecAddress) -> pub (StashNote, StashNote) {
-        (storage.stashes_1.at(player).view_note(), storage.stashes_2.at(player).view_note())
+    unconstrained fn _view_stash_1(player: AztecAddress) -> pub StashNote {
+        storage.stashes_1.at(player).view_note()
+    }
+
+    #[aztec(internal)]
+    #[aztec(view)]
+    unconstrained fn _view_stash_2(player: AztecAddress) -> pub StashNote {
+        storage.stashes_2.at(player).view_note()
     }
 
     // for external calls from other contracts
@@ -160,8 +166,8 @@ contract FroglinGateway {
 
     #[aztec(internal)]
     #[aztec(public)]
-    fn _capture_froglins(player: AztecAddress, count: u8) {
-        let new_froglin_count = storage.froglin_count.read() - count;
+    fn _capture_froglin(player: AztecAddress) {
+        let new_froglin_count = storage.froglin_count.read() - 1;
         storage.froglin_count.write(new_froglin_count);
 
         let accounts_size = storage.accounts_size.read();
@@ -174,67 +180,40 @@ contract FroglinGateway {
         }
 
         let mut new_leaderboard_entry = storage.leaderboard.at(player_index).read();
-        new_leaderboard_entry.score += count as u32;
+        new_leaderboard_entry.score = new_leaderboard_entry.score + 1;
+
         storage.leaderboard.at(player_index).write(new_leaderboard_entry);
     }
 
     #[aztec(private)]
-    fn capture_froglins(froglins: [u8; settings::CAPTURE_COUNT]) {
+    fn capture_froglin(froglin_type: u8) {
         let player = context.msg_sender();
         unsafe {
             _check_registration(player);
             assert(view_epoch_count() != 0, "event is stopped");
+            assert(view_froglin_count() != 0, "all available Froglins have been captured");
         }
-
-        // count Froglins to capture
-        let mut froglin_count = 0 as u8;
-        for i in 0..settings::CAPTURE_COUNT {
-            let froglin_type = froglins[i];
-            if (froglin_type != 0) {
-                assert(
-                    froglin_type <= settings::FROGLIN_TYPE_COUNT, "tried to capture an unknown Froglin type"
-                );
-                froglin_count += 1;
-            }
-        }
-        assert(froglin_count != 0, "at least 1 Froglin should be captured");
-        unsafe {
-            assert(view_froglin_count() >= froglin_count, "only available Froglins can be captured");
-        }
+        assert(
+            froglin_type < crate::settings::FROGLIN_TYPE_COUNT, "tried to capture an unknown Froglin type"
+        );
 
         let keys = get_current_public_keys(&mut context, player);
 
-        // update stash quantities
-        let (stash_old_note_1, stash_old_note_2) = unsafe {
-            _view_stash(player)
-        };
-        let mut stash_new_note_1 = StashNote::copy(stash_old_note_1, keys.npk_m.hash());
-        let mut stash_new_note_2 = StashNote::copy(stash_old_note_2, keys.npk_m.hash());
-        let mut stash_changed_1 = false;
-        let mut stash_changed_2 = false;
-        for i in 0..settings::CAPTURE_COUNT {
-            let froglin_type = froglins[i];
-
-            if (froglin_type != 0) {
-                if (froglin_type <= stash_midpoint_index) {
-                    stash_changed_1 = true;
-                    stash_new_note_1.increment_slot(froglin_type);
-                } //
-                else {
-                    stash_changed_2 = true;
-                    stash_new_note_2.increment_slot(froglin_type - stash_midpoint_index);
-                }
-            }
-        }
-        if (stash_changed_1) {
-            storage.stashes_1.at(player).replace(&mut stash_new_note_1).emit(encode_and_encrypt_note(&mut context, player, player));
-        }
-        if (stash_changed_2) {
-            storage.stashes_2.at(player).replace(&mut stash_new_note_2).emit(encode_and_encrypt_note(&mut context, player, player));
+        // create new note for selected stash
+        let stash_midpoint_index = crate::settings::FROGLIN_TYPE_COUNT / 2;
+        if (froglin_type < stash_midpoint_index) {
+            let mut new_stash = StashNote::copy(storage.stashes_1.at(player).get_note().note, keys.npk_m.hash());
+            new_stash.increment_slot(froglin_type);
+            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, player, player));
+        } //
+        else {
+            let mut new_stash = StashNote::copy(storage.stashes_2.at(player).get_note().note, keys.npk_m.hash());
+            new_stash.increment_slot(froglin_type - stash_midpoint_index);
+            storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, player, player));
         }
 
         // modify public data
-        FroglinGateway::at(context.this_address())._capture_froglins(player, froglin_count).enqueue(&mut context);
+        FroglinGateway::at(context.this_address())._capture_froglin(player).enqueue(&mut context);
     }
 
     #[aztec(view)]
@@ -282,18 +261,18 @@ contract FroglinGateway {
         let stash_2 = storage.stashes_2.at(player).view_note();
 
         [
+            stash_1.froglin_0,
             stash_1.froglin_1,
             stash_1.froglin_2,
             stash_1.froglin_3,
             stash_1.froglin_4,
             stash_1.froglin_5,
-            stash_1.froglin_6,
+            stash_2.froglin_0,
             stash_2.froglin_1,
             stash_2.froglin_2,
             stash_2.froglin_3,
             stash_2.froglin_4,
             stash_2.froglin_5,
-            stash_2.froglin_6,
         ]
     }
 

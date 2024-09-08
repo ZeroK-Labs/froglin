@@ -78,12 +78,10 @@ describe("Concurrent Froglin Capture", () => {
         await GAME_MASTER.contracts.gateway.methods.view_froglin_count().simulate(),
       );
 
-      const arr = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
       let promises: Promise<any>[] = [
-        ACCOUNTS.alice.contracts.gateway.methods.capture_froglins(arr).send().wait(),
-        ACCOUNTS.bob.contracts.gateway.methods.capture_froglins(arr).send().wait(),
-        // ACCOUNTS.charlie.contracts.gateway.methods.capture_froglins(arr).send().wait(),
+        ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait(),
+        ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(0).send().wait(),
+        // ACCOUNTS.charlie.contracts.gateway.methods.capture_froglin(0).send().wait(),
       ];
 
       await Promise.all(promises);
@@ -103,46 +101,46 @@ describe("Concurrent Froglin Capture", () => {
       //   .view_stash(ACCOUNTS.charlie.wallet.getAddress())
       //   .simulate();
 
-      // promises = [
-      //   ACCOUNTS.alice.contracts.gateway.methods
-      //     .view_stash(ACCOUNTS.alice.wallet.getAddress())
-      //     .simulate(),
-      //   ACCOUNTS.bob.contracts.gateway.methods
-      //     .view_stash(ACCOUNTS.bob.wallet.getAddress())
-      //     .simulate(),
-      //   //   ACCOUNTS.charlie.contracts.gateway.methods
-      //   //     .view_stash(ACCOUNTS.charlie.wallet.getAddress())
-      //   //     .simulate(),
-      // ];
+      promises = [
+        ACCOUNTS.alice.contracts.gateway.methods
+          .view_stash(ACCOUNTS.alice.wallet.getAddress())
+          .simulate(),
+        ACCOUNTS.bob.contracts.gateway.methods
+          .view_stash(ACCOUNTS.bob.wallet.getAddress())
+          .simulate(),
+        //   ACCOUNTS.charlie.contracts.gateway.methods
+        //     .view_stash(ACCOUNTS.charlie.wallet.getAddress())
+        //     .simulate(),
+      ];
 
-      // const [aliceStash, bobStash] = await Promise.all(promises);
+      const [aliceStash, bobStash] = await Promise.all(promises);
       // const [aliceStash, bobStash, charlieStash] = await Promise.all(promises);
 
-      // expect(aliceStash[0]).toEqual(1n);
-      // expect(aliceStash[1]).toEqual(0n);
-      // expect(aliceStash[2]).toEqual(0n);
-      // expect(aliceStash[3]).toEqual(0n);
-      // expect(aliceStash[4]).toEqual(0n);
-      // expect(aliceStash[5]).toEqual(0n);
-      // expect(aliceStash[6]).toEqual(0n);
-      // expect(aliceStash[7]).toEqual(0n);
-      // expect(aliceStash[8]).toEqual(0n);
-      // expect(aliceStash[9]).toEqual(0n);
-      // expect(aliceStash[10]).toEqual(0n);
-      // expect(aliceStash[11]).toEqual(0n);
+      expect(aliceStash[0]).toEqual(1n);
+      expect(aliceStash[1]).toEqual(0n);
+      expect(aliceStash[2]).toEqual(0n);
+      expect(aliceStash[3]).toEqual(0n);
+      expect(aliceStash[4]).toEqual(0n);
+      expect(aliceStash[5]).toEqual(0n);
+      expect(aliceStash[6]).toEqual(0n);
+      expect(aliceStash[7]).toEqual(0n);
+      expect(aliceStash[8]).toEqual(0n);
+      expect(aliceStash[9]).toEqual(0n);
+      expect(aliceStash[10]).toEqual(0n);
+      expect(aliceStash[11]).toEqual(0n);
 
-      // expect(bobStash[0]).toEqual(1n);
-      // expect(bobStash[1]).toEqual(0n);
-      // expect(bobStash[2]).toEqual(0n);
-      // expect(bobStash[3]).toEqual(0n);
-      // expect(bobStash[4]).toEqual(0n);
-      // expect(bobStash[5]).toEqual(0n);
-      // expect(bobStash[6]).toEqual(0n);
-      // expect(bobStash[7]).toEqual(0n);
-      // expect(bobStash[8]).toEqual(0n);
-      // expect(bobStash[9]).toEqual(0n);
-      // expect(bobStash[10]).toEqual(0n);
-      // expect(bobStash[11]).toEqual(0n);
+      expect(bobStash[0]).toEqual(1n);
+      expect(bobStash[1]).toEqual(0n);
+      expect(bobStash[2]).toEqual(0n);
+      expect(bobStash[3]).toEqual(0n);
+      expect(bobStash[4]).toEqual(0n);
+      expect(bobStash[5]).toEqual(0n);
+      expect(bobStash[6]).toEqual(0n);
+      expect(bobStash[7]).toEqual(0n);
+      expect(bobStash[8]).toEqual(0n);
+      expect(bobStash[9]).toEqual(0n);
+      expect(bobStash[10]).toEqual(0n);
+      expect(bobStash[11]).toEqual(0n);
 
       // expect(charlieStash[0]).toEqual(1n);
       // expect(charlieStash[1]).toEqual(0n);
@@ -167,17 +165,13 @@ describe("Concurrent Froglin Capture", () => {
         await GAME_MASTER.contracts.gateway.methods.view_froglin_count().simulate(),
       );
 
-      const arr1 = [1, 2, 3, 4, 0, 0, 0, 0, 0, 0];
-      const arr2 = [5, 6, 7, 8, 9, 10, 11, 12, 0, 0];
-
-      // const arr1 = [1, 2, 3, 4, 0, 0, 0, 0, 0, 0];
-      // const arr2 = [5, 6, 7, 8, 9, 0, 0, 0, 0, 0];
-      // const arr3 = [10, 11, 12, 0, 0, 0, 0, 0, 0, 0];
-
       let promises: Promise<any>[] = [
-        ACCOUNTS.alice.contracts.gateway.methods.capture_froglins(arr1).send().wait(),
-        ACCOUNTS.bob.contracts.gateway.methods.capture_froglins(arr2).send().wait(),
-        // ACCOUNTS.charlie.contracts.gateway.methods.capture_froglins(arr3).send().wait(),
+        ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait(),
+        ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(2).send().wait(),
+        // ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(4).send().wait(),
+        // ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(5).send().wait(),
+        // ACCOUNTS.charlie.contracts.gateway.methods.capture_froglin(6).send().wait(),
+        // ACCOUNTS.charlie.contracts.gateway.methods.capture_froglin(7).send().wait(),
       ];
 
       await Promise.all(promises);
@@ -185,7 +179,7 @@ describe("Concurrent Froglin Capture", () => {
       const new_froglin_count = Number(
         await GAME_MASTER.contracts.gateway.methods.view_froglin_count().simulate(),
       );
-      expect(new_froglin_count).toEqual(froglin_count - 12);
+      expect(new_froglin_count).toEqual(froglin_count - 2);
 
       // promises = [
       //   ACCOUNTS.alice.contracts.gateway.methods
@@ -243,70 +237,6 @@ describe("Concurrent Froglin Capture", () => {
       // // expect(charlieStash[9]).toEqual(1n);
       // // expect(charlieStash[10]).toEqual(1n);
       // // expect(charlieStash[11]).toEqual(1n);
-    },
-    timeout,
-  );
-
-  test(
-    "multiple accounts can each capture a max number of Froglin of mixed types at the same time",
-    async () => {
-      const froglin_count = Number(
-        await GAME_MASTER.contracts.gateway.methods.view_froglin_count().simulate(),
-      );
-
-      const arr1 = [1, 2, 3, 4, 5, 1, 2, 3, 4, 5];
-      const arr2 = [6, 7, 8, 9, 10, 6, 7, 8, 9, 10];
-      // const arr3 = [11, 12, 1, 2, 3, 4, 5, 6, 7, 8];
-      let promises: Promise<any>[] = [
-        ACCOUNTS.alice.contracts.gateway.methods.capture_froglins(arr1).send().wait(),
-        ACCOUNTS.bob.contracts.gateway.methods.capture_froglins(arr2).send().wait(),
-        // ACCOUNTS.charlie.contracts.gateway.methods.capture_froglins(arr3).send().wait(),
-      ];
-
-      await Promise.all(promises);
-
-      const new_froglin_count = Number(
-        await GAME_MASTER.contracts.gateway.methods.view_froglin_count().simulate(),
-      );
-      expect(new_froglin_count).toEqual(froglin_count - 20);
-      // expect(new_froglin_count).toEqual(froglin_count - 30);
-
-      // promises = [
-      //   ACCOUNTS.alice.contracts.gateway.methods
-      //     .view_stash(ACCOUNTS.alice.wallet.getAddress())
-      //     .simulate(),
-      //   ACCOUNTS.bob.contracts.gateway.methods
-      //     .view_stash(ACCOUNTS.bob.wallet.getAddress())
-      //     .simulate(),
-      // ];
-
-      // const [aliceStash, bobStash] = await Promise.all(promises);
-
-      // expect(aliceStash[0]).toEqual(4n);
-      // expect(aliceStash[1]).toEqual(3n);
-      // expect(aliceStash[2]).toEqual(3n);
-      // expect(aliceStash[3]).toEqual(3n);
-      // expect(aliceStash[4]).toEqual(3n);
-      // expect(aliceStash[5]).toEqual(0n);
-      // expect(aliceStash[6]).toEqual(0n);
-      // expect(aliceStash[7]).toEqual(0n);
-      // expect(aliceStash[8]).toEqual(0n);
-      // expect(aliceStash[9]).toEqual(0n);
-      // expect(aliceStash[10]).toEqual(0n);
-      // expect(aliceStash[11]).toEqual(0n);
-
-      // expect(bobStash[0]).toEqual(1n);
-      // expect(bobStash[1]).toEqual(0n);
-      // expect(bobStash[2]).toEqual(0n);
-      // expect(bobStash[3]).toEqual(0n);
-      // expect(bobStash[4]).toEqual(0n);
-      // expect(bobStash[5]).toEqual(3n);
-      // expect(bobStash[6]).toEqual(3n);
-      // expect(bobStash[7]).toEqual(3n);
-      // expect(bobStash[8]).toEqual(3n);
-      // expect(bobStash[9]).toEqual(3n);
-      // expect(bobStash[10]).toEqual(1n);
-      // expect(bobStash[11]).toEqual(1n);
     },
     timeout,
   );

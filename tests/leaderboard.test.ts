@@ -60,16 +60,16 @@ describe("Leaderboard", () => {
   test("can be viewed by any account", () => {
     expect(
       GAME_MASTER.contracts.gateway.methods.view_leaderboard().simulate(),
-    ).resolves.pass();
+    ).resolves.toBeDefined();
     expect(
       ACCOUNTS.alice.contracts.gateway.methods.view_leaderboard().simulate(),
-    ).resolves.pass();
+    ).resolves.toBeDefined();
     expect(
       ACCOUNTS.bob.contracts.gateway.methods.view_leaderboard().simulate(),
-    ).resolves.pass();
+    ).resolves.toBeDefined();
     expect(
       ACCOUNTS.charlie.contracts.gateway.methods.view_leaderboard().simulate(),
-    ).resolves.pass();
+    ).resolves.toBeDefined();
   });
 
   test("has max players entries after initialization", () => {
@@ -127,11 +127,7 @@ describe("Leaderboard", () => {
   test(
     "score is increased when a registered account captures a Froglin",
     async () => {
-      const capture_array = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-      await ACCOUNTS.alice.contracts.gateway.methods
-        .capture_froglins(capture_array)
-        .send()
-        .wait();
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
 
       const leaderboard = await ACCOUNTS.alice.contracts.gateway.methods
         .view_leaderboard()
@@ -149,11 +145,9 @@ describe("Leaderboard", () => {
   test(
     "score is increased when a registered account captures multiple Froglins of the same type",
     async () => {
-      const capture_array = [1, 1, 1, 0, 0, 0, 0, 0, 0, 0];
-      await ACCOUNTS.alice.contracts.gateway.methods
-        .capture_froglins(capture_array)
-        .send()
-        .wait();
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
 
       const leaderboard = await ACCOUNTS.alice.contracts.gateway.methods
         .view_leaderboard()
@@ -171,11 +165,9 @@ describe("Leaderboard", () => {
   test(
     "score is increased when a registered account captures multiple Froglins of mixed types",
     async () => {
-      const capture_array = [2, 3, 4, 0, 0, 0, 0, 0, 0, 0];
-      await ACCOUNTS.alice.contracts.gateway.methods
-        .capture_froglins(capture_array)
-        .send()
-        .wait();
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait();
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(2).send().wait();
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(3).send().wait();
 
       const leaderboard = await ACCOUNTS.alice.contracts.gateway.methods
         .view_leaderboard()

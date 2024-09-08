@@ -1,11 +1,11 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
-import { GAME_MASTER, ACCOUNTS } from "../accounts";
+import { GAME_MASTER, ACCOUNTS } from "./accounts";
 import { stringToBigInt } from "common/utils/bigint";
 import { assert } from "console";
 
-describe("Capture Single Froglin", () => {
+describe("Capture Froglin", () => {
   const timeout = 40_000;
   const FROGLIN_COUNT = 5;
   const EPOCH_COUNT = 3;
@@ -66,12 +66,8 @@ describe("Capture Single Froglin", () => {
   test(
     "fails when the event is stopped and a registered account tries to capture a Froglin",
     () => {
-      const capture_array = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
       expect(
-        ACCOUNTS.alice.contracts.gateway.methods
-          .capture_froglins(capture_array)
-          .send()
-          .wait(),
+        ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait(),
       ).rejects.toThrow("Assertion failed: event is stopped");
     },
     timeout,
@@ -89,11 +85,12 @@ describe("Capture Single Froglin", () => {
         await GAME_MASTER.contracts.gateway.methods.view_froglin_count().simulate(),
       );
 
-      const capture_array = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-      await ACCOUNTS.alice.contracts.gateway.methods
-        .capture_froglins(capture_array)
-        .send()
-        .wait();
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
+
+      const new_froglin_count = Number(
+        await GAME_MASTER.contracts.gateway.methods.view_froglin_count().simulate(),
+      );
+      expect(new_froglin_count).toEqual(froglin_count - 1);
 
       const stash = await ACCOUNTS.alice.contracts.gateway.methods
         .view_stash(ACCOUNTS.alice.wallet.getAddress())
@@ -111,11 +108,6 @@ describe("Capture Single Froglin", () => {
       expect(stash[9]).toEqual(0n);
       expect(stash[10]).toEqual(0n);
       expect(stash[11]).toEqual(0n);
-
-      const new_froglin_count = Number(
-        await GAME_MASTER.contracts.gateway.methods.view_froglin_count().simulate(),
-      );
-      expect(new_froglin_count).toEqual(froglin_count - 1);
     },
     timeout,
   );
@@ -123,11 +115,7 @@ describe("Capture Single Froglin", () => {
   test(
     "registered account can capture a second Froglin of the same type",
     async () => {
-      const capture_array = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-      await ACCOUNTS.alice.contracts.gateway.methods
-        .capture_froglins(capture_array)
-        .send()
-        .wait();
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
 
       const stash = await ACCOUNTS.alice.contracts.gateway.methods
         .view_stash(ACCOUNTS.alice.wallet.getAddress())
@@ -152,11 +140,7 @@ describe("Capture Single Froglin", () => {
   test(
     "registered account can capture different Froglin types",
     async () => {
-      const capture_array = [2, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-      await ACCOUNTS.alice.contracts.gateway.methods
-        .capture_froglins(capture_array)
-        .send()
-        .wait();
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait();
 
       const stash = await ACCOUNTS.alice.contracts.gateway.methods
         .view_stash(ACCOUNTS.alice.wallet.getAddress())
@@ -181,11 +165,7 @@ describe("Capture Single Froglin", () => {
   test(
     "a different registered account can capture a Froglin when the event is started",
     async () => {
-      const capture_array = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-      await ACCOUNTS.charlie.contracts.gateway.methods
-        .capture_froglins(capture_array)
-        .send()
-        .wait();
+      await ACCOUNTS.charlie.contracts.gateway.methods.capture_froglin(0).send().wait();
 
       const stash = await ACCOUNTS.charlie.contracts.gateway.methods
         .view_stash(ACCOUNTS.charlie.wallet.getAddress())
@@ -207,33 +187,15 @@ describe("Capture Single Froglin", () => {
     timeout,
   );
 
-  test("fails when a registered account tries to capture 0 Froglins", () => {
-    const capture_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    expect(
-      ACCOUNTS.alice.contracts.gateway.methods
-        .capture_froglins(capture_array)
-        .send()
-        .wait(),
-    ).rejects.toThrow("Assertion failed: at least 1 Froglin should be captured");
-  });
-
   test("fails when a registered account tries to capture a Froglin with of an unknown type", () => {
-    const capture_array = [99, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     expect(
-      ACCOUNTS.alice.contracts.gateway.methods
-        .capture_froglins(capture_array)
-        .send()
-        .wait(),
+      ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(99).send().wait(),
     ).rejects.toThrow("Assertion failed: tried to capture an unknown Froglin type");
   });
 
   test("fails when an un-registered account tries to capture a Froglin", () => {
-    const capture_array = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     expect(
-      ACCOUNTS.bob.contracts.gateway.methods
-        .capture_froglins(capture_array)
-        .send()
-        .wait(),
+      ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(0).send().wait(),
     ).rejects.toThrow("Assertion failed: only registered players can call this method");
   });
 
@@ -272,18 +234,11 @@ describe("Capture Single Froglin", () => {
         `expected froglin_count to be 1, found ${froglin_count}`,
       );
 
-      const capture_array = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-      await ACCOUNTS.alice.contracts.gateway.methods
-        .capture_froglins(capture_array)
-        .send()
-        .wait();
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
 
       expect(
-        ACCOUNTS.alice.contracts.gateway.methods
-          .capture_froglins(capture_array)
-          .send()
-          .wait(),
-      ).rejects.toThrow("Assertion failed: only available Froglins can be captured");
+        ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait(),
+      ).rejects.toThrow("Assertion failed: all available Froglins have been captured");
     },
     timeout,
   );
