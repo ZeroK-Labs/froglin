@@ -1,6 +1,13 @@
 import toast from "react-hot-toast";
 
-import { generateID } from "./id";
+const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+function generateID(): string {
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+
+  return Array.from(array, (byte) => chars[byte % chars.length]).join("");
+}
 
 if (!localStorage.getItem("sessionId")) localStorage.setItem("sessionId", generateID());
 
