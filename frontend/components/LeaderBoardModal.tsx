@@ -18,7 +18,7 @@ function getPodiumIcon(index: number): string | null {
 }
 
 function formatPlayerName(name: string): string {
-  return `${name.slice(0, 6)} ... ${name.slice(-4)}`;
+  return `${name.slice(0, 10)} ... ${name.slice(-8)}`;
 }
 
 export default function LeaderBoardModal() {
