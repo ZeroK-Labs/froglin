@@ -12,16 +12,65 @@ fi
 # split the output by "\n"
 IFS=$'\n' read -r -d '' -a outdatedPackages <<< "$outdatedOutput"
 
+# read the list of ignored packages from the .packageignore file, if it exists
+ignoreFile=$(dirname "$(realpath "${BASH_SOURCE[0]}")")"/.packageignore"
+ignoredPackages=()
+
+if [[ -f "${ignoreFile}" ]]; then
+  while IFS= read -r line; do
+    # trim whitespace, ignore empty lines and lines starting with "#"
+    cleanLine=$(echo "${line}" | xargs) # xargs trims leading/trailing spaces
+    if [[ -n "${cleanLine}" && ! "${cleanLine}" =~ ^# ]]; then
+      ignoredPackages+=("${cleanLine}")
+    fi
+  done < "${ignoreFile}"
+fi
+
+# filter out packages that are in .packageignore
+filteredPackages=()
+for package in "${outdatedPackages[@]}"; do
+  packageName=$(echo "$package" | cut -d'@' -f1)
+
+  skip=false
+
+  for ignored in "${ignoredPackages[@]}"; do
+    if [[ "${packageName}@" == *"${ignored}"* ]]; then
+      printf "Skipping \033[32m${packageName}\033[0m\n"
+      skip=true
+      break
+    fi
+  done
+
+  if [[ "${skip}" == false ]]; then
+    filteredPackages+=("${package}")
+  fi
+done
+
+# check if there are any packages left to update
+if [[ ${#filteredPackages[@]} -eq 0 ]]; then
+  echo "No packages to update after filtering .packageignore"
+  exit 0
+fi
+
 # read package.json
 packageJson=$(cat package.json) >/dev/null
 
+# select appropriate parameter for sed
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # macOS uses -E for extended
+  sedArgs="-E"
+else
+  # Linux uses -r for extended regex
+  sedArgs="-r"
+fi
+
 # transform dependency to replace / with \/
-for dependency in "${outdatedPackages[@]}"; do
-  # determine the count of "@" characters
-  count=$(echo "$dependency" | grep -o "@" | wc -l)
+for dependency in "${filteredPackages[@]}"; do
+  # Determine the count of "@" characters
+  count=$(echo "${dependency}" | grep -o "@" | wc -l)
 
   # split the dependency by "@"
-  IFS='@' read -r -a arr <<< "$dependency"
+  IFS='@' read -r -a arr <<< "${dependency}"
 
   # determine the name and version
   if [[ "$count" -eq 2 ]]; then
@@ -32,13 +81,13 @@ for dependency in "${outdatedPackages[@]}"; do
   version="${arr[$count]}"
 
   # escape characters in name and version
-  name=$(echo "$name" | sed -e 's/\//\\\//g')
-  version=$(echo "$version" | sed -e 's/\./\\./g')
+  name=$(echo "${name}" | sed 's/\//\\\//g')
+  version=$(echo "${version}" | sed 's/\./\\./g')
 
   # update dependencies in packageJson
-  packageJson=$(echo "$packageJson" | sed -E "s/\"$name\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\"$name\": \"$version\"/")
+  packageJson=$(echo "${packageJson}" | sed ${sedArgs} "s/\"${name}\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\"${name}\": \"${version}\"/")
 done
 
-echo "$packageJson" > package.json
+echo "${packageJson}" > package.json
 
 bun i
