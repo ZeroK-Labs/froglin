@@ -7,6 +7,28 @@ source scripts/.env/maybe_sudo.sh
 # enable execution of all shell files under the folder 'scripts'
 find scripts -type f -name "*.sh" -exec chmod +x {} \;
 
+# create a default configuration file and add content
+CONFIG_FILE="./env.config.js"
+if [ ! -f "${CONFIG_FILE}" ]; then
+  cat <<EOL > "${CONFIG_FILE}"
+const configuration = {
+  WEBPACK_PORT: 3001,
+
+  SSL_KEY: "certificates/localhost-key.pem",
+  SSL_CERT: "certificates/localhost-cert.pem",
+
+  SANDBOX_HOST: "localhost",
+  SANDBOX_PORT: 8080,
+
+  BACKEND_HOST: "localhost",
+  BACKEND_PORT: 3002,
+  BACKEND_WALLET_SECRET: "1234",
+};
+
+export default configuration;
+EOL
+fi;
+
 # enable git commit hook
 GIT_COMMIT_HOOK_FILE=.git/hooks/pre-commit
 if [ ! -f "$GIT_COMMIT_HOOK_FILE" ]; then
