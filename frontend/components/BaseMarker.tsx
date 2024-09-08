@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 
 import type { MapCoordinates } from "common/types";
 import { FROGLIN } from "frontend/settings";
+import { useMapViewState } from "frontend/stores";
+import { MAP_VIEWS } from "frontend/enums";
 
 type BaseMarkerProps = {
   coordinates: MapCoordinates;
@@ -21,6 +23,8 @@ export default function BaseMarker(props: BaseMarkerProps) {
   const [message, setMessage] = useState<string>("");
   const [opacity, setOpacity] = useState(0);
 
+  const { mapView } = useMapViewState();
+
   function showMessage() {
     setMessage(props.message);
     setTimeout(setMessage, FROGLIN.MARKER.MESSAGE_TIMEOUT, "");
@@ -34,10 +38,13 @@ export default function BaseMarker(props: BaseMarkerProps) {
 
       if (!props.visible) return;
 
-      const timer = setTimeout(() => {
-        locationRef.current = props.coordinates;
-        setOpacity(1);
-      }, FROGLIN.MARKER.TRANSITION_DURATION);
+      const timer = setTimeout(
+        () => {
+          locationRef.current = props.coordinates;
+          setOpacity(1);
+        }, //
+        FROGLIN.MARKER.TRANSITION_DURATION,
+      );
 
       return () => {
         clearTimeout(timer);
@@ -57,7 +64,7 @@ export default function BaseMarker(props: BaseMarkerProps) {
           transition: `opacity ${FROGLIN.MARKER.TRANSITION_DURATION}ms ease-in`,
         }}
         className="rounded-full flex flex-col items-center justify-center"
-        onClick={showMessage}
+        {...(mapView === MAP_VIEWS.PLAYGROUND ? { onClick: showMessage } : null)}
       >
         {message && (
           <div
