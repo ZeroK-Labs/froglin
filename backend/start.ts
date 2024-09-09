@@ -18,10 +18,11 @@ import {
   getEventBounds,
   getGatewayAddress,
   getInterestPoints,
-  getLeaderboard,
   revealFroglins,
   setPlayerLocation,
 } from "./endpoints";
+import { errorHandler } from "./middlewares/error-handler";
+import { asyncHandler } from "./utils/async-wrapper";
 
 export const CLIENT_SESSION_DATA: { [key: string]: ClientSessionData } = {};
 
@@ -47,12 +48,20 @@ app.use(express.json());
 
 // ENDPOINTS
 app.get("/gateway", getGatewayAddress);
-app.get("/leaderboard", getLeaderboard);
 app.get("/interest-points", getInterestPoints);
 app.get("/event-bounds", getEventBounds);
 
 app.post("/location", setPlayerLocation);
 app.post("/reveal", revealFroglins);
+app.use(errorHandler);
+
+process.on("uncaughtException", (uncaughtException) => {
+  console.error(uncaughtException, "Uncaught Exception");
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error(reason, "Unhandled Rejection");
+});
 
 // HTML SERVER
 const options = {
