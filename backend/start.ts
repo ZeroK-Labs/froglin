@@ -51,7 +51,7 @@ app.get("/gateway", getGatewayAddress);
 app.get("/interest-points", getInterestPoints);
 app.get("/event-bounds", getEventBounds);
 
-app.post("/location", setPlayerLocation);
+app.post("/location", asyncHandler(setPlayerLocation));
 app.post("/reveal", revealFroglins);
 app.use(errorHandler);
 
