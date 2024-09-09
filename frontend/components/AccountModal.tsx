@@ -140,49 +140,43 @@ export default function AccountModal() {
           {error ? <label className="text-sm text-red-700">{error}</label> : null}
         </div>
 
-        <div
-          style={{
-            width: "14rem",
-            transition: "height 500ms ease, opacity 500ms ease",
-            ...(username.length < 3
-              ? {
-                  height: "0rem",
-                  opacity: 0,
-                }
-              : {
-                  height: "16rem",
-                  opacity: 1,
-                }),
-          }}
-        >
+        {username.length > 3 ? (
           <div
-            className="p-2 mt-3 h-56 flex flex-col bg-blue-500"
-            {...(username.length < 3
-              ? null
-              : {
-                  onPointerDown: handlePointerDown,
-                  onPointerUp: handlePointerUp,
-                  onPointerMove: handlePointerMove,
-                })}
+            style={{
+              width: "14rem",
+              transition: "height 500ms ease, opacity 500ms ease",
+            }}
           >
-            Move your finger randomly inside this blue area to generate a secret number
-          </div>
-
-          <div className="relative">
-            <span className="absolute w-full h-6 text-sm font-bold flex justify-center text-white">
-              {completionPercentage} / 100
-            </span>
-
             <div
-              style={{
-                width: `${completionPercentage}%`,
-                height: "1.5rem",
-                backgroundColor: getPercentageColor(inputKey.length),
-                transition: "width 300ms linear, background-color 600ms ease",
-              }}
-            />
+              className="p-2 mt-3 h-56 flex flex-col bg-blue-500"
+              {...(username.length < 3
+                ? null
+                : {
+                    onPointerDown: handlePointerDown,
+                    onPointerUp: handlePointerUp,
+                    onPointerMove: handlePointerMove,
+                  })}
+            >
+              Move your finger randomly inside this blue area to generate a secret
+              number
+            </div>
+
+            <div className="relative">
+              <span className="absolute w-full h-6 text-sm font-bold flex justify-center text-white">
+                {completionPercentage} / 100
+              </span>
+
+              <div
+                style={{
+                  width: `${completionPercentage}%`,
+                  height: "1.5rem",
+                  backgroundColor: getPercentageColor(inputKey.length),
+                  transition: "width 300ms linear, background-color 600ms ease",
+                }}
+              />
+            </div>
           </div>
-        </div>
+        ) : null}
       </Modal>
     </>
   );
