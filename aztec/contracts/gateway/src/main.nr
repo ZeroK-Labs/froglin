@@ -7,6 +7,7 @@ contract FroglinGateway {
         encrypted_logs::encrypted_note_emission::encode_and_encrypt_note, prelude::{AztecAddress, Map},
         state_vars::{PrivateMutable, PublicMutable, SharedImmutable}
     };
+    use dep::authwit::auth::{assert_current_call_valid_authwit, compute_authwit_nullifier};
 
     use crate::settings;
     use crate::types::leaderboard_entry::LeaderBoardEntry;
@@ -214,6 +215,29 @@ contract FroglinGateway {
 
         // modify public data
         FroglinGateway::at(context.this_address())._capture_froglin(player).enqueue(&mut context);
+    }
+
+    #[aztec(private)]
+    fn increment_froglin(froglin_type: u8, player: AztecAddress, nonce: Field) {
+        if (!player.eq(context.msg_sender())) {
+            assert_current_call_valid_authwit(&mut context, player);
+        } else {
+            assert(nonce == 0, "invalid nonce");
+        }
+        let keys = get_current_public_keys(&mut context, player);
+
+        // create new note for selected stash
+        let stash_midpoint_index = crate::settings::FROGLIN_TYPE_COUNT / 2;
+        if (froglin_type < stash_midpoint_index) {
+            let mut new_stash = StashNote::copy(storage.stashes_1.at(player).get_note().note, keys.npk_m.hash());
+            new_stash.increment_slot(froglin_type);
+            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, player, player));
+        } //
+        else {
+            let mut new_stash = StashNote::copy(storage.stashes_2.at(player).get_note().note, keys.npk_m.hash());
+            new_stash.increment_slot(froglin_type - stash_midpoint_index);
+            storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, player, player));
+        }
     }
 
     #[aztec(view)]
