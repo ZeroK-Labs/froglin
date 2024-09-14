@@ -201,7 +201,6 @@ contract FroglinGateway {
         let keys = get_current_public_keys(&mut context, player);
 
         // create new note for selected stash
-        let stash_midpoint_index = crate::settings::FROGLIN_TYPE_COUNT / 2;
         if (froglin_type < stash_midpoint_index) {
             let mut new_stash = StashNote::copy(storage.stashes_1.at(player).get_note().note, keys.npk_m.hash());
             new_stash.increment_slot(froglin_type);
@@ -218,16 +217,14 @@ contract FroglinGateway {
     }
 
     #[aztec(private)]
-    fn increment_froglin(froglin_type: u8, player: AztecAddress, nonce: Field) {
+    fn increment_froglin(froglin_type: u8, player: AztecAddress) {
         if (!player.eq(context.msg_sender())) {
             assert_current_call_valid_authwit(&mut context, player);
-        } else {
-            assert(nonce == 0, "invalid nonce");
         }
+
         let keys = get_current_public_keys(&mut context, player);
 
         // create new note for selected stash
-        let stash_midpoint_index = crate::settings::FROGLIN_TYPE_COUNT / 2;
         if (froglin_type < stash_midpoint_index) {
             let mut new_stash = StashNote::copy(storage.stashes_1.at(player).get_note().note, keys.npk_m.hash());
             new_stash.increment_slot(froglin_type);
