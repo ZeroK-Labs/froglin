@@ -13,6 +13,7 @@ import { createSocketServer, destroySocketServer } from "./utils/sockets";
 import {
   addSandboxWatcherEventHandler,
   startSandboxWatcher,
+  stopSandboxWatcher,
 } from "./utils/SandboxWatcher";
 import {
   getEventBounds,
@@ -30,7 +31,13 @@ export const CLIENT_SESSION_DATA: { [key: string]: ClientSessionData } = {};
 function cleanup() {
   console.log("Shutting down...");
 
+  GAME_EVENT.stop();
+
+  stopSandboxWatcher();
+
   destroySocketServer();
+
+  if (!html_server) return;
 
   html_server.close(() => {
     process.exit();
