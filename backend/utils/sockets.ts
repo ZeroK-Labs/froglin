@@ -13,6 +13,8 @@ const HOST =
     ? `http://localhost:`
     : `https://${process.env.BACKEND_HOST}/pxe/`;
 
+const REUSE_PXE_TIMEOUT = 3_000;
+
 let ws_server: WebSocketServer;
 
 // used on shutdown
@@ -36,7 +38,7 @@ export function createSocketServer(options?: ServerOptions) {
       if (
         previous_socket &&
         (previous_socket.readyState === WebSocket.CONNECTING ||
-          previous_socket.readyState == WebSocket.OPEN)
+          previous_socket.readyState === WebSocket.OPEN)
       ) {
         console.error(
           `Failed to initialize a new connection: socket ${sessionId} already open`,
@@ -60,9 +62,15 @@ export function createSocketServer(options?: ServerOptions) {
       socket.send(`pxe ${url}`);
     } //
     else {
+      // create PXE instance
       let pxe: ChildProcess;
       [port, pxe] = createPXEService(
         async () => {
+          if (socket.readyState !== WebSocket.OPEN) {
+            destroyPXEService(port);
+            return;
+          }
+
           url = `${HOST}${port}`;
           clientData.PXE = { process: pxe, port, reuseTimerId: null };
 
@@ -100,7 +108,7 @@ export function createSocketServer(options?: ServerOptions) {
             clientData.PXE!.reuseTimerId = null;
             destroyPXEService(port);
           }, //
-          3_000,
+          REUSE_PXE_TIMEOUT,
         );
       }
 
