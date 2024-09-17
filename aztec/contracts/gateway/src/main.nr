@@ -8,11 +8,13 @@ contract FroglinGateway {
         state_vars::{PrivateMutable, PublicMutable, SharedImmutable}
     };
     use dep::authwit::auth::{assert_current_call_valid_authwit, compute_authwit_nullifier};
+    use dep::value_note::value_note::ValueNote;
 
     use crate::settings;
     use crate::types::leaderboard_entry::LeaderBoardEntry;
     use crate::types::player_note::PlayerNote;
     use crate::types::stash_note::StashNote;
+    use crate::types::trade_note::TradeNote;
     use std::array;
 
     global stash_midpoint_index = settings::FROGLIN_TYPE_COUNT / 2;
@@ -22,6 +24,8 @@ contract FroglinGateway {
         game_master: SharedImmutable<AztecAddress>,
         accounts_size: PublicMutable<u8>,
         accounts: Map<AztecAddress, PrivateMutable<PlayerNote>>,
+        trades: Map<AztecAddress, PrivateMutable<TradeNote>>,
+        transfers: Map<AztecAddress, PrivateMutable<ValueNote>>,
         stashes_1: Map<AztecAddress, PrivateMutable<StashNote>>,
         stashes_2: Map<AztecAddress, PrivateMutable<StashNote>>,
         froglin_count: PublicMutable<u8>,
@@ -222,6 +226,49 @@ contract FroglinGateway {
             assert_current_call_valid_authwit(&mut context, player);
         }
 
+        let keys = get_current_public_keys(&mut context, player);
+
+        // create new note for selected stash
+        if (froglin_type < stash_midpoint_index) {
+            let mut new_stash = StashNote::copy(storage.stashes_1.at(player).get_note().note, keys.npk_m.hash());
+            new_stash.increment_slot(froglin_type);
+            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, player, player));
+        } //
+        else {
+            let mut new_stash = StashNote::copy(storage.stashes_2.at(player).get_note().note, keys.npk_m.hash());
+            new_stash.increment_slot(froglin_type - stash_midpoint_index);
+            storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, player, player));
+        }
+    }
+    #[aztec(private)]
+    fn transfer(to: AztecAddress,froglin_type: u8) {
+        let from = context.msg_sender();
+        unsafe {
+            _check_registration(from);
+            _check_registration(to);
+        }
+
+        let from_keys = get_current_public_keys(&mut context, from);
+        let to_keys = get_current_public_keys(&mut context, to);
+
+        let mut from_stash_note = StashNote::copy(storage.stashes_1.at(from).get_note().note, from_keys.npk_m.hash());
+
+        from_stash_note.decrement_slot(froglin_type);
+
+        storage.stashes_1.at(from).replace(&mut from_stash_note).emit(encode_and_encrypt_note(&mut context, from, from));
+        let mut note = ValueNote::new(froglin_type as Field, to_keys.npk_m.hash());
+        storage.transfers.at(to).initialize(&mut note).emit(encode_and_encrypt_note(&mut context, to, to));
+    }
+
+    #[aztec(private)]
+    fn claim_froglin() {
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+
+        // check if there is a note in storage transfers
+        let froglin_type: u8 = storage.transfers.at(player).get_note().note.value as u8;
         let keys = get_current_public_keys(&mut context, player);
 
         // create new note for selected stash

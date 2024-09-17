@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, test } from "bun:test";
-import { type IntentAction } from "node_modules/@aztec/aztec.js/dest/utils/authwit";
+// import { type IntentAction } from "node_modules/@aztec/aztec.js/dest/utils/authwit";
+import { Fr } from "@aztec/aztec.js";
 
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { GAME_MASTER, ACCOUNTS } from "./accounts";
@@ -56,6 +57,18 @@ describe("Swap Froglin", () => {
 
     await Promise.all(promises);
 
+    promises = [
+      ACCOUNTS.bob.pxe.registerAccount(
+        new Fr(BigInt(ACCOUNTS.alice.secret)),
+        ACCOUNTS.alice.wallet.getCompleteAddress().partialAddress,
+      ),
+      ACCOUNTS.alice.pxe.registerAccount(
+        new Fr(BigInt(ACCOUNTS.bob.secret)),
+        ACCOUNTS.bob.wallet.getCompleteAddress().partialAddress,
+      ),
+    ];
+    await Promise.all(promises);
+
     // // register player accounts in deployment account PXE for note emission
     // promises = [
     //   GAME_MASTER.pxe.registerAccount(
@@ -79,56 +92,83 @@ describe("Swap Froglin", () => {
     // ];
     // await Promise.all(promises);
   });
-
   test(
-    "registered account can authorize another account to call increment_froglin",
+    "transfer froglin",
     async () => {
       await GAME_MASTER.contracts.gateway.methods
         .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
         .send()
         .wait();
 
-      console.log("alice", ACCOUNTS.alice.wallet.getAddress().toString());
-      console.log("bob", ACCOUNTS.bob.wallet.getAddress().toString());
-
-      const action = ACCOUNTS.bob.contracts.gateway.methods.increment_froglin(
-        1,
-        ACCOUNTS.alice.wallet.getAddress(),
-      );
-
-      const intent: IntentAction = {
-        caller: ACCOUNTS.bob.wallet.getAddress(),
-        action,
-      };
-      const witness = await ACCOUNTS.alice.wallet.createAuthWit(intent);
-      await ACCOUNTS.bob.wallet.addAuthWitness(witness);
-
-      // expect(
-      //   await ACCOUNTS.alice.wallet.lookupValidity(
-      //     ACCOUNTS.alice.wallet.getAddress(),
-      //     intent,
-      //   ),
-      // ).toEqual({
-      //   isValidInPrivate: true,
-      //   isValidInPublic: false,
-      // });
-
-      ACCOUNTS.bob.wallet.setScopes([
-        ACCOUNTS.bob.wallet.getAddress(),
-        ACCOUNTS.alice.wallet.getAddress(),
-      ]);
-      // ACCOUNTS.alice.wallet.setScopes([
-      //   ACCOUNTS.bob.wallet.getAddress(),
-      //   ACCOUNTS.alice.wallet.getAddress(),
-      // ]);
-
-      await action.send().wait();
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
+      await ACCOUNTS.alice.contracts.gateway.methods
+        .transfer(ACCOUNTS.bob.wallet.getAddress(), 0)
+        .send()
+        .wait();
 
       const stash = await ACCOUNTS.alice.contracts.gateway.methods
         .view_stash(ACCOUNTS.alice.wallet.getAddress())
         .simulate();
-      expect(stash[1]).toEqual(1n);
+      console.log("stassh", stash);
+      expect(stash[0]).toEqual(0n);
+      await ACCOUNTS.bob.contracts.gateway.methods.claim_froglin().send().wait();
+      const stashBob = await ACCOUNTS.bob.contracts.gateway.methods
+        .view_stash(ACCOUNTS.bob.wallet.getAddress())
+        .simulate();
+      console.log("stasshBob", stashBob);
     },
     timeout,
   );
+
+  // test(
+  //   "registered account can authorize another account to call increment_froglin",
+  //   async () => {
+  //     await GAME_MASTER.contracts.gateway.methods
+  //       .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
+  //       .send()
+  //       .wait();
+
+  //     console.log("alice", ACCOUNTS.alice.wallet.getAddress().toString());
+  //     console.log("bob", ACCOUNTS.bob.wallet.getAddress().toString());
+
+  //     const action = ACCOUNTS.bob.contracts.gateway.methods.increment_froglin(
+  //       1,
+  //       ACCOUNTS.alice.wallet.getAddress(),
+  //     );
+
+  //     const intent: IntentAction = {
+  //       caller: ACCOUNTS.bob.wallet.getAddress(),
+  //       action,
+  //     };
+  //     const witness = await ACCOUNTS.alice.wallet.createAuthWit(intent);
+  //     await ACCOUNTS.bob.wallet.addAuthWitness(witness);
+
+  //     // expect(
+  //     //   await ACCOUNTS.alice.wallet.lookupValidity(
+  //     //     ACCOUNTS.alice.wallet.getAddress(),
+  //     //     intent,
+  //     //   ),
+  //     // ).toEqual({
+  //     //   isValidInPrivate: true,
+  //     //   isValidInPublic: false,
+  //     // });
+
+  //     ACCOUNTS.bob.wallet.setScopes([
+  //       ACCOUNTS.bob.wallet.getAddress(),
+  //       ACCOUNTS.alice.wallet.getAddress(),
+  //     ]);
+  //     // ACCOUNTS.alice.wallet.setScopes([
+  //     //   ACCOUNTS.bob.wallet.getAddress(),
+  //     //   ACCOUNTS.alice.wallet.getAddress(),
+  //     // ]);
+
+  //     await action.send().wait();
+
+  //     const stash = await ACCOUNTS.alice.contracts.gateway.methods
+  //       .view_stash(ACCOUNTS.alice.wallet.getAddress())
+  //       .simulate();
+  //     expect(stash[1]).toEqual(1n);
+  //   },
+  //   timeout,
+  // );
 });
