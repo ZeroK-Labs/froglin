@@ -4,6 +4,7 @@ enum MODALS {
   ACCOUNT = 2,
   LEADERBOARD = 3,
   ALBUM = 4,
+  FROGLIN_MENU = 5,
 }
 
 export default MODALS;

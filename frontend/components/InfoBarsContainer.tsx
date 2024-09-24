@@ -10,7 +10,12 @@ export default function InfoBarsContainer() {
     <div
       className="fixed z-[9999] left-0 top-2 right-0 p-2 flex pointer-events-none transition-opacity duration-1000"
       style={{
-        opacity: ![MODALS.TUTORIAL, MODALS.LEADERBOARD, MODALS.ALBUM].includes(modal)
+        opacity: ![
+          MODALS.TUTORIAL,
+          MODALS.LEADERBOARD,
+          MODALS.ALBUM,
+          MODALS.FROGLIN_MENU,
+        ].includes(modal)
           ? 1
           : 0,
       }}

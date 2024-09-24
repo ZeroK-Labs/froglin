@@ -16,6 +16,9 @@ type GameEventClient = {
   capturing: boolean;
   capturedFroglins: Froglin[];
   captureFroglins: (froglinIds: Froglin["id"][]) => void;
+
+  selectedFroglin: number | null;
+  setSelectedFroglin: (froglinId: number | null) => void;
 };
 
 export default GameEventClient;

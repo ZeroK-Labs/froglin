@@ -29,7 +29,7 @@ export default function AlbumModal() {
 
   const { modal, setModal } = useModalState();
   const { aztec, registered } = usePlayer();
-  const { capturedFroglins } = useGameEvent();
+  const { capturedFroglins, setSelectedFroglin } = useGameEvent();
 
   const visible = modal === MODALS.ALBUM;
 
@@ -72,6 +72,10 @@ export default function AlbumModal() {
   );
 
   // say something when the picure is clicked
+  function handleClick(index: number) {
+    setSelectedFroglin(index);
+    setModal(MODALS.FROGLIN_MENU);
+  }
 
   return (
     <Modal
@@ -80,15 +84,18 @@ export default function AlbumModal() {
       title="Album"
       visible={visible}
     >
-      <div
+      {/* <div
         className="px-2 py-1 h-2 text-[18px] font-bold border-b justify-items-start items-center text-white"
         style={{ gridTemplateColumns: "min-content auto min-content" }}
-      />
+      /> */}
 
       <div className="max-h-[650px] flex flex-col">
         <div className="mt-3 mb-4 grid grid-cols-3 gap-4">
           {stash.map((count, index) => (
-            <div key={index}>
+            <div
+              key={index}
+              onClick={() => handleClick(index)}
+            >
               <span>{names[index]}</span>
               <div className="relative left-0 top-0 w-fit h-fit p-1 border-[2px] transition-all duration-500 cursor-pointer bg-main-purple border-main-purple-hover border-dashed">
                 <img

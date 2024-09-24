@@ -45,8 +45,8 @@ export default function Modal({
         setModal(MODALS.NONE);
       }
 
-      document.addEventListener("click", handleClose);
-      if (modal !== MODALS.ACCOUNT) {
+      if (![MODALS.ACCOUNT, MODALS.ALBUM, MODALS.FROGLIN_MENU].includes(modal)) {
+        document.addEventListener("click", handleClose);
         document.addEventListener("keypress", handleKeyPress);
       }
 
