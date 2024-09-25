@@ -19,7 +19,7 @@ const names = [
 
 export default function FroglinModal() {
   const { selectedFroglin } = useGameEvent();
-  const { modal } = useModalState();
+  const { modal, setModal } = useModalState();
   const visible = modal === MODALS.FROGLIN_MENU;
 
   return (
@@ -43,7 +43,9 @@ export default function FroglinModal() {
         <button
           type="button"
           className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-gray-900"
-          onClick={() => {}}
+          onClick={() => {
+            setModal(MODALS.BATTLE);
+          }}
         >
           🗡️ Send to battle
         </button>

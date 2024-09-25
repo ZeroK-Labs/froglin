@@ -45,7 +45,16 @@ export default function Modal({
         setModal(MODALS.NONE);
       }
 
-      if (![MODALS.ACCOUNT, MODALS.ALBUM, MODALS.FROGLIN_MENU].includes(modal)) {
+      if (
+        ![
+          MODALS.ACCOUNT,
+          MODALS.ALBUM,
+          MODALS.FROGLIN_MENU,
+          MODALS.BATTLE,
+          MODALS.SWAP,
+          MODALS.DATE,
+        ].includes(modal)
+      ) {
         document.addEventListener("click", handleClose);
         document.addEventListener("keypress", handleKeyPress);
       }

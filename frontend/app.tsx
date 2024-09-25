@@ -21,6 +21,7 @@ import {
 } from "frontend/components";
 import AlbumModal from "./components/AlbumModal";
 import FroglinModal from "./components/FroglinModal";
+import BattleModal from "./components/BattleModal";
 
 function AppComponent() {
   const { hasSecret } = usePlayer();
@@ -40,6 +41,7 @@ function AppComponent() {
             <LeaderBoardModal />
             <AlbumModal />
             <FroglinModal />
+            <BattleModal />
           </>
         ) : (
           <>

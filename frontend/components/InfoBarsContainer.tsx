@@ -15,6 +15,9 @@ export default function InfoBarsContainer() {
           MODALS.LEADERBOARD,
           MODALS.ALBUM,
           MODALS.FROGLIN_MENU,
+          MODALS.BATTLE,
+          MODALS.SWAP,
+          MODALS.DATE,
         ].includes(modal)
           ? 1
           : 0,
