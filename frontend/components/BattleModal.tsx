@@ -3,21 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { useGameEvent, useModalState } from "frontend/stores";
-
-const names = [
-  ["Quagalia", "A froglin that loves to hop around and explore the world."],
-  ["Hopsette", "A froglin that loves to hop around and explore the world."],
-  ["Jumplina", "Born to jump, this froglin is always on the move."],
-  ["Gillywog", "A froglin that loves to hop around and explore the world."],
-  ["Swampella", "A froglin that loves to hop around and explore the world."],
-  ["Paddlette", "A froglin that loves to hop around and explore the world."],
-  ["Croakston", "A froglin that loves to hop around and explore the world."],
-  ["Boggart", "Sword fighter jumping from one asteroid to another."],
-  ["Mudrick", "A froglin that loves to hop around and explore the world."],
-  ["Leapster", "A froglin that loves to hop around and explore the world."],
-  ["Fennmarsh", "A froglin that loves to hop around and explore the world."],
-  ["Splatter", "A froglin that loves to hop around and explore the world."],
-];
+import { names } from "frontend/components/FroglinModal";
 
 const options: OptionsEnum[] = ["🗡️", "🏹", "🛡️"];
 type OptionsEnum = "🗡️" | "🏹" | "🛡️" | "";
@@ -56,12 +42,14 @@ export default function BattleModal() {
       <div className="max-h-[650px] flex flex-col">
         <div className="flex flex-row w-full justify-between items-center my-6 relative gap-8">
           <div>
-            <img
-              src={`/images/froglin${selectedFroglin}-large.webp`}
-              width="160px"
-              height="160px"
-              alt="froglin"
-            />
+            {selectedFroglin !== null ? (
+              <img
+                src={`/images/froglin${selectedFroglin}-large.webp`}
+                width="160px"
+                height="160px"
+                alt="froglin"
+              />
+            ) : null}
             <span className="pb-6">
               {selectedFroglin !== null && names[selectedFroglin][0]}
             </span>

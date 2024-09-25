@@ -2,7 +2,7 @@ import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { useGameEvent, useModalState } from "frontend/stores";
 
-const names = [
+export const names = [
   ["Quagalia", "A froglin that loves to hop around and explore the world."],
   ["Hopsette", "A froglin that loves to hop around and explore the world."],
   ["Jumplina", "Born to jump, this froglin is always on the move."],
@@ -52,7 +52,9 @@ export default function FroglinModal() {
         <button
           type="button"
           className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-blue-800"
-          onClick={() => {}}
+          onClick={() => {
+            setModal(MODALS.SWAP);
+          }}
         >
           🔄 Swap
         </button>
