@@ -23,6 +23,7 @@ import AlbumModal from "./components/AlbumModal";
 import FroglinModal from "./components/FroglinModal";
 import BattleModal from "./components/BattleModal";
 import SwapModal from "./components/SwapModal";
+import NoticesModal from "./components/NoticeBoardModal";
 
 function AppComponent() {
   const { hasSecret } = usePlayer();
@@ -44,6 +45,7 @@ function AppComponent() {
             <FroglinModal />
             <BattleModal />
             <SwapModal />
+            <NoticesModal />
           </>
         ) : (
           <>

@@ -34,12 +34,18 @@ export function LineMenuPopupList({ open, setOpen }: LineMenuProps) {
     setModal(MODALS.LEADERBOARD);
     ev.stopPropagation();
   }
+
   function handleAlbumClick(ev: React.MouseEvent) {
     setOpen(false);
     setModal(MODALS.ALBUM);
     ev.stopPropagation();
   }
 
+  function handleNoticesClick(ev: React.MouseEvent) {
+    setOpen(false);
+    setModal(MODALS.NOTICES);
+    ev.stopPropagation();
+  }
   useEffect(
     () => {
       if (!open) return;
@@ -77,6 +83,10 @@ export function LineMenuPopupList({ open, setOpen }: LineMenuProps) {
             <LineMenuPopupListItem
               text="📸"
               onClick={handleAlbumClick}
+            />
+            <LineMenuPopupListItem
+              text="📌"
+              onClick={handleNoticesClick}
             />
           </>
         ) : null}

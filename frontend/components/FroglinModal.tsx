@@ -22,6 +22,8 @@ export default function FroglinModal() {
   const { modal, setModal } = useModalState();
   const visible = modal === MODALS.FROGLIN_MENU;
 
+  if (selectedFroglin === null) return null;
+
   return (
     <Modal
       className="top-4"
@@ -30,12 +32,14 @@ export default function FroglinModal() {
       <div className="max-h-[650px] flex flex-col">
         <div className="pb-6">{selectedFroglin && names[selectedFroglin][0]}</div>
         <div>
-          <img
-            src={`/images/froglin${selectedFroglin}-large.webp`}
-            width="300px"
-            height="300px"
-            alt="froglin"
-          />
+          {selectedFroglin !== null ? (
+            <img
+              src={`/images/froglin${selectedFroglin}-large.webp`}
+              width="300px"
+              height="300px"
+              alt="froglin"
+            />
+          ) : null}
         </div>
         <div className="pt-6 max-w-[300px]">
           {selectedFroglin && names[selectedFroglin][1]}
