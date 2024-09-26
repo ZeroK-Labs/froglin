@@ -24,6 +24,7 @@ import FroglinModal from "./components/FroglinModal";
 import BattleModal from "./components/BattleModal";
 import SwapModal from "./components/SwapModal";
 import NoticesModal from "./components/NoticeBoardModal";
+import ClaimsModal from "./components/ClaimsModal";
 
 function AppComponent() {
   const { hasSecret } = usePlayer();
@@ -46,6 +47,7 @@ function AppComponent() {
             <BattleModal />
             <SwapModal />
             <NoticesModal />
+            <ClaimsModal />
           </>
         ) : (
           <>

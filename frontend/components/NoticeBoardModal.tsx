@@ -11,7 +11,7 @@ export default function NoticesModal() {
   return (
     <Modal
       className="top-4"
-      title="Notice Board"
+      title="Board"
       visible={visible}
     >
       <div className="max-h-[650px] flex flex-col">

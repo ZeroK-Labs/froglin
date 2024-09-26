@@ -9,6 +9,7 @@ enum MODALS {
   SWAP = 7,
   DATE = 8,
   NOTICES = 9,
+  CLAIMS = 10,
 }
 
 export default MODALS;

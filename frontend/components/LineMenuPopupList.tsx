@@ -46,6 +46,13 @@ export function LineMenuPopupList({ open, setOpen }: LineMenuProps) {
     setModal(MODALS.NOTICES);
     ev.stopPropagation();
   }
+
+  function handleClaimsClick(ev: React.MouseEvent) {
+    setOpen(false);
+    setModal(MODALS.CLAIMS);
+    ev.stopPropagation();
+  }
+
   useEffect(
     () => {
       if (!open) return;
@@ -87,6 +94,10 @@ export function LineMenuPopupList({ open, setOpen }: LineMenuProps) {
             <LineMenuPopupListItem
               text="📌"
               onClick={handleNoticesClick}
+            />
+            <LineMenuPopupListItem
+              text="🎁"
+              onClick={handleClaimsClick}
             />
           </>
         ) : null}
