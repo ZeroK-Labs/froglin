@@ -72,7 +72,7 @@ export function createSocketServer(options?: ServerOptions) {
           }
 
           url = `${HOST}${port}`;
-          clientData.PXE = { process: pxe, port, reuseTimerId: null };
+          clientData.PXE = { process: pxe, port, reuseTimerId: null, url };
 
           // register contracts in PXE client
           const pxeClient = createPXEClient(url);
@@ -82,6 +82,7 @@ export function createSocketServer(options?: ServerOptions) {
           });
 
           socket.send(`pxe ${url}`);
+          broadcastMessage(`newPlayer ${url}`);
         },
         () => {
           clientData.PXE = null;

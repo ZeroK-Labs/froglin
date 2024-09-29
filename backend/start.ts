@@ -24,6 +24,7 @@ import {
 } from "./endpoints";
 import { errorHandler } from "./middlewares/error-handler";
 import { asyncHandler } from "./utils/async-wrapper";
+import { getPlayerPXEs } from "./endpoints/PlayerPXEs";
 
 export const CLIENT_SESSION_DATA: { [key: string]: ClientSessionData } = {};
 
@@ -57,6 +58,7 @@ app.use(express.json());
 app.get("/gateway", getGatewayAddress);
 app.get("/interest-points", getInterestPoints);
 app.get("/event-bounds", getEventBounds);
+app.get("/PXEs", getPlayerPXEs);
 
 app.post("/location", asyncHandler(setPlayerLocation));
 app.post("/reveal", revealFroglins);

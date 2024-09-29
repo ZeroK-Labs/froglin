@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import { AztecAddress, AccountWallet } from "@aztec/aztec.js";
+import { AztecAddress, AccountWallet, createPXEClient, Fr } from "@aztec/aztec.js";
 import { SetStateAction, useEffect, useState } from "react";
 
 import type { Player } from "frontend/types";
@@ -7,6 +7,7 @@ import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/Froglin
 import { StoreFactory, usePXEState } from "frontend/stores";
 import { createWallet } from "common/utils/WalletManager";
 import { stringToBigInt, bigIntToString } from "common/utils/bigint";
+import { addSocketEventHandler } from "frontend/utils/sockets";
 
 function getSecret() {
   return localStorage.getItem("secret") ?? "";
@@ -70,6 +71,50 @@ function createState(): Player {
           return;
         }
 
+        let PXEs: string[] = [];
+        try {
+          const response = await fetch(`${process.env.BACKEND_URL}/PXEs`);
+          PXEs = await response.json();
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (_err) {
+          return;
+        }
+
+        console.log(PXEs);
+
+        let promises: Promise<any>[] = [];
+
+        for (const playerPXEURL of PXEs) {
+          if (playerPXEURL === pxeURL) continue;
+
+          const pxeClient = createPXEClient(playerPXEURL);
+          promises.push(
+            pxeClient.registerAccount(
+              new Fr(BigInt(secret)),
+              wallet.getCompleteAddress().partialAddress,
+            ),
+          );
+        }
+
+        await Promise.all(promises);
+
+        async function handleNewPlayerJoined(ev: MessageEvent<string>) {
+          console.log(ev.data, 33);
+          if (!ev.data.includes("newPlayer ")) return;
+          const url = ev.data.split(" ")[1];
+          if (!url) return;
+          if (url === pxeURL) return;
+
+          const pxeClient = createPXEClient(url);
+          await pxeClient.registerAccount(
+            new Fr(BigInt(secret)),
+            wallet.getCompleteAddress().partialAddress,
+          );
+          console.log(url);
+        }
+
+        addSocketEventHandler("message", handleNewPlayerJoined);
+
         toast.success("Wallet initialized!", { id: toastId });
 
         const registered = await contract.methods
@@ -94,6 +139,7 @@ function createState(): Player {
           // toast.error("Failed to register player");
           localStorage.removeItem("secret");
           setSecret("");
+
           return;
         }
 
@@ -108,7 +154,7 @@ function createState(): Player {
 
       initializeWallet();
     }, //
-    [pxeClient, secret],
+    [pxeClient, pxeURL, secret],
   );
 
   return {

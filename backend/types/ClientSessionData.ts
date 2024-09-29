@@ -7,6 +7,7 @@ type ClientSessionData = {
     process: ChildProcess;
     port: number;
     reuseTimerId: Timer | null;
+    url?: string;
   } | null;
   Socket: WebSocket | null;
   location: MapCoordinates;
