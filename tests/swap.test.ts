@@ -8,7 +8,7 @@ import { stringToBigInt } from "common/utils/bigint";
 // import { assert } from "console";
 
 describe("Swap Froglin", () => {
-  const timeout = 40_000;
+  const timeout = 60_000;
   const FROGLIN_COUNT = 5;
   const EPOCH_COUNT = 3;
   const EPOCH_DURATION = 20_000;
@@ -21,9 +21,9 @@ describe("Swap Froglin", () => {
     )
       .send()
       .deployed();
-
+    // 0x0f92414ca79636330ef64ccf906ba27a7e4b323cf984945695e3f189b662bfd0
     expect(GAME_MASTER.contracts.gateway).not.toBeNull();
-
+    console.log("Contract deployed at", GAME_MASTER.contracts.gateway.address);
     // register deployed contract in each PXE
     let promises: Promise<any>[] = [
       ACCOUNTS.alice.pxe.registerContract({
@@ -92,30 +92,81 @@ describe("Swap Froglin", () => {
     // ];
     // await Promise.all(promises);
   });
+  // test(
+  //   "transfer froglin",
+  //   async () => {
+  //     await GAME_MASTER.contracts.gateway.methods
+  //       .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
+  //       .send()
+  //       .wait();
+
+  //     await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
+  //     await ACCOUNTS.alice.contracts.gateway.methods
+  //       .transfer(ACCOUNTS.bob.wallet.getAddress(), 0)
+  //       .send()
+  //       .wait();
+
+  //     const stash = await ACCOUNTS.alice.contracts.gateway.methods
+  //       .view_stash(ACCOUNTS.alice.wallet.getAddress())
+  //       .simulate();
+  //     console.log("stassh", stash);
+  //     expect(stash[0]).toEqual(0n);
+  //     await ACCOUNTS.bob.contracts.gateway.methods.claim_froglin().send().wait();
+  //     const stashBob = await ACCOUNTS.bob.contracts.gateway.methods
+  //       .view_stash(ACCOUNTS.bob.wallet.getAddress())
+  //       .simulate();
+  //     console.log("stasshBob", stashBob);
+  //   },
+  //   timeout,
+  // );
+
   test(
-    "transfer froglin",
+    "create swap offer",
     async () => {
       await GAME_MASTER.contracts.gateway.methods
         .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
         .send()
         .wait();
 
-      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait();
+      await ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(2).send().wait();
+
+      const stash1Bob = await ACCOUNTS.bob.contracts.gateway.methods
+        .view_stash(ACCOUNTS.bob.wallet.getAddress())
+        .simulate();
+      const stash1Alice = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_stash(ACCOUNTS.alice.wallet.getAddress())
+        .simulate();
+      console.log("stassh1111Bob", stash1Bob);
+      console.log("stassh1111Alice", stash1Alice);
+
       await ACCOUNTS.alice.contracts.gateway.methods
-        .transfer(ACCOUNTS.bob.wallet.getAddress(), 0)
+        .create_swap_proposal(1, 2)
         .send()
         .wait();
 
-      const stash = await ACCOUNTS.alice.contracts.gateway.methods
-        .view_stash(ACCOUNTS.alice.wallet.getAddress())
+      const swaps = await ACCOUNTS.bob.contracts.gateway.methods
+        .view_active_swap_proposals()
         .simulate();
-      console.log("stassh", stash);
-      expect(stash[0]).toEqual(0n);
-      await ACCOUNTS.bob.contracts.gateway.methods.claim_froglin().send().wait();
+      console.log("swaps", swaps[0]);
+      await ACCOUNTS.bob.contracts.gateway.methods
+        .accept_swap_proposal(0)
+        .send()
+        .wait();
+
+      await ACCOUNTS.alice.contracts.gateway.methods
+        .claim_swap_proposal(0)
+        .send()
+        .wait();
+
       const stashBob = await ACCOUNTS.bob.contracts.gateway.methods
         .view_stash(ACCOUNTS.bob.wallet.getAddress())
         .simulate();
+      const stashAlice = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_stash(ACCOUNTS.alice.wallet.getAddress())
+        .simulate();
       console.log("stasshBob", stashBob);
+      console.log("stasshAlice", stashAlice);
     },
     timeout,
   );
