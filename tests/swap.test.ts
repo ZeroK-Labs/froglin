@@ -119,14 +119,31 @@ describe("Swap Froglin", () => {
   //   },
   //   timeout,
   // );
-
   test(
-    "create swap offer",
+    "player cannot create offer with froglin he does not own",
     async () => {
       await GAME_MASTER.contracts.gateway.methods
         .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
         .send()
         .wait();
+
+      await expect(
+        ACCOUNTS.alice.contracts.gateway.methods
+          .create_swap_proposal(1, 2)
+          .send()
+          .wait(),
+      ).rejects.toThrowError("player does not have the offered froglin type");
+    },
+    timeout,
+  );
+
+  test(
+    "create swap offer",
+    async () => {
+      // await GAME_MASTER.contracts.gateway.methods
+      //   .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
+      //   .send()
+      //   .wait();
 
       await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait();
       await ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(2).send().wait();
