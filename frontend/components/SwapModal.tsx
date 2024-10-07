@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
-import { useGameEvent, useModalState } from "frontend/stores";
+import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
 import { names } from "frontend/components/FroglinModal";
 
 export default function SwapModal() {
   const { selectedFroglin } = useGameEvent();
   const { modal } = useModalState();
+  const { aztec, registered } = usePlayer();
   const [enemyFroglin, setEnemyFroglin] = useState<number | null>(null);
 
   const visible = modal === MODALS.SWAP;
@@ -26,6 +28,16 @@ export default function SwapModal() {
       }
       return (prev + 1) % names.length;
     });
+  }
+  async function createSwapOffer() {
+    if (!aztec || !registered) return;
+    if (selectedFroglin === null || enemyFroglin === null) return;
+    const toastId = toast.loading("Creating swap offer...");
+    await aztec.contracts.gateway.methods
+      .create_swap_proposal(selectedFroglin, enemyFroglin)
+      .send()
+      .wait();
+    toast.dismiss(toastId);
   }
 
   if (selectedFroglin === null) return null;
@@ -77,7 +89,7 @@ export default function SwapModal() {
         <button
           type="button"
           className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-blue-800"
-          onClick={() => {}}
+          onClick={createSwapOffer}
         >
           🔄 Create swap offer
         </button>
