@@ -254,6 +254,39 @@ contract FroglinGateway {
     }
 
     #[aztec(private)]
+    fn cancel_swap_proposal(proposal_id: u8) {
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+
+        let proposal = view_swap_proposal(proposal_id);
+        let trader_id: u32 = _view_trading_id(player) as u32;
+
+        assert(proposal.status == 1, "proposal is not active");
+        assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
+
+        let offered_froglin_type = proposal.offered_froglin_type;
+        let keys = get_current_public_keys(&mut context, player);
+
+        if (offered_froglin_type < stash_midpoint_index) {
+            let mut new_stash = StashNote::copy(storage.stashes_1.at(player).get_note().note, keys.npk_m.hash());
+            new_stash.increment_slot(offered_froglin_type);
+            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, player, player));
+            // mark the proposal as completed
+            FroglinGateway::at(context.this_address())._complete_swap_proposal(proposal_id).enqueue(&mut context);
+        } //
+        else {
+            let mut new_stash = StashNote::copy(storage.stashes_2.at(player).get_note().note, keys.npk_m.hash());
+            new_stash.increment_slot(offered_froglin_type - stash_midpoint_index);
+            storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, player, player));
+            // mark the proposal as completed
+            FroglinGateway::at(context.this_address())._complete_swap_proposal(proposal_id).enqueue(&mut context);
+        }
+
+    }
+
+    #[aztec(private)]
     fn register(name: Field) {
         unsafe {
             assert(view_accounts_size() <= settings::PLAYER_COUNT, "registration is fully booked");
@@ -467,6 +500,13 @@ contract FroglinGateway {
     }
 
     #[aztec(view)]
+    unconstrained fn view_profile(player: AztecAddress) -> pub PlayerNote {
+        _check_registration(player);
+
+        storage.accounts.at(player).view_note()
+    }
+
+    #[aztec(view)]
     unconstrained fn view_froglin_count() -> pub u8 {
         storage.froglin_count.read()
     }
@@ -537,5 +577,19 @@ contract FroglinGateway {
         }
 
         active_proposals
+    }
+
+    #[aztec(view)]
+    unconstrained fn view_claimable_swaps(trader_id: u32) -> pub [SwapProposal; 10] {
+        let proposal_count = storage.swap_proposal_count.read();
+        let mut claimable_proposals: [SwapProposal; 10] = [SwapProposal::empty(); 10];
+        for i in 0..proposal_count {
+            let proposal = storage.swap_proposals.at(i).read();
+            if (proposal.status == 2) & (i < 10) & (proposal.trader_id == trader_id) {
+                claimable_proposals[i] = proposal;
+            }
+        }
+
+        claimable_proposals
     }
 }
