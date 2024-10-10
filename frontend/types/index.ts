@@ -1,6 +1,6 @@
 export type { default as Froglin } from "./Froglin";
 export type { default as Keyboard, KeyboardSymbol } from "./Keyboard";
-export type { default as LineMenuProps } from "./LineMenuProps";
+export type { default as MenuProps } from "./MenuProps";
 export type { default as LocationInfo } from "./LocationInfo";
 export type { default as MapViewState } from "./MapViewState";
 export type { default as ModalState } from "./ModalState";

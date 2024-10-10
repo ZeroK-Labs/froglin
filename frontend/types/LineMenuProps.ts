@@ -1,8 +1,8 @@
 import { Dispatch, SetStateAction } from "react";
 
-type LineMenuProps = {
+type MenuProps = {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-export default LineMenuProps;
+export default MenuProps;

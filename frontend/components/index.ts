@@ -10,7 +10,7 @@ export { default as GameEventView } from "./GameEventView";
 export { default as InfoBarsContainer } from "./InfoBarsContainer";
 export { default as InterestPointMarker } from "./InterestPointMarker";
 export { default as LeaderBoardModal } from "./LeaderBoardModal";
-export { default as LineMenu } from "./LineMenu";
+export { default as Menu } from "./Menu";
 export { default as LoadingFallback } from "./LoadingFallback";
 export { default as LocationRestoreButton } from "./LocationRestoreButton";
 export { default as Map } from "./Map";

@@ -14,7 +14,7 @@ import {
   CreateAccountButton,
   InfoBarsContainer,
   LeaderBoardModal,
-  LineMenu,
+  Menu,
   Map,
   ToastView,
   TutorialModal,
@@ -36,7 +36,7 @@ function AppComponent() {
 
       <InfoBarsContainer />
       <CapturedFroglinList />
-      <LineMenu />
+      <Menu />
       <TutorialModal />
       {pxeClient ? (
         hasSecret ? (

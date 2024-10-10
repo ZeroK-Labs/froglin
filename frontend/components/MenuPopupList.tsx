@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 
-import type { LineMenuProps } from "frontend/types";
-import { LineMenuPopupListItem } from "./LineMenuPopupListItem";
+import type { MenuProps } from "frontend/types";
+import { MenuPopupListItem } from "./MenuPopupListItem";
 import { MAP_VIEWS, MODALS } from "frontend/enums";
 import { VIEW } from "frontend/settings";
 import { useMapViewState, useModalState, usePlayer } from "frontend/stores";
 
-export function LineMenuPopupList({ open, setOpen }: LineMenuProps) {
+export function MenuPopupList({ open, setOpen }: MenuProps) {
   const { aztec } = usePlayer();
   const { setModal } = useModalState();
   const { mapView, setMapView } = useMapViewState();
@@ -67,41 +67,47 @@ export function LineMenuPopupList({ open, setOpen }: LineMenuProps) {
   );
 
   return (
-    <nav
-      className={`absolute bottom-14 -left-2 p-2 border rounded-md shadow-lg shadow-main-purple/80 bg-gray-800 transition-opacity ${open ? "opacity-90" : "opacity-0 pointer-events-none"}`}
-      style={{ transitionDuration: `${VIEW.LINE_MENU_FADE_DURATION}ms` }}
+    <div
+      className={`absolute bottom-14 -left-2 p-2 border rounded-md mx-auto grid grid-cols-3 grid-rows-2 gap-1 w-[25rem] shadow-lg shadow-main-purple/80 bg-gray-800 transition-opacity ${open ? "opacity-90" : "opacity-0 pointer-events-none"}`}
+      style={{
+        transitionDuration: `${VIEW.LINE_MENU_FADE_DURATION}ms`,
+      }}
       onClick={handleClose}
     >
-      <ul>
-        <LineMenuPopupListItem
-          text="📖"
-          onClick={handleTutorialClick}
-        />
-        {aztec ? (
-          <>
-            <LineMenuPopupListItem
-              text={mapView === MAP_VIEWS.EVENT ? "🌇" : "🗺️"}
-              onClick={toggleView}
-            />
-            <LineMenuPopupListItem
-              text="🏆"
-              onClick={handleLeaderBoardClick}
-            />
-            <LineMenuPopupListItem
-              text="📸"
-              onClick={handleAlbumClick}
-            />
-            <LineMenuPopupListItem
-              text="📌"
-              onClick={handleNoticesClick}
-            />
-            <LineMenuPopupListItem
-              text="🎁"
-              onClick={handleClaimsClick}
-            />
-          </>
-        ) : null}
-      </ul>
-    </nav>
+      <MenuPopupListItem
+        text="Tutorial"
+        icon="📖"
+        onClick={handleTutorialClick}
+      />
+      {aztec ? (
+        <>
+          <MenuPopupListItem
+            text={mapView === MAP_VIEWS.EVENT ? "Street" : "Bird's eye"}
+            icon={mapView === MAP_VIEWS.EVENT ? "🌇" : "🗺️"}
+            onClick={toggleView}
+          />
+          <MenuPopupListItem
+            text="Leaderboard"
+            icon="🏆"
+            onClick={handleLeaderBoardClick}
+          />
+          <MenuPopupListItem
+            text="Album"
+            icon="📸"
+            onClick={handleAlbumClick}
+          />
+          <MenuPopupListItem
+            text="Offers"
+            icon="📌"
+            onClick={handleNoticesClick}
+          />
+          <MenuPopupListItem
+            text="Claims"
+            icon="🎁"
+            onClick={handleClaimsClick}
+          />
+        </>
+      ) : null}
+    </div>
   );
 }
