@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { useModalState, usePlayer } from "frontend/stores";
@@ -14,11 +16,28 @@ export type Offer = {
 
 export default function NoticesModal() {
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [refetch, setRefetch] = useState<boolean>(false);
   const { modal } = useModalState();
   const { aztec, registered, traderId } = usePlayer();
   console.log("offers", traderId);
 
   const visible = modal === MODALS.NOTICES;
+
+  async function handleCancel(proposalId: number) {
+    if (!aztec || !registered) return;
+    const toastId = toast.loading("Canceling swap offer...");
+    try {
+      await aztec.contracts.gateway.methods
+        .cancel_swap_proposal(proposalId)
+        .send()
+        .wait();
+      setRefetch(!refetch);
+    } catch (error) {
+      toast.error("Failed to cancel swap offer!", { id: toastId });
+      console.error("Error canceling swap offer:", error);
+    }
+    toast.dismiss(toastId);
+  }
 
   useEffect(
     () => {
@@ -63,7 +82,7 @@ export default function NoticesModal() {
 
       fetchOffers();
     }, //
-    [aztec, registered, visible],
+    [aztec, registered, visible, refetch],
   );
 
   return (
@@ -78,31 +97,56 @@ export default function NoticesModal() {
               return (
                 <div
                   key={offer.id}
-                  className="w-[299px] h-[40px]
+                  className="flex flex-row gap-2"
+                >
+                  <div
+                    className="w-[320px] h-[40px]
                   flex items-center justify-between
                 bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
-                >
-                  <img
-                    src={`/images/froglin${offer.offered_froglin_type}.webp`}
-                    alt="Left Image"
-                    width="40px"
-                    height="40px"
-                    className="rounded-md"
-                  />
-                  <span className="text-md no-text-shadow">
-                    {names[offer.offered_froglin_type][0]}
-                  </span>
-                  <span className="text-4xl">🔄</span>
-                  <span className="text-md no-text-shadow">
-                    {names[offer.wanted_froglin_type][0]}
-                  </span>
-                  <img
-                    src={`/images/froglin${offer.wanted_froglin_type}.webp`}
-                    alt="Right Image"
-                    width="40px"
-                    height="40px"
-                    className="rounded-md"
-                  />
+                  >
+                    <img
+                      src={`/images/froglin${offer.offered_froglin_type}.webp`}
+                      alt="Left Image"
+                      width="40px"
+                      height="40px"
+                      className="rounded-md"
+                    />
+                    <span className="text-md no-text-shadow w-24">
+                      {names[offer.offered_froglin_type][0]}
+                    </span>
+                    <span className="text-4xl">🔄</span>
+                    <span className="text-md no-text-shadow w-24">
+                      {names[offer.wanted_froglin_type][0]}
+                    </span>
+                    <img
+                      src={`/images/froglin${offer.wanted_froglin_type}.webp`}
+                      alt="Right Image"
+                      width="40px"
+                      height="40px"
+                      className="rounded-md"
+                    />
+                  </div>
+                  {offer.trader_id === traderId ? (
+                    <div>
+                      <button
+                        type="button"
+                        className="rounded-lg px-2 py-1 my-2 text-[10px] font-semibold shadow-sm text-white bg-red-800"
+                        onClick={() => handleCancel(offer.id)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    // TODO: render if the player ahs the necessary froglin
+                    <div>
+                      <button
+                        type="button"
+                        className="rounded-lg px-2 py-1 my-2 text-[10px] font-semibold shadow-sm text-white bg-green-600"
+                      >
+                        Accept
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })

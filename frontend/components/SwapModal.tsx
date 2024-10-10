@@ -37,7 +37,7 @@ export default function SwapModal() {
       .create_swap_proposal(selectedFroglin, enemyFroglin)
       .send()
       .wait();
-    toast.dismiss(toastId);
+    toast.success("Swap offer created!", { id: toastId });
     setModal(MODALS.NONE);
   }
 
