@@ -1,12 +1,62 @@
+import { useState, useEffect } from "react";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
-import { useModalState } from "frontend/stores";
+import { useModalState, usePlayer } from "frontend/stores";
 import { names } from "frontend/components/FroglinModal";
+import { Offer } from "./NoticeBoardModal";
 
 export default function ClaimsModal() {
+  const [claims, setClaims] = useState<Offer[]>([]);
   const { modal } = useModalState();
+  const { aztec, registered } = usePlayer();
 
   const visible = modal === MODALS.CLAIMS;
+  console.log(claims);
+  useEffect(
+    () => {
+      async function fetchClaims() {
+        if (!aztec || !registered || !visible) return;
+
+        const claimsResponse = await aztec.contracts.gateway.methods
+          .view_claimable_swaps(1)
+          .simulate();
+
+        if (!claimsResponse || claimsResponse.length === 0) return;
+
+        const numberList: Offer[] = [];
+
+        claimsResponse.forEach(
+          ({
+            trader_id,
+            offered_froglin_type,
+            wanted_froglin_type,
+            status,
+            id,
+          }: {
+            trader_id: bigint;
+            offered_froglin_type: bigint;
+            wanted_froglin_type: bigint;
+            status: bigint;
+            id: bigint;
+          }) => {
+            if (id !== 101n) {
+              numberList.push({
+                trader_id: Number(trader_id),
+                offered_froglin_type: Number(offered_froglin_type),
+                wanted_froglin_type: Number(wanted_froglin_type),
+                status: Number(status),
+                id: Number(id),
+              });
+            }
+          },
+        );
+        setClaims(numberList);
+      }
+
+      fetchClaims();
+    }, //
+    [aztec, registered, visible],
+  );
 
   return (
     <Modal

@@ -6,6 +6,7 @@ type Player = {
   hasSecret: boolean;
   registered: boolean;
   username: string;
+  traderId: number | null;
   setUsername: Dispatch<SetStateAction<string>>;
   setSecret: Dispatch<SetStateAction<string>>;
   aztec: AccountWithContracts | null;

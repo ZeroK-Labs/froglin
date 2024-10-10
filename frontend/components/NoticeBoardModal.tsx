@@ -4,7 +4,7 @@ import { Modal } from "frontend/components";
 import { useModalState, usePlayer } from "frontend/stores";
 import { names } from "frontend/components/FroglinModal";
 
-type Offer = {
+export type Offer = {
   trader_id: number;
   offered_froglin_type: number;
   wanted_froglin_type: number;
@@ -16,11 +16,12 @@ export default function NoticesModal() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const { modal } = useModalState();
   const { aztec, registered } = usePlayer();
-  console.log("offers", offers);
+
   const visible = modal === MODALS.NOTICES;
+
   useEffect(
     () => {
-      async function fetchLeaderBoard() {
+      async function fetchOffers() {
         if (!aztec || !registered || !visible) return;
 
         const offersResponse = await aztec.contracts.gateway.methods
@@ -59,7 +60,7 @@ export default function NoticesModal() {
         setOffers(numberList);
       }
 
-      fetchLeaderBoard();
+      fetchOffers();
     }, //
     [aztec, registered, visible],
   );
@@ -78,8 +79,8 @@ export default function NoticesModal() {
                 <div
                   key={offer.id}
                   className="w-[299px] h-[40px]
-            flex items-center justify-between
-          bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
+                  flex items-center justify-between
+                bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
                 >
                   <img
                     src={`/images/froglin${offer.offered_froglin_type}.webp`}

@@ -8,7 +8,7 @@ import { names } from "frontend/components/FroglinModal";
 
 export default function SwapModal() {
   const { selectedFroglin } = useGameEvent();
-  const { modal } = useModalState();
+  const { modal, setModal } = useModalState();
   const { aztec, registered } = usePlayer();
   const [enemyFroglin, setEnemyFroglin] = useState<number | null>(null);
 
@@ -38,6 +38,7 @@ export default function SwapModal() {
       .send()
       .wait();
     toast.dismiss(toastId);
+    setModal(MODALS.NONE);
   }
 
   if (selectedFroglin === null) return null;

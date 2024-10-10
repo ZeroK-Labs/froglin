@@ -18,6 +18,7 @@ function createState(): Player {
   const [gateway, setGateway] = useState<FroglinGatewayContract | null>(null);
   const [secret, setSecret] = useState(getSecret);
   const [username, setUsername] = useState<string>("");
+  const [traderId, setTraderId] = useState<number | null>(null);
   const [registered, setRegistered] = useState<boolean>(false);
 
   const { pxeClient, pxeURL } = usePXEState();
@@ -126,7 +127,10 @@ function createState(): Player {
             .view_name(wallet.getAddress())
             .simulate();
           const name = bigIntToString(nameAsBigInt);
-
+          const profile = await contract.methods
+            .view_profile(wallet.getAddress())
+            .simulate();
+          setTraderId(Number(profile.trader_id));
           setUsername(name);
           setRegistered(true);
           toast(`Welcome ${name}!`);
@@ -160,6 +164,7 @@ function createState(): Player {
   return {
     username,
     setUsername,
+    traderId,
     registered,
     hasSecret: !!secret,
     setSecret: (newSecret: SetStateAction<string>) => {
