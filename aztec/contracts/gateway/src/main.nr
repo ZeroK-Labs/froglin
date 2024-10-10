@@ -168,7 +168,7 @@ contract FroglinGateway {
         } //
         else {
             let mut new_stash = StashNote::copy(storage.stashes_2.at(player).get_note().note, keys.npk_m.hash());
-            let froglin_count = new_stash.get_slot(offered_froglin_type) as u8;
+            let froglin_count = new_stash.get_slot(offered_froglin_type - stash_midpoint_index) as u8;
             assert(froglin_count > 0, "player does not have the offered froglin type");
 
             new_stash.decrement_slot(offered_froglin_type - stash_midpoint_index);
