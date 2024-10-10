@@ -3,7 +3,7 @@ use dep::aztec::{protocol_types::{traits::{Deserialize, Serialize}}};
 global SWAP_PROPOSAL_FIELD_COUNT: Field = 5;
 
 struct SwapProposal {
-    trader_id: u32,
+    trader_id: Field,
     offered_froglin_type: u8,
     wanted_froglin_type: u8,
     status: u8,  // status: 1 - active, 2 - claimable, 3 - inactive, 4 - completed
@@ -11,7 +11,7 @@ struct SwapProposal {
 }
 
 impl SwapProposal {
-    pub fn new(trader_id: u32, offered_froglin_type: u8, wanted_froglin_type: u8, id: u8) -> Self {
+    pub fn new(trader_id: Field, offered_froglin_type: u8, wanted_froglin_type: u8, id: u8) -> Self {
         Self {
             trader_id,
             offered_froglin_type,
@@ -39,7 +39,7 @@ impl SwapProposal {
 impl Deserialize<SWAP_PROPOSAL_FIELD_COUNT> for SwapProposal {
     fn deserialize(values: [Field; SWAP_PROPOSAL_FIELD_COUNT]) -> Self {
         Self {
-            trader_id: values[0] as u32,
+            trader_id: values[0] as Field,
             offered_froglin_type: values[1] as u8,
             wanted_froglin_type: values[2] as u8,
             status: values[3] as u8,

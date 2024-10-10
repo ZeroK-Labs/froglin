@@ -15,7 +15,7 @@ global PLAYER_NOTE_BYTES_LEN: Field = PLAYER_NOTE_LEN * 32 + 64;
 struct PlayerNote {
     npk_m_hash: Field,
     name: Field,
-    trading_id: Field,
+    trader_id: Field,
 }
 
 impl NoteInterface<PLAYER_NOTE_LEN, PLAYER_NOTE_BYTES_LEN> for PlayerNote {
@@ -43,13 +43,13 @@ impl NoteInterface<PLAYER_NOTE_LEN, PLAYER_NOTE_BYTES_LEN> for PlayerNote {
 
 impl PlayerNote {
     pub fn new(name: Field, npk_m_hash: Field) -> Self {
-        PlayerNote { header: NoteHeader::empty(), npk_m_hash, name, trading_id: unsafe_rand() }
+        PlayerNote { header: NoteHeader::empty(), npk_m_hash, name, trader_id: unsafe_rand() }
     }
 }
 
 impl Serialize<PLAYER_NOTE_LEN> for PlayerNote {
     fn serialize(self) -> [Field; PLAYER_NOTE_LEN] {
-        [self.npk_m_hash, self.name, self.trading_id]
+        [self.npk_m_hash, self.name, self.trader_id]
     }
 }
 
@@ -57,6 +57,6 @@ impl Eq for PlayerNote {
     fn eq(self, other: Self) -> bool {
         (self.npk_m_hash == other.npk_m_hash) &
         (self.name == other.name) &
-        (self.trading_id == other.trading_id)
+        (self.trader_id == other.trader_id)
     }
 }

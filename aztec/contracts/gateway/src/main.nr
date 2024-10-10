@@ -51,8 +51,8 @@ contract FroglinGateway {
 
     #[aztec(view)]
     #[aztec(internal)]
-    unconstrained fn _view_trading_id(player: AztecAddress) -> pub Field {
-        storage.accounts.at(player).view_note().trading_id
+    unconstrained fn _view_trader_id(player: AztecAddress) -> pub Field {
+        storage.accounts.at(player).view_note().trader_id
     }
 
     #[aztec(internal)]
@@ -103,7 +103,7 @@ contract FroglinGateway {
 
     #[aztec(internal)]
     #[aztec(public)]
-    fn _create_swap_proposal(trader_id: u32, offered_froglin_type: u8, wanted_froglin_type: u8) {
+    fn _create_swap_proposal(trader_id: Field, offered_froglin_type: u8, wanted_froglin_type: u8) {
         // increment public stash
         let current_count = storage.public_stash.at(offered_froglin_type).read();
         storage.public_stash.at(offered_froglin_type).write(current_count + 1);
@@ -152,7 +152,7 @@ contract FroglinGateway {
         assert(wanted_froglin_type < settings::FROGLIN_TYPE_COUNT, "Invalid wanted Froglin type");
         assert(offered_froglin_type != wanted_froglin_type, "Cannot swap for the same Froglin type");
 
-        let trader_id: u32 = _view_trading_id(player) as u32;
+        let trader_id: Field = _view_trader_id(player) as Field;
         let keys = get_current_public_keys(&mut context, player);
         // create new note for selected stash
         if (offered_froglin_type < stash_midpoint_index) {
@@ -229,7 +229,7 @@ contract FroglinGateway {
         }
 
         let proposal = view_swap_proposal(proposal_id);
-        let trader_id: u32 = _view_trading_id(player) as u32;
+        let trader_id: Field = _view_trader_id(player) as Field;
 
         assert(proposal.status == 2, "proposal is not claimable");
         assert(trader_id == proposal.trader_id, "only the trader can claim the proposal");
@@ -261,7 +261,7 @@ contract FroglinGateway {
         }
 
         let proposal = view_swap_proposal(proposal_id);
-        let trader_id: u32 = _view_trading_id(player) as u32;
+        let trader_id: Field = _view_trader_id(player) as Field;
 
         assert(proposal.status == 1, "proposal is not active");
         assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
@@ -580,7 +580,7 @@ contract FroglinGateway {
     }
 
     #[aztec(view)]
-    unconstrained fn view_claimable_swaps(trader_id: u32) -> pub [SwapProposal; 10] {
+    unconstrained fn view_claimable_swaps(trader_id: Field) -> pub [SwapProposal; 10] {
         let proposal_count = storage.swap_proposal_count.read();
         let mut claimable_proposals: [SwapProposal; 10] = [SwapProposal::empty(); 10];
         for i in 0..proposal_count {

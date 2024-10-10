@@ -127,9 +127,11 @@ function createState(): Player {
             .view_name(wallet.getAddress())
             .simulate();
           const name = bigIntToString(nameAsBigInt);
+
           const profile = await contract.methods
             .view_profile(wallet.getAddress())
             .simulate();
+
           setTraderId(Number(profile.trader_id));
           setUsername(name);
           setRegistered(true);

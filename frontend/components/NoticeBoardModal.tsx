@@ -15,7 +15,8 @@ export type Offer = {
 export default function NoticesModal() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const { modal } = useModalState();
-  const { aztec, registered } = usePlayer();
+  const { aztec, registered, traderId } = usePlayer();
+  console.log("offers", traderId);
 
   const visible = modal === MODALS.NOTICES;
 
@@ -74,7 +75,6 @@ export default function NoticesModal() {
       <div className="max-h-[650px] flex flex-col">
         {offers.length > 0
           ? offers.map((offer) => {
-              console.log("offer", offer);
               return (
                 <div
                   key={offer.id}
