@@ -7,7 +7,7 @@ import { useModalState, usePlayer } from "frontend/stores";
 import { names } from "frontend/components/FroglinModal";
 
 export type Offer = {
-  trader_id: number;
+  trader_id: bigint;
   offered_froglin_type: number;
   wanted_froglin_type: number;
   status: number;
@@ -19,7 +19,6 @@ export default function NoticesModal() {
   const [refetch, setRefetch] = useState<boolean>(false);
   const { modal } = useModalState();
   const { aztec, registered, traderId } = usePlayer();
-  console.log("offers", traderId);
 
   const visible = modal === MODALS.NOTICES;
 
@@ -35,6 +34,23 @@ export default function NoticesModal() {
     } catch (error) {
       toast.error("Failed to cancel swap offer!", { id: toastId });
       console.error("Error canceling swap offer:", error);
+    }
+    toast.dismiss(toastId);
+  }
+
+  async function handleAccept(proposalId: number) {
+    if (!aztec || !registered) return;
+    const toastId = toast.loading("Accepting swap offer...");
+    try {
+      await aztec.contracts.gateway.methods
+        .accept_swap_proposal(proposalId)
+        .send()
+        .wait();
+
+      setRefetch(!refetch);
+    } catch (error) {
+      toast.error("Failed to accept swap offer!", { id: toastId });
+      console.error("Error accepting swap offer:", error);
     }
     toast.dismiss(toastId);
   }
@@ -68,7 +84,7 @@ export default function NoticesModal() {
           }) => {
             if (id !== 101n) {
               numberList.push({
-                trader_id: Number(trader_id),
+                trader_id,
                 offered_froglin_type: Number(offered_froglin_type),
                 wanted_froglin_type: Number(wanted_froglin_type),
                 status: Number(status),
@@ -94,6 +110,7 @@ export default function NoticesModal() {
       <div className="max-h-[650px] flex flex-col">
         {offers.length > 0
           ? offers.map((offer) => {
+              console.log(offer, traderId, offer.trader_id === traderId);
               return (
                 <div
                   key={offer.id}
@@ -137,11 +154,12 @@ export default function NoticesModal() {
                       </button>
                     </div>
                   ) : (
-                    // TODO: render if the player ahs the necessary froglin
+                    // TODO: render if the player has the necessary froglin
                     <div>
                       <button
                         type="button"
                         className="rounded-lg px-2 py-1 my-2 text-[10px] font-semibold shadow-sm text-white bg-green-600"
+                        onClick={() => handleAccept(offer.id)}
                       >
                         Accept
                       </button>

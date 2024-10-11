@@ -109,10 +109,11 @@ contract FroglinGateway {
         storage.public_stash.at(offered_froglin_type).write(current_count + 1);
         // create the proposal, first time is going to be 0 so we can create empty SwapProposal with id 0
         let proposal_id = storage.swap_proposal_count.read();
+
         let new_proposal = SwapProposal::new(trader_id, offered_froglin_type, wanted_froglin_type, proposal_id);
+
         storage.swap_proposals.at(proposal_id).write(new_proposal);
         storage.swap_proposal_count.write(proposal_id + 1);
-        context.emit_unencrypted_log(/*message=*/ "Hello, world!");
     }
 
     #[aztec(internal)]
@@ -188,12 +189,12 @@ contract FroglinGateway {
 
         let proposal = view_swap_proposal(proposal_id);
         assert(proposal.status == 1, "proposal is not active");
-        // TODO: add assert the player has the wanted froglin type
 
         let wanted_froglin_type = proposal.wanted_froglin_type;
         let offered_froglin_type = proposal.offered_froglin_type;
 
         let keys = get_current_public_keys(&mut context, player);
+
 
         if (wanted_froglin_type < stash_midpoint_index) {
             let mut new_stash = StashNote::copy(storage.stashes_1.at(player).get_note().note, keys.npk_m.hash());
@@ -201,7 +202,15 @@ contract FroglinGateway {
             assert(froglin_count > 0, "player does not have the wanted froglin type");
 
             new_stash.decrement_slot(wanted_froglin_type);
-            new_stash.increment_slot(offered_froglin_type);
+            if (offered_froglin_type < stash_midpoint_index) {
+                new_stash.increment_slot(offered_froglin_type);
+            } //
+             else {
+                let mut new_stash2 = StashNote::copy(storage.stashes_2.at(player).get_note().note, keys.npk_m.hash());
+                new_stash2.increment_slot(offered_froglin_type - stash_midpoint_index);
+                storage.stashes_2.at(player).replace(&mut new_stash2).emit(encode_and_encrypt_note(&mut context, player, player));
+            }
+
 
             storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, player, player));
             // change status of the proposal to claimable and settle the public stash
@@ -213,7 +222,15 @@ contract FroglinGateway {
             assert(froglin_count > 0, "player does not have the wanted froglin type");
 
             new_stash.decrement_slot(wanted_froglin_type - stash_midpoint_index);
-            new_stash.increment_slot(offered_froglin_type - stash_midpoint_index);
+            if (offered_froglin_type < stash_midpoint_index) {
+                let mut new_stash1 = StashNote::copy(storage.stashes_1.at(player).get_note().note, keys.npk_m.hash());
+                new_stash1.increment_slot(offered_froglin_type - stash_midpoint_index);
+                storage.stashes_1.at(player).replace(&mut new_stash1).emit(encode_and_encrypt_note(&mut context, player, player));
+            } //
+             else {
+                new_stash.increment_slot(offered_froglin_type - stash_midpoint_index);
+            }
+
 
             storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, player, player));
             // change status of the proposal to claimable and settle the public stash
@@ -577,6 +594,20 @@ contract FroglinGateway {
         }
 
         active_proposals
+    }
+
+    #[aztec(view)]
+    unconstrained fn view_all_proposals() -> pub [SwapProposal; 10] {
+        let proposal_count = storage.swap_proposal_count.read();
+        let mut all_proposals: [SwapProposal; 10] = [SwapProposal::empty(); 10];
+        for i in 0..proposal_count {
+            let proposal = storage.swap_proposals.at(i).read();
+            if i < 10 {
+                all_proposals[i] = proposal;
+            }
+        }
+
+        all_proposals
     }
 
     #[aztec(view)]

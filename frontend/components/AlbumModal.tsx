@@ -36,7 +36,7 @@ export default function AlbumModal() {
   useEffect(
     () => {
       async function fetchStash() {
-        if (!aztec || !registered) return;
+        if (!aztec || !registered || !visible) return;
 
         const playerAddress = aztec.wallet.getAddress();
         const stash = await aztec.contracts.gateway.methods
@@ -51,7 +51,7 @@ export default function AlbumModal() {
 
       fetchStash();
     }, //
-    [aztec, registered, capturedFroglins.length],
+    [aztec, registered, capturedFroglins.length, visible],
   );
 
   useEffect(

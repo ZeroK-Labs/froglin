@@ -8,19 +8,24 @@ import { Offer } from "./NoticeBoardModal";
 export default function ClaimsModal() {
   const [claims, setClaims] = useState<Offer[]>([]);
   const { modal } = useModalState();
-  const { aztec, registered } = usePlayer();
+  const { aztec, registered, traderId } = usePlayer();
 
   const visible = modal === MODALS.CLAIMS;
-  console.log(claims);
+  console.log("claims", claims);
   useEffect(
     () => {
       async function fetchClaims() {
-        if (!aztec || !registered || !visible) return;
+        if (!aztec || !registered || !visible || !traderId) return;
 
         const claimsResponse = await aztec.contracts.gateway.methods
-          .view_claimable_swaps(1)
+          .view_all_proposals()
           .simulate();
 
+        console.log("claims", claimsResponse);
+        const res = await aztec.contracts.gateway.methods
+          .view_claimable_swaps(traderId)
+          .simulate();
+        console.log("res", res);
         if (!claimsResponse || claimsResponse.length === 0) return;
 
         const numberList: Offer[] = [];
@@ -41,7 +46,7 @@ export default function ClaimsModal() {
           }) => {
             if (id !== 101n) {
               numberList.push({
-                trader_id: Number(trader_id),
+                trader_id: trader_id,
                 offered_froglin_type: Number(offered_froglin_type),
                 wanted_froglin_type: Number(wanted_froglin_type),
                 status: Number(status),

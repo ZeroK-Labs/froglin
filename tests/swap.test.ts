@@ -171,19 +171,23 @@ describe("Swap Froglin", () => {
         .send()
         .wait();
 
-      await ACCOUNTS.alice.contracts.gateway.methods
-        .claim_swap_proposal(0)
-        .send()
-        .wait();
+      // await ACCOUNTS.alice.contracts.gateway.methods
+      //   .claim_swap_proposal(0)
+      //   .send()
+      //   .wait();
 
-      const stashBob = await ACCOUNTS.bob.contracts.gateway.methods
-        .view_stash(ACCOUNTS.bob.wallet.getAddress())
+      // const stashBob = await ACCOUNTS.bob.contracts.gateway.methods
+      //   .view_stash(ACCOUNTS.bob.wallet.getAddress())
+      //   .simulate();
+      // const stashAlice = await ACCOUNTS.alice.contracts.gateway.methods
+      //   .view_stash(ACCOUNTS.alice.wallet.getAddress())
+      //   .simulate();
+      // console.log("stasshBob", stashBob);
+      // console.log("stasshAlice", stashAlice);
+      const allSwaps = await ACCOUNTS.bob.contracts.gateway.methods
+        .view_all_proposals()
         .simulate();
-      const stashAlice = await ACCOUNTS.alice.contracts.gateway.methods
-        .view_stash(ACCOUNTS.alice.wallet.getAddress())
-        .simulate();
-      console.log("stasshBob", stashBob);
-      console.log("stasshAlice", stashAlice);
+      console.log("allSwaps", allSwaps);
     },
     timeout,
   );
