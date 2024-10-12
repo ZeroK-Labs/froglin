@@ -70,11 +70,7 @@ export default function ClaimsModal() {
       visible={visible}
     >
       <div className="max-h-[650px] flex flex-col">
-        <div
-          className="w-[299px] h-[40px]
-          flex items-center justify-between
-        bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
-        >
+        <div className="w-[299px] h-[40px] flex items-center justify-between bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2">
           <div className="flex flex-row items-center gap-2">
             <img
               src="/images/froglin1.webp"
