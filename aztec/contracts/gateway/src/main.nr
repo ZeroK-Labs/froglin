@@ -95,14 +95,6 @@ contract FroglinGateway {
 
     #[aztec(internal)]
     #[aztec(public)]
-    unconstrained fn _register(player: AztecAddress) {
-        let accounts_size = storage.accounts_size.read();
-        storage.leaderboard.at(accounts_size).write(LeaderBoardEntry::new(player, 0));
-        storage.accounts_size.write(accounts_size + 1);
-    }
-
-    #[aztec(internal)]
-    #[aztec(public)]
     fn _create_swap_proposal(trader_id: Field, offered_froglin_type: u8, wanted_froglin_type: u8) {
         // increment public stash
         let current_count = storage.public_stash.at(offered_froglin_type).read();
@@ -110,7 +102,12 @@ contract FroglinGateway {
         // create the proposal, first time is going to be 0 so we can create empty SwapProposal with id 0
         let proposal_id = storage.swap_proposal_count.read();
 
-        let new_proposal = SwapProposal::new(trader_id, offered_froglin_type, wanted_froglin_type, proposal_id);
+        let new_proposal = SwapProposal::new(
+            trader_id,
+            offered_froglin_type,
+            wanted_froglin_type,
+            proposal_id
+        );
 
         storage.swap_proposals.at(proposal_id).write(new_proposal);
         storage.swap_proposal_count.write(proposal_id + 1);
@@ -195,7 +192,6 @@ contract FroglinGateway {
 
         let keys = get_current_public_keys(&mut context, player);
 
-
         if (wanted_froglin_type < stash_midpoint_index) {
             let mut new_stash = StashNote::copy(storage.stashes_1.at(player).get_note().note, keys.npk_m.hash());
             let froglin_count = new_stash.get_slot(wanted_froglin_type) as u8;
@@ -239,7 +235,7 @@ contract FroglinGateway {
     }
 
     #[aztec(private)]
-    fn claim_swap_proposal (proposal_id: u8) {
+    fn claim_swap_proposal(proposal_id: u8) {
         let player = context.msg_sender();
         unsafe {
             _check_registration(player);
@@ -300,7 +296,14 @@ contract FroglinGateway {
             // mark the proposal as completed
             FroglinGateway::at(context.this_address())._complete_swap_proposal(proposal_id).enqueue(&mut context);
         }
+    }
 
+    #[aztec(internal)]
+    #[aztec(public)]
+    unconstrained fn _register(player: AztecAddress) {
+        let accounts_size = storage.accounts_size.read();
+        storage.leaderboard.at(accounts_size).write(LeaderBoardEntry::new(player, 0));
+        storage.accounts_size.write(accounts_size + 1);
     }
 
     #[aztec(private)]
@@ -456,7 +459,7 @@ contract FroglinGateway {
         }
     }
     #[aztec(private)]
-    fn transfer(to: AztecAddress,froglin_type: u8) {
+    fn transfer(to: AztecAddress, froglin_type: u8) {
         let from = context.msg_sender();
         unsafe {
             _check_registration(from);
@@ -466,7 +469,10 @@ contract FroglinGateway {
         let from_keys = get_current_public_keys(&mut context, from);
         let to_keys = get_current_public_keys(&mut context, to);
 
-        let mut from_stash_note = StashNote::copy(storage.stashes_1.at(from).get_note().note, from_keys.npk_m.hash());
+        let mut from_stash_note = StashNote::copy(
+            storage.stashes_1.at(from).get_note().note,
+            from_keys.npk_m.hash()
+        );
 
         from_stash_note.decrement_slot(froglin_type);
 
@@ -562,7 +568,7 @@ contract FroglinGateway {
             stash_2.froglin_2,
             stash_2.froglin_3,
             stash_2.froglin_4,
-            stash_2.froglin_5,
+            stash_2.froglin_5
         ]
     }
 
