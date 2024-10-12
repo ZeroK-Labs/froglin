@@ -1,22 +1,16 @@
-import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useEffect, useState } from "react";
 
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
-import { useModalState, usePlayer } from "frontend/stores";
 import { names } from "frontend/components/FroglinModal";
+import { type SwapOffer } from "frontend/types";
+import { useModalState, usePlayer } from "frontend/stores";
 
-export type Offer = {
-  trader_id: bigint;
-  offered_froglin_type: number;
-  wanted_froglin_type: number;
-  status: number;
-  id: number;
-};
-
-export default function NoticesModal() {
-  const [offers, setOffers] = useState<Offer[]>([]);
+export default function NoticeBoardModal() {
+  const [offers, setOffers] = useState<SwapOffer[]>([]);
   const [refetch, setRefetch] = useState<boolean>(false);
+
   const { modal } = useModalState();
   const { aztec, registered, traderId } = usePlayer();
 
@@ -66,7 +60,7 @@ export default function NoticesModal() {
 
         if (!offersResponse || offersResponse.length === 0) return;
 
-        const numberList: Offer[] = [];
+        const numberList: SwapOffer[] = [];
 
         offersResponse.forEach(
           ({
@@ -104,7 +98,8 @@ export default function NoticesModal() {
   return (
     <Modal
       className="top-4"
-      title="Notice Board"
+      icon="📰"
+      title="Noticeboard"
       visible={visible}
     >
       <div className="max-h-[650px] flex flex-col">
