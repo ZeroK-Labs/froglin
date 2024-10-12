@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
+
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
-import { useModalState, usePlayer } from "frontend/stores";
 import { names } from "frontend/components/FroglinModal";
-import { Offer } from "./NoticeBoardModal";
+import { type SwapOffer } from "frontend/types";
+import { useModalState, usePlayer } from "frontend/stores";
 
 export default function ClaimsModal() {
-  const [claims, setClaims] = useState<Offer[]>([]);
+  const [claims, setClaims] = useState<SwapOffer[]>([]);
+
   const { modal } = useModalState();
   const { aztec, registered, traderId } = usePlayer();
 
   const visible = modal === MODALS.CLAIMS;
   console.log("claims", claims);
+
   useEffect(
     () => {
       async function fetchClaims() {
@@ -28,7 +31,7 @@ export default function ClaimsModal() {
         console.log("res", res);
         if (!claimsResponse || claimsResponse.length === 0) return;
 
-        const numberList: Offer[] = [];
+        const numberList: SwapOffer[] = [];
 
         claimsResponse.forEach(
           ({

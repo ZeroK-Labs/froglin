@@ -20,6 +20,7 @@ export const names = [
 export default function FroglinModal() {
   const { selectedFroglin } = useGameEvent();
   const { modal, setModal } = useModalState();
+
   const visible = modal === MODALS.FROGLIN_MENU;
 
   if (selectedFroglin === null) return null;
@@ -27,23 +28,24 @@ export default function FroglinModal() {
   return (
     <Modal
       className="top-4"
+      icon="🐸"
+      title={selectedFroglin ? names[selectedFroglin][0] : ""}
       visible={visible}
     >
       <div className="max-h-[650px] flex flex-col">
-        <div className="pb-6">{selectedFroglin && names[selectedFroglin][0]}</div>
-        <div>
-          {selectedFroglin !== null ? (
+        {selectedFroglin !== null ? (
+          <div className="flex flex-col items-center">
             <img
+              className="py-2"
               src={`/images/froglin${selectedFroglin}-large.webp`}
               width="300px"
               height="300px"
               alt="froglin"
             />
-          ) : null}
-        </div>
-        <div className="pt-6 max-w-[300px]">
-          {selectedFroglin && names[selectedFroglin][1]}
-        </div>
+            <span className="py-4">{names[selectedFroglin][1]}</span>
+          </div>
+        ) : null}
+
         <button
           type="button"
           className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-gray-900"
@@ -53,6 +55,7 @@ export default function FroglinModal() {
         >
           🗡️ Send to battle
         </button>
+
         <button
           type="button"
           className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-blue-800"
@@ -62,6 +65,7 @@ export default function FroglinModal() {
         >
           🔄 Swap
         </button>
+
         <button
           type="button"
           className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-red-500"

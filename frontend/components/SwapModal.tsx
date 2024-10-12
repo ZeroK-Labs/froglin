@@ -59,19 +59,17 @@ export default function SwapModal() {
     >
       <div className="max-h-[650px] flex flex-col">
         <div className="flex flex-row w-full justify-between items-center my-6 relative gap-8">
-          <div>
-            {selectedFroglin !== null ? (
-              <>
-                <img
-                  src={`/images/froglin${selectedFroglin}-large.webp`}
-                  width="160px"
-                  height="160px"
-                  alt="froglin"
-                />
-                <span className="pb-6">{names[selectedFroglin][0]}</span>
-              </>
-            ) : null}
-          </div>
+          {selectedFroglin !== null ? (
+            <div>
+              <img
+                src={`/images/froglin${selectedFroglin}-large.webp`}
+                width="160px"
+                height="160px"
+                alt="froglin"
+              />
+              <span className="pb-6">{names[selectedFroglin][0]}</span>
+            </div>
+          ) : null}
 
           <div onClick={changeFroglin}>
             {enemyFroglin !== null ? (

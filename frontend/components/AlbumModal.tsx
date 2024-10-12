@@ -3,26 +3,12 @@ import { useEffect, useState } from "react";
 import { FROGLIN } from "frontend/settings";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
+import { names } from "./FroglinModal";
 import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
 import {
   addKeyboardShortcut,
   removeKeyboardShortcut,
 } from "frontend/utils/KeyboardShortcuts";
-
-const names = [
-  "Quagalia",
-  "Hopsette",
-  "Jumplina",
-  "Gillywog",
-  "Swampella",
-  "Paddlette",
-  "Croakston",
-  "Boggart",
-  "Mudrick",
-  "Leapster",
-  "Fennmarsh",
-  "Splatter",
-];
 
 export default function AlbumModal() {
   const [stash, setStash] = useState<number[]>(() => Array(FROGLIN.TYPE_COUNT).fill(0));
@@ -32,6 +18,11 @@ export default function AlbumModal() {
   const { capturedFroglins, setSelectedFroglin } = useGameEvent();
 
   const visible = modal === MODALS.ALBUM;
+
+  function handleClick(index: number) {
+    setSelectedFroglin(index);
+    setTimeout(setModal, 0, MODALS.FROGLIN_MENU);
+  }
 
   useEffect(
     () => {
@@ -71,12 +62,6 @@ export default function AlbumModal() {
     [visible],
   );
 
-  // say something when the picure is clicked
-  function handleClick(index: number) {
-    setSelectedFroglin(index);
-    setModal(MODALS.FROGLIN_MENU);
-  }
-
   return (
     <Modal
       className="top-4"
@@ -84,11 +69,6 @@ export default function AlbumModal() {
       title="Album"
       visible={visible}
     >
-      {/* <div
-        className="px-2 py-1 h-2 text-[18px] font-bold border-b justify-items-start items-center text-white"
-        style={{ gridTemplateColumns: "min-content auto min-content" }}
-      /> */}
-
       <div className="max-h-[650px] flex flex-col">
         <div className="mt-3 mb-4 grid grid-cols-3 gap-4">
           {stash.map((count, index) => (
@@ -96,7 +76,7 @@ export default function AlbumModal() {
               key={index}
               onClick={() => handleClick(index)}
             >
-              <span>{names[index]}</span>
+              <span>{names[index][0]}</span>
               <div className="relative left-0 top-0 w-fit h-fit p-1 border-[2px] transition-all duration-500 cursor-pointer bg-main-purple border-main-purple-hover border-dashed">
                 <img
                   className={count === 0 ? "grayscale" : ""}
