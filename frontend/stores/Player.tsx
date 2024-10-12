@@ -2,12 +2,12 @@ import toast from "react-hot-toast";
 import { AztecAddress, AccountWallet, createPXEClient, Fr } from "@aztec/aztec.js";
 import { SetStateAction, useEffect, useState } from "react";
 
-import type { Player } from "frontend/types";
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { StoreFactory, usePXEState } from "frontend/stores";
+import { addSocketEventHandler } from "frontend/utils/sockets";
 import { createWallet } from "common/utils/WalletManager";
 import { stringToBigInt, bigIntToString } from "common/utils/bigint";
-import { addSocketEventHandler } from "frontend/utils/sockets";
+import { type Player } from "frontend/types";
 
 function getSecret() {
   return localStorage.getItem("secret") ?? "";
@@ -81,8 +81,6 @@ function createState(): Player {
           return;
         }
 
-        console.log(PXEs);
-
         let promises: Promise<any>[] = [];
 
         for (const playerPXEURL of PXEs) {
@@ -100,9 +98,10 @@ function createState(): Player {
         await Promise.all(promises);
 
         async function handleNewPlayerJoined(ev: MessageEvent<string>) {
-          console.log(ev.data, 33);
           if (!ev.data.includes("newPlayer ")) return;
+
           const url = ev.data.split(" ")[1];
+
           if (!url) return;
           if (url === pxeURL) return;
 
@@ -111,7 +110,6 @@ function createState(): Player {
             new Fr(BigInt(secret)),
             wallet.getCompleteAddress().partialAddress,
           );
-          console.log(url);
         }
 
         addSocketEventHandler("message", handleNewPlayerJoined);
@@ -153,7 +151,9 @@ function createState(): Player {
 
         const nameAsBigInt = stringToBigInt(username);
         await contract.methods.register(nameAsBigInt).send().wait();
+
         setRegistered(true);
+
         toast.success("Player registered!", { id: toastId });
         setTimeout(toast, 750, `Welcome ${username}!`);
       }

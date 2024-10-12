@@ -9,8 +9,9 @@ export function getPlayerPXEs(req: Request, res: Response) {
 
   const PXEs = [];
   for (const player of player_data) {
-    // console.log(player);
-    PXEs.push(player.PXE?.url);
+    if (!(player.PXE && player.PXE.url)) continue;
+
+    PXEs.push(player.PXE.url);
   }
 
   res.statusCode = 200;
