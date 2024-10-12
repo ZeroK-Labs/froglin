@@ -1,9 +1,13 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, Dispatch, SetStateAction } from "react";
 
-import type { MenuProps } from "frontend/types";
 import { MenuButtonElement } from "./MenuButtonElement";
 
-export function MenuButton({ open, setOpen }: MenuProps) {
+type Props = {
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+};
+
+export function MenuButton({ open, setOpen }: Props) {
   const divRef = useRef<HTMLDivElement>(null);
   const lineElementsRef = useRef<HTMLCollectionOf<Element>>();
   const mouseOverRef = useRef(false);

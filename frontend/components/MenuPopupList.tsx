@@ -1,12 +1,16 @@
-import { useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 
-import type { MenuProps } from "frontend/types";
 import { MenuPopupListItem } from "./MenuPopupListItem";
 import { MAP_VIEWS, MODALS } from "frontend/enums";
 import { VIEW } from "frontend/settings";
 import { useMapViewState, useModalState, usePlayer } from "frontend/stores";
 
-export function MenuPopupList({ open, setOpen }: MenuProps) {
+type Props = {
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+};
+
+export function MenuPopupList({ open, setOpen }: Props) {
   const { aztec } = usePlayer();
   const { setModal } = useModalState();
   const { mapView, setMapView } = useMapViewState();
@@ -99,8 +103,8 @@ export function MenuPopupList({ open, setOpen }: MenuProps) {
             onClick={handleAlbumClick}
           />
           <MenuPopupListItem
-            text="Offers"
-            icon="🧧"
+            text="Noticeboard"
+            icon="📰"
             onClick={handleNoticesClick}
           />
           <MenuPopupListItem
