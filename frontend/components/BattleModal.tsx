@@ -1,23 +1,17 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 
+import { BattleOptionBox, Modal } from "frontend/components";
 import { MODALS } from "frontend/enums";
-import { Modal } from "frontend/components";
-import { useGameEvent, useModalState } from "frontend/stores";
 import { names } from "frontend/components/FroglinModal";
-
-const options: OptionsEnum[] = ["🗡️", "🏹", "🛡️"];
-type OptionsEnum = "🗡️" | "🏹" | "🛡️" | "";
+import { useGameEvent, useModalState } from "frontend/stores";
 
 export default function BattleModal() {
-  const { selectedFroglin } = useGameEvent();
-  const { modal } = useModalState();
   const [enemyFroglin, setEnemyFroglin] = useState<number | null>(null);
 
-  const visible = modal === MODALS.BATTLE;
+  const { selectedFroglin } = useGameEvent();
+  const { modal } = useModalState();
 
-  useEffect(() => {
-    setEnemyFroglin(null);
-  }, [modal]);
+  const visible = modal === MODALS.BATTLE;
 
   function changeFroglin() {
     setEnemyFroglin((prev) => {
@@ -31,40 +25,51 @@ export default function BattleModal() {
     });
   }
 
+  useEffect(
+    () => {
+      if (visible) setEnemyFroglin(null);
+    }, //
+    [visible],
+  );
+
   if (selectedFroglin === null) return null;
 
   return (
     <Modal
       className="top-4"
+      icon="🗡️"
       title="Battle"
       visible={visible}
     >
       <div className="max-h-[650px] flex flex-col">
         <div className="flex flex-row w-full justify-between items-center my-6 relative gap-8">
-          <div>
-            {selectedFroglin !== null ? (
+          {selectedFroglin !== null ? (
+            <div>
               <img
                 src={`/images/froglin${selectedFroglin}-large.webp`}
                 width="160px"
                 height="160px"
                 alt="froglin"
               />
-            ) : null}
-            <span className="pb-6">
-              {selectedFroglin !== null && names[selectedFroglin][0]}
-            </span>
-          </div>
+              <span className="pb-6">{names[selectedFroglin][0]}</span>
+            </div>
+          ) : null}
+
           <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-7xl font-bold text-yellow-600">
             VS
           </div>
+
           <div onClick={changeFroglin}>
             {enemyFroglin !== null ? (
-              <img
-                src={`/images/froglin${enemyFroglin}-large.webp`}
-                width="160px"
-                height="160px"
-                alt="froglin"
-              />
+              <>
+                <img
+                  src={`/images/froglin${enemyFroglin}-large.webp`}
+                  width="160px"
+                  height="160px"
+                  alt="froglin"
+                />
+                <span className="pb-6 min-h-3">{names[enemyFroglin][0]}</span>
+              </>
             ) : (
               <>
                 <div className="w-[160px] h-[160px] border-2 border-white flex items-center justify-center">
@@ -73,28 +78,27 @@ export default function BattleModal() {
                 <span className="py-6 min-h-3">???</span>
               </>
             )}
-            <span className="py-6 min-h-3">
-              {enemyFroglin !== null ? names[enemyFroglin][0] : ""}
-            </span>
           </div>
         </div>
+
         <div className="flex flex-col mb-6 text-sm">
           <span>🗡️ beats 🛡️</span>
           <span>🛡️ beats 🏹</span>
           <span>🏹 beats 🗡️</span>
         </div>
+
         <div className="flex flex-row justify-between items-center gap-4 pb-8">
           <div>
             <span className="text-center">Round 1</span>
-            <LightAnimatedOptionBox />
+            <BattleOptionBox />
           </div>
           <div>
             <span className="text-center">Round 2</span>
-            <LightAnimatedOptionBox />
+            <BattleOptionBox />
           </div>
           <div>
             <span className="text-center">Round 3</span>
-            <LightAnimatedOptionBox />
+            <BattleOptionBox />
           </div>
         </div>
 
@@ -107,76 +111,5 @@ export default function BattleModal() {
         </button>
       </div>
     </Modal>
-  );
-}
-
-function LightAnimatedOptionBox() {
-  const [currentOption, setCurrentOption] = useState<OptionsEnum>("");
-  const [touchStartY, setTouchStartY] = useState<number | null>(null);
-  const [isChanging, setIsChanging] = useState(false);
-  const boxRef = useRef<HTMLDivElement>(null);
-  const bgcolors = ["bg-blue-400", "bg-green-400", "bg-red-400"];
-
-  const cycleOption = (direction: "up" | "down") => {
-    setIsChanging(true);
-    setTimeout(() => {
-      setCurrentOption((prev) => {
-        if (prev === null) return options[0];
-        const currentIndex = options.indexOf(prev);
-        if (direction === "up") {
-          return options[(currentIndex + 1) % options.length];
-        } else {
-          return options[(currentIndex - 1 + options.length) % options.length];
-        }
-      });
-      setIsChanging(false);
-    }, 150); // Half of the transition duration
-  };
-
-  const handleClick = () => {
-    cycleOption("up");
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartY(e.touches[0].clientY);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartY === null) return;
-    const touchEndY = e.changedTouches[0].clientY;
-    const deltaY = touchEndY - touchStartY;
-
-    if (Math.abs(deltaY) > 10) {
-      cycleOption(deltaY > 0 ? "down" : "up");
-    }
-    setTouchStartY(null);
-  };
-
-  return (
-    <div
-      ref={boxRef}
-      className={`
-        w-[100px] h-[100px]
-        flex items-center justify-center
-        text-7xl font-bold
-        cursor-pointer select-none
-        rounded-lg
-        ${currentOption ? bgcolors[options.indexOf(currentOption)] : "bg-gray-400"}
-        transition-all duration-300 ease-in-out
-        active:scale-95
-      `}
-      onClick={handleClick}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
-      <span
-        className={`
-        transition-opacity duration-300 ease-in-out
-        ${isChanging ? "opacity-0" : "opacity-100"}
-      `}
-      >
-        {currentOption ?? ""}
-      </span>
-    </div>
   );
 }

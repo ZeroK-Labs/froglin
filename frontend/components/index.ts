@@ -1,5 +1,6 @@
 export { default as AccountModal } from "./AccountModal";
 export { default as BattleModal } from "./BattleModal";
+export { default as BattleOptionBox } from "./BattleOptionBox";
 export { default as CanvasOverlay } from "./CanvasOverlay";
 export { default as CapturedFroglinList } from "./CapturedFroglinList";
 export { default as CapturedFroglinListItem } from "./CapturedFroglinListItem";
