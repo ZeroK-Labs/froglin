@@ -1,11 +1,11 @@
 import toast from "react-hot-toast";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
+import { FroglinMenuButton } from "./FroglinMenuButton";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { names } from "frontend/components/FroglinModal";
 import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
-import { FroglinMenuButton } from "./FroglinMenuButton";
 
 export default function SwapModal() {
   const [enemyFroglin, setEnemyFroglin] = useState<number | null>(null);

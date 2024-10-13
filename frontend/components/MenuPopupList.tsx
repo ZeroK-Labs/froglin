@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useEffect } from "react";
 
-import { MenuPopupListItem } from "./MenuPopupListItem";
 import { MAP_VIEWS, MODALS } from "frontend/enums";
+import { MenuPopupListItem } from "./MenuPopupListItem";
 import { VIEW } from "frontend/settings";
 import { useMapViewState, useModalState, usePlayer } from "frontend/stores";
 

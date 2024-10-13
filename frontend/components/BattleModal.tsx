@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 
 import { BattleOptionBox, Modal } from "frontend/components";
+import { FroglinMenuButton } from "./FroglinMenuButton";
 import { MODALS } from "frontend/enums";
 import { names } from "frontend/components/FroglinModal";
 import { useGameEvent, useModalState } from "frontend/stores";
-import { FroglinMenuButton } from "./FroglinMenuButton";
 
 export default function BattleModal() {
   const [enemyFroglin, setEnemyFroglin] = useState<number | null>(null);

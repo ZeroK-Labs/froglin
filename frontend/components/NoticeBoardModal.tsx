@@ -1,10 +1,10 @@
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 
+import type { SwapOfferResponse, SwapOffer } from "frontend/types";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { names } from "frontend/components/FroglinModal";
-import type { SwapOfferResponse, SwapOffer } from "frontend/types";
 import { useModalState, usePlayer } from "frontend/stores";
 
 export default function NoticeBoardModal() {

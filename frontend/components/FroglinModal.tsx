@@ -1,7 +1,7 @@
+import { FroglinMenuButton } from "./FroglinMenuButton";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
-import { FroglinMenuButton } from "./FroglinMenuButton";
 
 export const names = [
   ["Quagalia", "A froglin that loves to hop around and explore the world."],

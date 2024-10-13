@@ -2,13 +2,13 @@ import toast from "react-hot-toast";
 import { AztecAddress, type AccountWallet, createPXEClient, Fr } from "@aztec/aztec.js";
 import { SetStateAction, useEffect, useState } from "react";
 
+import type { Player } from "frontend/types";
 import { FROGLIN } from "frontend/settings";
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { StoreFactory, usePXEState } from "frontend/stores";
 import { addSocketEventHandler } from "frontend/utils/sockets";
 import { createWallet } from "common/utils/WalletManager";
 import { stringToBigInt, bigIntToString } from "common/utils/bigint";
-import { type Player } from "frontend/types";
 
 function getSecret() {
   return localStorage.getItem("secret") ?? "";

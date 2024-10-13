@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from "react";
 
 import type { MapCoordinates } from "common/types";
 import { FROGLIN } from "frontend/settings";
-import { useMapViewState } from "frontend/stores";
 import { MAP_VIEWS } from "frontend/enums";
+import { useMapViewState } from "frontend/stores";
 
 type BaseMarkerProps = {
   coordinates: MapCoordinates;
