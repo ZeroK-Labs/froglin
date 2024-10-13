@@ -12,13 +12,15 @@ export default function NoticeBoardModal() {
   const [refetch, setRefetch] = useState<boolean>(false);
 
   const { modal } = useModalState();
-  const { aztec, registered, traderId } = usePlayer();
+  const { aztec, registered, traderId, stash } = usePlayer();
 
   const visible = modal === MODALS.NOTICEBOARD;
 
   async function handleCancel(proposalId: number) {
     if (!aztec || !registered) return;
+
     const toastId = toast.loading("Canceling swap offer...");
+
     try {
       await aztec.contracts.gateway.methods
         .cancel_swap_proposal(proposalId)
@@ -26,15 +28,18 @@ export default function NoticeBoardModal() {
         .wait();
       setRefetch(!refetch);
     } catch (error) {
-      toast.error("Failed to cancel swap offer!", { id: toastId });
       console.error("Error canceling swap offer:", error);
+      toast.error("Failed to cancel swap offer!", { id: toastId });
     }
+
     toast.dismiss(toastId);
   }
 
   async function handleAccept(proposalId: number) {
     if (!aztec || !registered) return;
+
     const toastId = toast.loading("Accepting swap offer...");
+
     try {
       await aztec.contracts.gateway.methods
         .accept_swap_proposal(proposalId)
@@ -43,9 +48,10 @@ export default function NoticeBoardModal() {
 
       setRefetch(!refetch);
     } catch (error) {
-      toast.error("Failed to accept swap offer!", { id: toastId });
       console.error("Error accepting swap offer:", error);
+      toast.error("Failed to accept swap offer!", { id: toastId });
     }
+
     toast.dismiss(toastId);
   }
 
@@ -103,19 +109,16 @@ export default function NoticeBoardModal() {
       visible={visible}
     >
       <div className="flex flex-col">
-        {offers.length > 0
-          ? offers.map((offer) => {
-              console.log(offer, traderId, offer.trader_id === traderId);
+        {offers.length === 0
+          ? null
+          : offers.map((offer) => {
+              // console.log(offer, traderId, offer.trader_id === traderId);
               return (
                 <div
                   key={offer.id}
-                  className="flex flex-row gap-2"
+                  className="mb-2 flex flex-row"
                 >
-                  <div
-                    className="w-[320px] h-[40px]
-                  flex items-center justify-between
-                bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
-                  >
+                  <div className="h-[32px] rounded-md font-extrabold flex align-middle self-center items-center justify-between bg-gray-300 text-gray-900">
                     <img
                       src={`/images/froglin${offer.offered_froglin_type}.webp`}
                       alt="Left Image"
@@ -123,13 +126,15 @@ export default function NoticeBoardModal() {
                       height="40px"
                       className="rounded-md"
                     />
-                    <span className="text-md no-text-shadow w-24">
+
+                    <span className="w-24 text-md no-text-shadow">
                       {names[offer.offered_froglin_type][0]}
                     </span>
-                    <span className="text-4xl">🔄</span>
-                    <span className="text-md no-text-shadow w-24">
+                    <span className="text-xl">🔄</span>
+                    <span className="w-24 text-md no-text-shadow">
                       {names[offer.wanted_froglin_type][0]}
                     </span>
+
                     <img
                       src={`/images/froglin${offer.wanted_froglin_type}.webp`}
                       alt="Right Image"
@@ -138,32 +143,28 @@ export default function NoticeBoardModal() {
                       className="rounded-md"
                     />
                   </div>
+
                   {offer.trader_id === traderId ? (
-                    <div>
-                      <button
-                        type="button"
-                        className="rounded-lg px-2 py-1 my-2 text-[10px] font-semibold shadow-sm text-white bg-red-800"
-                        onClick={() => handleCancel(offer.id)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      className="rounded-lg px-2 py-1 ml-2 my-2 text-xs font-semibold shadow-sm text-white bg-red-800"
+                      onClick={() => handleCancel(offer.id)}
+                    >
+                      Cancel
+                    </button>
                   ) : (
-                    // TODO: render if the player has the necessary froglin
-                    <div>
-                      <button
-                        type="button"
-                        className="rounded-lg px-2 py-1 my-2 text-[10px] font-semibold shadow-sm text-white bg-green-600"
-                        onClick={() => handleAccept(offer.id)}
-                      >
-                        Accept
-                      </button>
-                    </div>
+                    <button
+                      disabled={stash[offer.wanted_froglin_type] === 0}
+                      type="button"
+                      className={`rounded-lg px-2 py-1 ml-2 my-2 text-xs font-semibold shadow-sm text-white bg-green-600 ${stash[offer.wanted_froglin_type] === 0 ? "grayscale" : ""}`}
+                      onClick={() => handleAccept(offer.id)}
+                    >
+                      Accept
+                    </button>
                   )}
                 </div>
               );
-            })
-          : null}
+            })}
         {/* <div
           className="w-[299px] h-[40px]
           flex items-center justify-between
