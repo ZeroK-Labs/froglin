@@ -42,22 +42,20 @@ export default function FroglinModal() {
     <Modal
       className="top-4"
       icon="🐸"
-      title={selectedFroglin ? names[selectedFroglin][0] : ""}
+      title={names[selectedFroglin][0]}
       visible={visible}
     >
       <div className="max-h-[650px] flex flex-col">
-        {selectedFroglin !== null ? (
-          <div className="flex flex-col items-center">
-            <img
-              className="py-2"
-              src={`/images/froglin${selectedFroglin}-large.webp`}
-              width="300px"
-              height="300px"
-              alt="froglin"
-            />
-            <span className="py-4">{names[selectedFroglin][1]}</span>
-          </div>
-        ) : null}
+        <div className="flex flex-col items-center">
+          <img
+            className="py-2"
+            src={`/images/froglin${selectedFroglin}-large.webp`}
+            width="300px"
+            height="300px"
+            alt="froglin"
+          />
+          <span className="py-4">{names[selectedFroglin][1]}</span>
+        </div>
 
         <button
           type="button"
