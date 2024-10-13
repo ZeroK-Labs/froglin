@@ -5,6 +5,7 @@ import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { names } from "frontend/components/FroglinModal";
 import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
+import { FroglinMenuButton } from "./FroglinMenuButton";
 
 export default function SwapModal() {
   const [enemyFroglin, setEnemyFroglin] = useState<number | null>(null);
@@ -51,6 +52,11 @@ export default function SwapModal() {
       .send()
       .wait();
     toast.success("Swap offer created!", { id: toastId });
+  }
+
+  function handleBackButtonClick(ev: React.MouseEvent) {
+    setModal(MODALS.FROGLIN);
+    ev.stopPropagation();
   }
 
   useEffect(
@@ -107,13 +113,19 @@ export default function SwapModal() {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-blue-800"
+        <FroglinMenuButton
+          className="bg-blue-800"
+          icon="🔄"
+          text="Create Swap Offer"
           onClick={createSwapOffer}
-        >
-          🔄 Create swap offer
-        </button>
+        />
+
+        <FroglinMenuButton
+          className="bg-gray-500 mt-8"
+          icon="◀️"
+          text="Back to Froglin"
+          onClick={handleBackButtonClick}
+        />
       </div>
     </Modal>
   );

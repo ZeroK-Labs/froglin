@@ -33,7 +33,7 @@ export default function FroglinModal() {
     ev.stopPropagation();
   }
 
-  function handleAlbumButtonClick(ev: React.MouseEvent) {
+  function handleBackButtonClick(ev: React.MouseEvent) {
     handleModalChange(MODALS.ALBUM, ev);
   }
 
@@ -64,35 +64,35 @@ export default function FroglinModal() {
           <span className="py-4">{names[selectedFroglin][1]}</span>
         </div>
 
-        <FroglinMenuButton
-          color="bg-gray-500"
-          icon="◀️"
-          text="Back to Album"
-          onClick={handleAlbumButtonClick}
-        />
-
         {disabled ? null : (
           <>
             <FroglinMenuButton
-              color="bg-gray-900"
+              className="bg-gray-900"
               icon="🗡️"
               text="Send to Battle"
               onClick={handleBattleButtonClick}
             />
             <FroglinMenuButton
-              color="bg-blue-800"
+              className="bg-blue-800"
               icon="🔄"
               text="Offer to Swap"
               onClick={handleSwapButtonClick}
             />
             <FroglinMenuButton
-              color="bg-red-500"
+              className="bg-red-500"
               icon="❤️"
               text="Send on a Date"
               onClick={() => {}}
             />
           </>
         )}
+
+        <FroglinMenuButton
+          className="bg-gray-500 mt-8"
+          icon="◀️"
+          text="Back to Album"
+          onClick={handleBackButtonClick}
+        />
       </div>
     </Modal>
   );

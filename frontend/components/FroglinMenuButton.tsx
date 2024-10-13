@@ -1,10 +1,10 @@
 export function FroglinMenuButton({
-  color,
+  className,
   icon,
   text,
   onClick,
 }: {
-  color: string;
+  className: string;
   icon: string;
   text: string;
   onClick: React.MouseEventHandler;
@@ -12,7 +12,7 @@ export function FroglinMenuButton({
   return (
     <button
       type="button"
-      className={`rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white ${color}`}
+      className={`rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white ${className}`}
       onClick={onClick}
     >
       {icon} {text}

@@ -4,13 +4,14 @@ import { BattleOptionBox, Modal } from "frontend/components";
 import { MODALS } from "frontend/enums";
 import { names } from "frontend/components/FroglinModal";
 import { useGameEvent, useModalState } from "frontend/stores";
+import { FroglinMenuButton } from "./FroglinMenuButton";
 
 export default function BattleModal() {
   const [enemyFroglin, setEnemyFroglin] = useState<number | null>(null);
   const [changing, setChanging] = useState(false);
 
   const { selectedFroglin } = useGameEvent();
-  const { modal } = useModalState();
+  const { modal, setModal } = useModalState();
 
   const visible = modal === MODALS.BATTLE;
 
@@ -34,6 +35,11 @@ export default function BattleModal() {
       300,
     );
 
+    ev.stopPropagation();
+  }
+
+  function handleBackButtonClick(ev: React.MouseEvent) {
+    setModal(MODALS.FROGLIN);
     ev.stopPropagation();
   }
 
@@ -116,13 +122,19 @@ export default function BattleModal() {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-gray-900"
+        <FroglinMenuButton
+          className="bg-gray-900"
+          icon="🗡️"
+          text="Send to Battle"
           onClick={() => {}}
-        >
-          🗡️ Send to battle
-        </button>
+        />
+
+        <FroglinMenuButton
+          className="bg-gray-500 mt-8"
+          icon="◀️"
+          text="Back to Froglin"
+          onClick={handleBackButtonClick}
+        />
       </div>
     </Modal>
   );
