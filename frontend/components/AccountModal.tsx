@@ -7,7 +7,7 @@ import { useModalState, usePXEState, usePlayer } from "frontend/stores";
 import { mobileClient } from "frontend/utils/window";
 
 const INPUT_KEY_LENGTH = 50;
-const INPUT_TIMEOUT = 150;
+const INPUT_TIMEOUT = 300;
 
 const colors = [
   "#15c621",
