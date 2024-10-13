@@ -84,7 +84,7 @@ export function MenuPopupList({ open, setOpen }: Props) {
       {aztec ? (
         <>
           <MenuPopupListItem
-            text={mapView === MAP_VIEWS.EVENT ? "Street" : "Bird's eye"}
+            text={mapView === MAP_VIEWS.EVENT ? "Street View" : "Bird's Eye"}
             icon={mapView === MAP_VIEWS.EVENT ? "🌇" : "🗺️"}
             onClick={toggleView}
           />
