@@ -18,7 +18,7 @@ export default function AlbumModal() {
 
   function handleClick(index: number) {
     setSelectedFroglin(index);
-    setTimeout(setModal, 0, MODALS.FROGLIN_MENU);
+    setTimeout(setModal, 0, MODALS.FROGLIN);
   }
 
   // handle stash updates

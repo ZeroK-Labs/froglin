@@ -25,7 +25,7 @@ export default function FroglinModal() {
 
   if (selectedFroglin === null) return null;
 
-  const visible = modal === MODALS.FROGLIN_MENU;
+  const visible = modal === MODALS.FROGLIN;
   const disabled = stash[selectedFroglin] === 0;
 
   function handleModalChange(modal: MODALS, ev: React.MouseEvent) {
