@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 type OptionsEnum = "🗡️" | "🏹" | "🛡️" | "";
 const options: OptionsEnum[] = ["🗡️", "🏹", "🛡️"];
@@ -6,26 +6,29 @@ const options: OptionsEnum[] = ["🗡️", "🏹", "🛡️"];
 const bgcolors = ["bg-blue-400", "bg-green-400", "bg-red-400"];
 
 export default function BattleOptionBox() {
-  const boxRef = useRef<HTMLDivElement>(null);
-
   const [currentOption, setCurrentOption] = useState<OptionsEnum>("");
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
-  const [isChanging, setIsChanging] = useState(false);
+  const [changing, setChanging] = useState(false);
 
   const cycleOption = (direction: "up" | "down") => {
-    setIsChanging(true);
-    setTimeout(() => {
-      setCurrentOption((prev) => {
-        if (prev === null) return options[0];
-        const currentIndex = options.indexOf(prev);
-        if (direction === "up") {
-          return options[(currentIndex + 1) % options.length];
-        } else {
-          return options[(currentIndex - 1 + options.length) % options.length];
-        }
-      });
-      setIsChanging(false);
-    }, 150); // Half of the transition duration
+    setChanging(true);
+
+    setTimeout(
+      () => {
+        setChanging(false);
+
+        setCurrentOption((prev) => {
+          if (prev === null) return options[0];
+          const currentIndex = options.indexOf(prev);
+          if (direction === "up") {
+            return options[(currentIndex + 1) % options.length];
+          } else {
+            return options[(currentIndex - 1 + options.length) % options.length];
+          }
+        });
+      }, //
+      150,
+    );
   };
 
   const handleClick = () => {
@@ -49,7 +52,6 @@ export default function BattleOptionBox() {
 
   return (
     <div
-      ref={boxRef}
       className={`
         w-[100px] h-[100px]
         flex items-center justify-center
@@ -58,7 +60,6 @@ export default function BattleOptionBox() {
         rounded-lg
         ${currentOption ? bgcolors[options.indexOf(currentOption)] : "bg-gray-400"}
         transition-all duration-300 ease-in-out
-        active:scale-95
       `}
       onClick={handleClick}
       onTouchStart={handleTouchStart}
@@ -67,7 +68,7 @@ export default function BattleOptionBox() {
       <span
         className={`
         transition-opacity duration-300 ease-in-out
-        ${isChanging ? "opacity-0" : "opacity-100"}
+        ${changing ? "opacity-0" : "opacity-100"}
       `}
       >
         {currentOption ?? ""}

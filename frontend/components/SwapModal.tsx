@@ -8,6 +8,7 @@ import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
 
 export default function SwapModal() {
   const [enemyFroglin, setEnemyFroglin] = useState<number | null>(null);
+  const [changing, setChanging] = useState(false);
 
   const { selectedFroglin } = useGameEvent();
   const { modal, setModal } = useModalState();
@@ -16,15 +17,24 @@ export default function SwapModal() {
   const visible = modal === MODALS.SWAP;
 
   function changeFroglin(ev: React.MouseEvent) {
-    setEnemyFroglin((prev) => {
-      if (prev === null) {
-        return selectedFroglin === 0 ? (selectedFroglin + 1) % names.length : 0;
-      }
-      if (prev + 1 === selectedFroglin) {
-        return (prev + 2) % names.length;
-      }
-      return (prev + 1) % names.length;
-    });
+    setChanging(true);
+
+    setTimeout(
+      () => {
+        setChanging(false);
+
+        setEnemyFroglin((prev) => {
+          if (prev === null) {
+            return selectedFroglin === 0 ? (selectedFroglin + 1) % names.length : 0;
+          }
+          if (prev + 1 === selectedFroglin) {
+            return (prev + 2) % names.length;
+          }
+          return (prev + 1) % names.length;
+        });
+      }, //
+      300,
+    );
 
     ev.stopPropagation();
   }
@@ -60,34 +70,38 @@ export default function SwapModal() {
       visible={visible}
     >
       <div className="flex flex-col">
-        <div className="flex flex-row w-full justify-between items-center my-6 relative gap-8">
+        <div className="relative my-6 flex flex-row w-full justify-between items-center gap-8">
           <div>
             <img
+              className="mb-2"
               src={`/images/froglin${selectedFroglin}-large.webp`}
-              width="160px"
-              height="160px"
+              width="150px"
+              height="150px"
               alt="froglin"
             />
-            <span className="pb-6">{names[selectedFroglin][0]}</span>
+            <span>{names[selectedFroglin][0]}</span>
           </div>
 
           <div onClick={changeFroglin}>
             {enemyFroglin !== null ? (
               <>
                 <img
+                  className={`mb-2 transition-opacity duration-500 ${changing ? "opacity-0" : "opacity-100"}`}
                   src={`/images/froglin${enemyFroglin}-large.webp`}
-                  width="160px"
-                  height="160px"
+                  width="150px"
+                  height="150px"
                   alt="froglin"
                 />
-                <span className="pb-6 min-h-3">{names[enemyFroglin][0]}</span>
+                <span>{names[enemyFroglin][0]}</span>
               </>
             ) : (
               <>
-                <div className="w-[160px] h-[160px] p-2 border-2 border-white flex items-center justify-center">
+                <div
+                  className={`w-[150px] h-[150px] mb-2 border-2 border-white flex items-center justify-center transition-opacity duration-500 ${changing ? "opacity-0" : "opacity-100"}`}
+                >
                   Tap here to select a Froglin to swap for
                 </div>
-                <span className="py-6 min-h-3">???</span>
+                <span>???</span>
               </>
             )}
           </div>

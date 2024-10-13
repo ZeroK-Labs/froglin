@@ -7,6 +7,7 @@ import { useGameEvent, useModalState } from "frontend/stores";
 
 export default function BattleModal() {
   const [enemyFroglin, setEnemyFroglin] = useState<number | null>(null);
+  const [changing, setChanging] = useState(false);
 
   const { selectedFroglin } = useGameEvent();
   const { modal } = useModalState();
@@ -14,15 +15,24 @@ export default function BattleModal() {
   const visible = modal === MODALS.BATTLE;
 
   function changeFroglin(ev: React.MouseEvent) {
-    setEnemyFroglin((prev) => {
-      if (prev === null) {
-        return selectedFroglin === 0 ? (selectedFroglin + 1) % names.length : 0;
-      }
-      if (prev + 1 === selectedFroglin) {
-        return (prev + 2) % names.length;
-      }
-      return (prev + 1) % names.length;
-    });
+    setChanging(true);
+
+    setTimeout(
+      () => {
+        setChanging(false);
+
+        setEnemyFroglin((prev) => {
+          if (prev === null) {
+            return selectedFroglin === 0 ? (selectedFroglin + 1) % names.length : 0;
+          }
+          if (prev + 1 === selectedFroglin) {
+            return (prev + 2) % names.length;
+          }
+          return (prev + 1) % names.length;
+        });
+      }, //
+      300,
+    );
 
     ev.stopPropagation();
   }
@@ -47,15 +57,16 @@ export default function BattleModal() {
         <div className="flex flex-row w-full justify-between items-center my-6 relative gap-8">
           <div>
             <img
+              className="mb-2"
               src={`/images/froglin${selectedFroglin}-large.webp`}
-              width="160px"
-              height="160px"
+              width="150px"
+              height="150px"
               alt="froglin"
             />
-            <span className="pb-6">{names[selectedFroglin][0]}</span>
+            <span>{names[selectedFroglin][0]}</span>
           </div>
 
-          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-7xl font-bold text-yellow-600">
+          <div className="z-50 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-10 text-7xl font-bold text-yellow-600">
             VS
           </div>
 
@@ -63,19 +74,22 @@ export default function BattleModal() {
             {enemyFroglin !== null ? (
               <>
                 <img
+                  className={`mb-2 transition-opacity duration-500 ${changing ? "opacity-0" : "opacity-100"}`}
                   src={`/images/froglin${enemyFroglin}-large.webp`}
-                  width="160px"
-                  height="160px"
+                  width="150px"
+                  height="150px"
                   alt="froglin"
                 />
-                <span className="pb-6 min-h-3">{names[enemyFroglin][0]}</span>
+                <span>{names[enemyFroglin][0]}</span>
               </>
             ) : (
               <>
-                <div className="w-[160px] h-[160px] border-2 border-white flex items-center justify-center">
+                <div
+                  className={`w-[150px] h-[150px] mb-2 border-2 border-white flex items-center justify-center transition-opacity duration-500 ${changing ? "opacity-0" : "opacity-100"}`}
+                >
                   Select Oponent
                 </div>
-                <span className="py-6 min-h-3">???</span>
+                <span>???</span>
               </>
             )}
           </div>
