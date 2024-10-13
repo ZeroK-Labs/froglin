@@ -46,7 +46,7 @@ export function MenuPopupList({ open, setOpen }: Props) {
   }
 
   function handleNoticesClick(ev: React.MouseEvent) {
-    handleModalChange(MODALS.NOTICES, ev);
+    handleModalChange(MODALS.NOTICEBOARD, ev);
   }
 
   function handleClaimsClick(ev: React.MouseEvent) {

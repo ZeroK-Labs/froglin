@@ -14,7 +14,7 @@ export default function NoticeBoardModal() {
   const { modal } = useModalState();
   const { aztec, registered, traderId } = usePlayer();
 
-  const visible = modal === MODALS.NOTICES;
+  const visible = modal === MODALS.NOTICEBOARD;
 
   async function handleCancel(proposalId: number) {
     if (!aztec || !registered) return;
@@ -102,7 +102,7 @@ export default function NoticeBoardModal() {
       title="Noticeboard"
       visible={visible}
     >
-      <div className="max-h-[650px] flex flex-col">
+      <div className="flex flex-col">
         {offers.length > 0
           ? offers.map((offer) => {
               console.log(offer, traderId, offer.trader_id === traderId);

@@ -43,7 +43,7 @@ export default function BattleModal() {
       title="Battle"
       visible={visible}
     >
-      <div className="max-h-[650px] flex flex-col">
+      <div className="flex flex-col">
         <div className="flex flex-row w-full justify-between items-center my-6 relative gap-8">
           <div>
             <img

@@ -57,7 +57,7 @@ export default function AlbumModal() {
       title="Album"
       visible={visible}
     >
-      <div className="max-h-[650px] flex flex-col">
+      <div className="flex flex-col">
         <div className="mt-3 mb-4 grid grid-cols-3 gap-4">
           {stash.map((count, index) => (
             <div

@@ -18,7 +18,7 @@ export default function InfoBarsContainer() {
           MODALS.BATTLE,
           MODALS.SWAP,
           MODALS.DATE,
-          MODALS.NOTICES,
+          MODALS.NOTICEBOARD,
           MODALS.CLAIMS,
         ].includes(modal)
           ? 1

@@ -52,7 +52,7 @@ export default function FroglinModal() {
       title={names[selectedFroglin][0]}
       visible={visible}
     >
-      <div className="max-h-[650px] flex flex-col">
+      <div className="flex flex-col">
         <div className="flex flex-col items-center">
           <img
             className="py-2"
