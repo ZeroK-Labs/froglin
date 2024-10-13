@@ -13,7 +13,7 @@ export default function BattleModal() {
 
   const visible = modal === MODALS.BATTLE;
 
-  function changeFroglin() {
+  function changeFroglin(ev: React.MouseEvent) {
     setEnemyFroglin((prev) => {
       if (prev === null) {
         return selectedFroglin === 0 ? (selectedFroglin + 1) % names.length : 0;
@@ -23,6 +23,8 @@ export default function BattleModal() {
       }
       return (prev + 1) % names.length;
     });
+
+    ev.stopPropagation();
   }
 
   useEffect(

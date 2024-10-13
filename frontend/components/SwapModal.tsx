@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
@@ -15,7 +15,7 @@ export default function SwapModal() {
 
   const visible = modal === MODALS.SWAP;
 
-  function changeFroglin() {
+  function changeFroglin(ev: React.MouseEvent) {
     setEnemyFroglin((prev) => {
       if (prev === null) {
         return selectedFroglin === 0 ? (selectedFroglin + 1) % names.length : 0;
@@ -25,6 +25,8 @@ export default function SwapModal() {
       }
       return (prev + 1) % names.length;
     });
+
+    ev.stopPropagation();
   }
 
   async function createSwapOffer() {

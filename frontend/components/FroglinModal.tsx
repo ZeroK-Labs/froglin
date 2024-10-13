@@ -25,6 +25,19 @@ export default function FroglinModal() {
 
   if (selectedFroglin === null) return null;
 
+  function handleModalChange(modal: MODALS, ev: React.MouseEvent) {
+    setModal(modal);
+    ev.stopPropagation();
+  }
+
+  function handleBattleButtonClick(ev: React.MouseEvent) {
+    handleModalChange(MODALS.BATTLE, ev);
+  }
+
+  function handleSwapButtonClick(ev: React.MouseEvent) {
+    handleModalChange(MODALS.SWAP, ev);
+  }
+
   return (
     <Modal
       className="top-4"
@@ -49,21 +62,17 @@ export default function FroglinModal() {
         <button
           type="button"
           className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-gray-900"
-          onClick={() => {
-            setModal(MODALS.BATTLE);
-          }}
+          onClick={handleBattleButtonClick}
         >
-          🗡️ Send to battle
+          🗡️ Send to Battle
         </button>
 
         <button
           type="button"
           className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-blue-800"
-          onClick={() => {
-            setModal(MODALS.SWAP);
-          }}
+          onClick={handleSwapButtonClick}
         >
-          🔄 Swap
+          🔄 Offer to Swap
         </button>
 
         <button
@@ -71,7 +80,7 @@ export default function FroglinModal() {
           className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-red-500"
           onClick={() => {}}
         >
-          ❤️ Send on a date
+          ❤️ Send on a Date
         </button>
       </div>
     </Modal>
