@@ -10,7 +10,7 @@ export function MenuPopupListItem({
   return (
     <>
       <button
-        className="p-4 hover:bg-main-purple-hover"
+        className="p-4 rounded-md hover:bg-main-purple-hover"
         onClick={onClick}
       >
         <div className="text-lg">{text}</div>
