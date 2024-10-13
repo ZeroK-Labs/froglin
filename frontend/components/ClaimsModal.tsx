@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { names } from "frontend/components/FroglinModal";
-import { type SwapOffer } from "frontend/types";
+import type { SwapOfferResponse, SwapOffer } from "frontend/types";
 import { useModalState, usePlayer } from "frontend/stores";
 
 export default function ClaimsModal() {
@@ -20,9 +20,8 @@ export default function ClaimsModal() {
       async function fetchClaims() {
         if (!aztec || !registered || !visible || !traderId) return;
 
-        const claimsResponse = await aztec.contracts.gateway.methods
-          .view_all_proposals()
-          .simulate();
+        const claimsResponse: SwapOfferResponse[] =
+          await aztec.contracts.gateway.methods.view_all_proposals().simulate();
 
         console.log("claims", claimsResponse);
         const res = await aztec.contracts.gateway.methods
@@ -33,31 +32,19 @@ export default function ClaimsModal() {
 
         const numberList: SwapOffer[] = [];
 
-        claimsResponse.forEach(
-          ({
-            trader_id,
-            offered_froglin_type,
-            wanted_froglin_type,
-            status,
-            id,
-          }: {
-            trader_id: bigint;
-            offered_froglin_type: bigint;
-            wanted_froglin_type: bigint;
-            status: bigint;
-            id: bigint;
-          }) => {
-            if (id !== 101n) {
-              numberList.push({
-                trader_id: trader_id,
-                offered_froglin_type: Number(offered_froglin_type),
-                wanted_froglin_type: Number(wanted_froglin_type),
-                status: Number(status),
-                id: Number(id),
-              });
-            }
-          },
-        );
+        for (let i = 0; i !== claimsResponse.length; ++i) {
+          const claim = claimsResponse[i];
+          if (claim.id === 101n) continue;
+
+          numberList.push({
+            trader_id: claim.trader_id,
+            offered_froglin_type: Number(claim.offered_froglin_type),
+            wanted_froglin_type: Number(claim.wanted_froglin_type),
+            status: Number(claim.status),
+            id: Number(claim.id),
+          });
+        }
+
         setClaims(numberList);
       }
 

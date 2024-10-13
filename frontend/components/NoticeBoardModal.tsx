@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { names } from "frontend/components/FroglinModal";
-import { type SwapOffer } from "frontend/types";
+import type { SwapOfferResponse, SwapOffer } from "frontend/types";
 import { useModalState, usePlayer } from "frontend/stores";
 
 export default function NoticeBoardModal() {
@@ -60,39 +60,26 @@ export default function NoticeBoardModal() {
       async function fetchOffers() {
         if (!aztec || !registered || !visible) return;
 
-        const offersResponse = await aztec.contracts.gateway.methods
-          .view_active_swap_proposals()
-          .simulate();
+        const offersResponse: SwapOfferResponse[] =
+          await aztec.contracts.gateway.methods.view_active_swap_proposals().simulate();
 
         if (!offersResponse || offersResponse.length === 0) return;
 
         const numberList: SwapOffer[] = [];
 
-        offersResponse.forEach(
-          ({
-            trader_id,
-            offered_froglin_type,
-            wanted_froglin_type,
-            status,
-            id,
-          }: {
-            trader_id: bigint;
-            offered_froglin_type: bigint;
-            wanted_froglin_type: bigint;
-            status: bigint;
-            id: bigint;
-          }) => {
-            if (id !== 101n) {
-              numberList.push({
-                trader_id,
-                offered_froglin_type: Number(offered_froglin_type),
-                wanted_froglin_type: Number(wanted_froglin_type),
-                status: Number(status),
-                id: Number(id),
-              });
-            }
-          },
-        );
+        for (let i = 0; i !== offersResponse.length; ++i) {
+          const offer = offersResponse[i];
+          if (offer.id === 101n) continue;
+
+          numberList.push({
+            trader_id: offer.trader_id,
+            offered_froglin_type: Number(offer.offered_froglin_type),
+            wanted_froglin_type: Number(offer.wanted_froglin_type),
+            status: Number(offer.status),
+            id: Number(offer.id),
+          });
+        }
+
         setOffers(numberList);
       }
 
