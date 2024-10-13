@@ -27,34 +27,30 @@ export function MenuPopupList({ open, setOpen }: Props) {
     );
   }
 
-  function handleTutorialClick(ev: React.MouseEvent) {
+  function handleModalChange(modal: MODALS, ev: React.MouseEvent) {
     setOpen(false);
-    setModal(MODALS.TUTORIAL);
+    setModal(modal);
     ev.stopPropagation();
+  }
+
+  function handleTutorialClick(ev: React.MouseEvent) {
+    handleModalChange(MODALS.TUTORIAL, ev);
   }
 
   function handleLeaderBoardClick(ev: React.MouseEvent) {
-    setOpen(false);
-    setModal(MODALS.LEADERBOARD);
-    ev.stopPropagation();
+    handleModalChange(MODALS.LEADERBOARD, ev);
   }
 
   function handleAlbumClick(ev: React.MouseEvent) {
-    setOpen(false);
-    setModal(MODALS.ALBUM);
-    ev.stopPropagation();
+    handleModalChange(MODALS.ALBUM, ev);
   }
 
   function handleNoticesClick(ev: React.MouseEvent) {
-    setOpen(false);
-    setModal(MODALS.NOTICES);
-    ev.stopPropagation();
+    handleModalChange(MODALS.NOTICES, ev);
   }
 
   function handleClaimsClick(ev: React.MouseEvent) {
-    setOpen(false);
-    setModal(MODALS.CLAIMS);
-    ev.stopPropagation();
+    handleModalChange(MODALS.CLAIMS, ev);
   }
 
   useEffect(
