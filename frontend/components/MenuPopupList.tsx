@@ -70,7 +70,7 @@ export function MenuPopupList({ open, setOpen }: Props) {
     <div
       className={`absolute bottom-14 -left-2 p-2 border rounded-md shadow-lg shadow-main-purple/80 bg-gray-800 transition-opacity
         ${open ? "opacity-90" : "opacity-0 pointer-events-none"}
-        ${aztec ? "w-[25rem] grid grid-cols-3 grid-rows-2 gap-1" : ""}`}
+        ${aztec ? "min-w-max grid grid-cols-3 grid-rows-2 gap-1" : ""}`}
       style={{
         transitionDuration: `${VIEW.LINE_MENU_FADE_DURATION}ms`,
       }}
