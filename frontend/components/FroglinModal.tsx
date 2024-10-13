@@ -1,6 +1,6 @@
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
-import { useGameEvent, useModalState } from "frontend/stores";
+import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
 
 export const names = [
   ["Quagalia", "A froglin that loves to hop around and explore the world."],
@@ -20,14 +20,20 @@ export const names = [
 export default function FroglinModal() {
   const { selectedFroglin } = useGameEvent();
   const { modal, setModal } = useModalState();
-
-  const visible = modal === MODALS.FROGLIN_MENU;
+  const { stash } = usePlayer();
 
   if (selectedFroglin === null) return null;
+
+  const visible = modal === MODALS.FROGLIN_MENU;
+  const disabled = stash[selectedFroglin] === 0;
 
   function handleModalChange(modal: MODALS, ev: React.MouseEvent) {
     setModal(modal);
     ev.stopPropagation();
+  }
+
+  function handleAlbumButtonClick(ev: React.MouseEvent) {
+    handleModalChange(MODALS.ALBUM, ev);
   }
 
   function handleBattleButtonClick(ev: React.MouseEvent) {
@@ -59,27 +65,39 @@ export default function FroglinModal() {
 
         <button
           type="button"
-          className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-gray-900"
-          onClick={handleBattleButtonClick}
+          className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-gray-500"
+          onClick={handleAlbumButtonClick}
         >
-          🗡️ Send to Battle
+          ◀️ Back to Album
         </button>
 
-        <button
-          type="button"
-          className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-blue-800"
-          onClick={handleSwapButtonClick}
-        >
-          🔄 Offer to Swap
-        </button>
+        {disabled ? null : (
+          <>
+            <button
+              type="button"
+              className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-gray-900"
+              onClick={handleBattleButtonClick}
+            >
+              🗡️ Send to Battle
+            </button>
 
-        <button
-          type="button"
-          className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-red-500"
-          onClick={() => {}}
-        >
-          ❤️ Send on a Date
-        </button>
+            <button
+              type="button"
+              className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-blue-800"
+              onClick={handleSwapButtonClick}
+            >
+              🔄 Offer to Swap
+            </button>
+
+            <button
+              type="button"
+              className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-red-500"
+              onClick={() => {}}
+            >
+              ❤️ Send on a Date
+            </button>
+          </>
+        )}
       </div>
     </Modal>
   );
