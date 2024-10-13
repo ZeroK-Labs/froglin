@@ -10,6 +10,9 @@ type Player = {
   setUsername: Dispatch<SetStateAction<string>>;
   setSecret: Dispatch<SetStateAction<string>>;
   aztec: AccountWithContracts | null;
+
+  stash: number[];
+  fetchStash: () => void;
 };
 
 export default Player;

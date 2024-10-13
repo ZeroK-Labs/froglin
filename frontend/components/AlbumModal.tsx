@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-import { FROGLIN } from "frontend/settings";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { names } from "./FroglinModal";
@@ -11,11 +10,9 @@ import {
 } from "frontend/utils/KeyboardShortcuts";
 
 export default function AlbumModal() {
-  const [stash, setStash] = useState<number[]>(() => Array(FROGLIN.TYPE_COUNT).fill(0));
-
-  const { modal, setModal } = useModalState();
-  const { aztec, registered } = usePlayer();
   const { capturedFroglins, setSelectedFroglin } = useGameEvent();
+  const { modal, setModal } = useModalState();
+  const { stash, fetchStash } = usePlayer();
 
   const visible = modal === MODALS.ALBUM;
 
@@ -24,30 +21,21 @@ export default function AlbumModal() {
     setTimeout(setModal, 0, MODALS.FROGLIN_MENU);
   }
 
+  // handle stash updates
   useEffect(
     () => {
-      async function fetchStash() {
-        if (!aztec || !registered || !visible) return;
-
-        const playerAddress = aztec.wallet.getAddress();
-        const stash = await aztec.contracts.gateway.methods
-          .view_stash(playerAddress)
-          .simulate();
-
-        if (!stash || stash.length === 0) return;
-
-        const numberList = stash.map((bi: bigint) => Number(bi));
-        setStash(numberList);
-      }
-
       fetchStash();
     }, //
-    [aztec, registered, capturedFroglins.length, visible],
+    [capturedFroglins.length],
   );
 
   useEffect(
     () => {
-      if (visible) return;
+      if (visible) {
+        fetchStash();
+
+        return;
+      }
 
       function handleKeyPress(ev: KeyboardEvent) {
         if (ev.key === "b") setTimeout(setModal, 0, MODALS.ALBUM);

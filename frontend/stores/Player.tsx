@@ -1,7 +1,8 @@
 import toast from "react-hot-toast";
-import { AztecAddress, AccountWallet, createPXEClient, Fr } from "@aztec/aztec.js";
+import { AztecAddress, type AccountWallet, createPXEClient, Fr } from "@aztec/aztec.js";
 import { SetStateAction, useEffect, useState } from "react";
 
+import { FROGLIN } from "frontend/settings";
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { StoreFactory, usePXEState } from "frontend/stores";
 import { addSocketEventHandler } from "frontend/utils/sockets";
@@ -20,13 +21,27 @@ function createState(): Player {
   const [username, setUsername] = useState<string>("");
   const [traderId, setTraderId] = useState<bigint | null>(null);
   const [registered, setRegistered] = useState<boolean>(false);
+  const [stash, setStash] = useState<number[]>(() => Array(FROGLIN.TYPE_COUNT).fill(0));
 
   const { pxeClient, pxeURL } = usePXEState();
+
+  async function fetchStash() {
+    if (!wallet || !gateway || !registered) return;
+
+    const playerAddress = wallet.getAddress();
+    const stash = await gateway.methods.view_stash(playerAddress).simulate();
+
+    if (!stash || stash.length === 0) return;
+
+    const numberList = stash.map((bi: bigint) => Number(bi));
+    setStash(numberList);
+  }
 
   useEffect(
     () => {
       if (!(pxeClient && secret)) {
         setUsername("");
+
         return;
       }
 
@@ -133,6 +148,8 @@ function createState(): Player {
           setTraderId(profile.trader_id);
           setUsername(name);
           setRegistered(true);
+          fetchStash();
+
           toast(`Welcome ${name}!`);
 
           return;
@@ -174,6 +191,8 @@ function createState(): Player {
       localStorage.setItem("secret", newSecret);
       setSecret(newSecret);
     },
+    stash,
+    fetchStash,
     aztec:
       pxeClient && wallet && gateway
         ? {
