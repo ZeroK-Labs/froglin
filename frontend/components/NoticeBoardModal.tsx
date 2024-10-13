@@ -9,10 +9,10 @@ import { useModalState, usePlayer } from "frontend/stores";
 
 export default function NoticeBoardModal() {
   const [offers, setOffers] = useState<SwapOffer[]>([]);
-  const [refetch, setRefetch] = useState<boolean>(false);
+  const [refetch, setRefetch] = useState<boolean>(true);
 
   const { modal } = useModalState();
-  const { aztec, registered, traderId, stash } = usePlayer();
+  const { aztec, registered, traderId, stash, fetchStash } = usePlayer();
 
   const visible = modal === MODALS.NOTICEBOARD;
 
@@ -26,7 +26,7 @@ export default function NoticeBoardModal() {
         .cancel_swap_proposal(proposalId)
         .send()
         .wait();
-      setRefetch(!refetch);
+      setRefetch(true);
     } catch (error) {
       console.error("Error canceling swap offer:", error);
       toast.error("Failed to cancel swap offer!", { id: toastId });
@@ -46,7 +46,7 @@ export default function NoticeBoardModal() {
         .send()
         .wait();
 
-      setRefetch(!refetch);
+      setRefetch(true);
     } catch (error) {
       console.error("Error accepting swap offer:", error);
       toast.error("Failed to accept swap offer!", { id: toastId });
@@ -58,7 +58,9 @@ export default function NoticeBoardModal() {
   useEffect(
     () => {
       async function fetchOffers() {
-        if (!aztec || !registered || !visible) return;
+        if (!aztec || !registered || !visible || !refetch) return;
+
+        fetchStash();
 
         const offersResponse: SwapOfferResponse[] =
           await aztec.contracts.gateway.methods.view_active_swap_proposals().simulate();
@@ -81,6 +83,7 @@ export default function NoticeBoardModal() {
         }
 
         setOffers(numberList);
+        setRefetch(false);
       }
 
       fetchOffers();
