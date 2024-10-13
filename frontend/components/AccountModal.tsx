@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { disableShortcuts, enableShortcuts } from "frontend/utils/KeyboardShortcuts";
 import { useModalState, usePXEState, usePlayer } from "frontend/stores";
+import { mobileClient } from "frontend/utils/window";
 
 const INPUT_KEY_LENGTH = 50;
 const INPUT_TIMEOUT = 150;
@@ -60,7 +61,7 @@ export default function AccountModal() {
     inputDisabledRef.current = true;
   }
 
-  function handlePointerMove(ev: React.MouseEvent) {
+  function handlePointerMove(ev: React.TouchEvent | React.MouseEvent) {
     if (inputDisabledRef.current) return;
 
     if (inputKey.length >= INPUT_KEY_LENGTH) return;
@@ -68,10 +69,20 @@ export default function AccountModal() {
     const now = Date.now();
     if (now - lastInputTimeRef.current < INPUT_TIMEOUT) return;
 
-    if (!ev.screenX || !ev.screenY) return;
+    let screenX = 0;
+    let screenY = 0;
 
-    const x = Math.floor(ev.screenX);
-    const y = Math.floor(ev.screenY);
+    if ("touches" in ev) {
+      screenX = ev.touches[0].clientX;
+      screenY = ev.touches[0].clientY;
+    } //
+    else {
+      screenX = ev.screenX;
+      screenY = ev.screenY;
+    }
+
+    const x = Math.floor(screenX);
+    const y = Math.floor(screenY);
     const sum = Math.abs((x + y) % 1024).toString();
 
     setInputKey((prev) => prev + sum);
@@ -162,8 +173,10 @@ export default function AccountModal() {
               : {
                   onPointerDown: handlePointerDown,
                   onPointerUp: handlePointerUp,
-                  onPointerMove: handlePointerMove,
                 })}
+            {...(mobileClient
+              ? { onTouchMove: handlePointerMove }
+              : { onMouseMove: handlePointerMove })}
           >
             Move your finger randomly inside this blue area to generate a secret number
           </div>
