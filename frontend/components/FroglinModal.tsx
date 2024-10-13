@@ -1,6 +1,7 @@
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
+import { FroglinMenuButton } from "./FroglinMenuButton";
 
 export const names = [
   ["Quagalia", "A froglin that loves to hop around and explore the world."],
@@ -63,39 +64,33 @@ export default function FroglinModal() {
           <span className="py-4">{names[selectedFroglin][1]}</span>
         </div>
 
-        <button
-          type="button"
-          className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-gray-500"
+        <FroglinMenuButton
+          color="bg-gray-500"
+          icon="◀️"
+          text="Back to Album"
           onClick={handleAlbumButtonClick}
-        >
-          ◀️ Back to Album
-        </button>
+        />
 
         {disabled ? null : (
           <>
-            <button
-              type="button"
-              className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-gray-900"
+            <FroglinMenuButton
+              color="bg-gray-900"
+              icon="🗡️"
+              text="Send to Battle"
               onClick={handleBattleButtonClick}
-            >
-              🗡️ Send to Battle
-            </button>
-
-            <button
-              type="button"
-              className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-blue-800"
+            />
+            <FroglinMenuButton
+              color="bg-blue-800"
+              icon="🔄"
+              text="Offer to Swap"
               onClick={handleSwapButtonClick}
-            >
-              🔄 Offer to Swap
-            </button>
-
-            <button
-              type="button"
-              className="rounded-md px-4 py-2 my-2 text-md font-semibold shadow-sm text-white bg-red-500"
+            />
+            <FroglinMenuButton
+              color="bg-red-500"
+              icon="❤️"
+              text="Send on a Date"
               onClick={() => {}}
-            >
-              ❤️ Send on a Date
-            </button>
+            />
           </>
         )}
       </div>
