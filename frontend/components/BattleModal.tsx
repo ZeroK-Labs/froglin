@@ -101,10 +101,16 @@ export default function BattleModal() {
           </div>
         </div>
 
-        <div className="flex flex-col mb-6 text-sm">
-          <span>🗡️ beats 🛡️</span>
-          <span>🛡️ beats 🏹</span>
-          <span>🏹 beats 🗡️</span>
+        <div className="w-[100px] mx-auto mb-6 text-sm grid grid-cols-3 grid-rows-3">
+          <span>🗡️</span>
+          <span>beats</span>
+          <span>🛡️</span>
+          <span>🛡️</span>
+          <span>beats</span>
+          <span>🏹</span>
+          <span>🏹</span>
+          <span>beats</span>
+          <span>🗡️</span>
         </div>
 
         <div className="flex flex-row justify-between items-center gap-4 pb-8">
