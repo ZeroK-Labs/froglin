@@ -622,8 +622,10 @@ contract FroglinGateway {
         let mut claimable_proposals: [SwapProposal; 10] = [SwapProposal::empty(); 10];
         for i in 0..proposal_count {
             let proposal = storage.swap_proposals.at(i).read();
-            if (proposal.status == 2) & (i < 10) & (proposal.trader_id == trader_id) {
-                claimable_proposals[i] = proposal;
+            if (proposal.status == 2) & (i < 10) {
+                if (proposal.trader_id == trader_id) {
+                    claimable_proposals[i] = proposal;
+                }
             }
         }
 
