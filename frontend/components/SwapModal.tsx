@@ -9,7 +9,6 @@ import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
 
 export default function SwapModal() {
   const [enemyFroglin, setEnemyFroglin] = useState<number | null>(null);
-  const [changing, setChanging] = useState(false);
 
   const { selectedFroglin } = useGameEvent();
   const { modal, setModal } = useModalState();
@@ -18,24 +17,15 @@ export default function SwapModal() {
   const visible = modal === MODALS.SWAP;
 
   function changeFroglin(ev: React.MouseEvent) {
-    setChanging(true);
-
-    setTimeout(
-      () => {
-        setChanging(false);
-
-        setEnemyFroglin((prev) => {
-          if (prev === null) {
-            return selectedFroglin === 0 ? (selectedFroglin + 1) % names.length : 0;
-          }
-          if (prev + 1 === selectedFroglin) {
-            return (prev + 2) % names.length;
-          }
-          return (prev + 1) % names.length;
-        });
-      }, //
-      300,
-    );
+    setEnemyFroglin((prev) => {
+      if (prev === null) {
+        return selectedFroglin === 0 ? (selectedFroglin + 1) % names.length : 0;
+      }
+      if (prev + 1 === selectedFroglin) {
+        return (prev + 2) % names.length;
+      }
+      return (prev + 1) % names.length;
+    });
 
     ev.stopPropagation();
   }
@@ -47,10 +37,16 @@ export default function SwapModal() {
     setModal(MODALS.NONE);
 
     const toastId = toast.loading("Creating swap offer...");
-    await aztec.contracts.gateway.methods
-      .create_swap_proposal(selectedFroglin, enemyFroglin)
-      .send()
-      .wait();
+    try {
+      await aztec.contracts.gateway.methods
+        .create_swap_proposal(selectedFroglin, enemyFroglin)
+        .send()
+        .wait();
+    } catch (error) {
+      console.error("Error creating swap:", error);
+      toast.error("Failed to create swap offer!", { id: toastId });
+    }
+
     toast.success("Swap offer created!", { id: toastId });
   }
 
@@ -92,7 +88,7 @@ export default function SwapModal() {
             {enemyFroglin !== null ? (
               <>
                 <img
-                  className={`mb-2 transition-opacity duration-500 ${changing ? "opacity-0" : "opacity-100"}`}
+                  className={`mb-2`}
                   src={`/images/froglin${enemyFroglin}-large.webp`}
                   width="150px"
                   height="150px"
@@ -103,7 +99,7 @@ export default function SwapModal() {
             ) : (
               <>
                 <div
-                  className={`w-[150px] h-[150px] mb-2 border-2 border-white flex items-center justify-center transition-opacity duration-500 ${changing ? "opacity-0" : "opacity-100"}`}
+                  className={`w-[150px] h-[150px] mb-2 border-2 border-white flex items-center justify-center`}
                 >
                   Tap here to select a Froglin to swap for
                 </div>
