@@ -1,9 +1,13 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, Dispatch, SetStateAction } from "react";
 
-import type { LineMenuProps } from "frontend/types";
-import { LineMenuButtonElement } from "./LineMenuButtonElement";
+import { MenuButtonElement } from "./MenuButtonElement";
 
-export function LineMenuButton({ open, setOpen }: LineMenuProps) {
+type Props = {
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+};
+
+export function MenuButton({ open, setOpen }: Props) {
   const divRef = useRef<HTMLDivElement>(null);
   const lineElementsRef = useRef<HTMLCollectionOf<Element>>();
   const mouseOverRef = useRef(false);
@@ -74,9 +78,9 @@ export function LineMenuButton({ open, setOpen }: LineMenuProps) {
       onPointerLeave={handlePointerLeave}
       onTouchMove={handlePointerMove}
     >
-      <LineMenuButtonElement css={css1} />
-      <LineMenuButtonElement css={css2} />
-      <LineMenuButtonElement css={css3} />
+      <MenuButtonElement css={css1} />
+      <MenuButtonElement css={css2} />
+      <MenuButtonElement css={css3} />
     </div>
   );
 }

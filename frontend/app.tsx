@@ -10,12 +10,17 @@ import {
 } from "frontend/stores";
 import {
   AccountModal,
+  BattleModal,
   CapturedFroglinList,
+  ClaimsModal,
   CreateAccountButton,
+  FroglinModal,
   InfoBarsContainer,
   LeaderBoardModal,
-  LineMenu,
   Map,
+  Menu,
+  NoticeBoardModal,
+  SwapModal,
   ToastView,
   TutorialModal,
 } from "frontend/components";
@@ -31,13 +36,18 @@ function AppComponent() {
 
       <InfoBarsContainer />
       <CapturedFroglinList />
-      <LineMenu />
+      <Menu />
       <TutorialModal />
       {pxeClient ? (
         hasSecret ? (
           <>
             <LeaderBoardModal />
             <AlbumModal />
+            <FroglinModal />
+            <BattleModal />
+            <SwapModal />
+            <NoticeBoardModal />
+            <ClaimsModal />
           </>
         ) : (
           <>

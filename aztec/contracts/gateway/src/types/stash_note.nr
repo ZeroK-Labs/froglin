@@ -82,6 +82,25 @@ impl StashNote {
         else if (slot == 4) { self.froglin_4 += 1; }
         else if (slot == 5) { self.froglin_5 += 1; }
     }
+
+    pub fn decrement_slot(&mut self, slot: u8) {
+        if      (slot == 0) { self.froglin_0 -= 1; }
+        else if (slot == 1) { self.froglin_1 -= 1; }
+        else if (slot == 2) { self.froglin_2 -= 1; }
+        else if (slot == 3) { self.froglin_3 -= 1; }
+        else if (slot == 4) { self.froglin_4 -= 1; }
+        else if (slot == 5) { self.froglin_5 -= 1; }
+    }
+
+    pub fn get_slot(&mut self, slot: u8) -> Field {
+        if      (slot == 0) { self.froglin_0 }
+        else if (slot == 1) { self.froglin_1 }
+        else if (slot == 2) { self.froglin_2 }
+        else if (slot == 3) { self.froglin_3 }
+        else if (slot == 4) { self.froglin_4 }
+        else if (slot == 5) { self.froglin_5 }
+        else { 0 }
+    }
 }
 
 impl Deserialize<STASH_NOTE_LEN> for StashNote {

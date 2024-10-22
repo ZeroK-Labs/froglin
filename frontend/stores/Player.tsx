@@ -1,10 +1,12 @@
 import toast from "react-hot-toast";
-import { AztecAddress, AccountWallet } from "@aztec/aztec.js";
+import { AztecAddress, type AccountWallet, createPXEClient, Fr } from "@aztec/aztec.js";
 import { SetStateAction, useEffect, useState } from "react";
 
 import type { Player } from "frontend/types";
+import { FROGLIN } from "frontend/settings";
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { StoreFactory, usePXEState } from "frontend/stores";
+import { addSocketEventHandler } from "frontend/utils/sockets";
 import { createWallet } from "common/utils/WalletManager";
 import { stringToBigInt, bigIntToString } from "common/utils/bigint";
 
@@ -17,14 +19,29 @@ function createState(): Player {
   const [gateway, setGateway] = useState<FroglinGatewayContract | null>(null);
   const [secret, setSecret] = useState(getSecret);
   const [username, setUsername] = useState<string>("");
+  const [traderId, setTraderId] = useState<bigint | null>(null);
   const [registered, setRegistered] = useState<boolean>(false);
+  const [stash, setStash] = useState<number[]>(() => Array(FROGLIN.TYPE_COUNT).fill(0));
 
   const { pxeClient, pxeURL } = usePXEState();
+
+  async function fetchStash() {
+    if (!wallet || !gateway || !registered) return;
+
+    const playerAddress = wallet.getAddress();
+    const stash = await gateway.methods.view_stash(playerAddress).simulate();
+
+    if (!stash || stash.length === 0) return;
+
+    const numberList = stash.map((bi: bigint) => Number(bi));
+    setStash(numberList);
+  }
 
   useEffect(
     () => {
       if (!(pxeClient && secret)) {
         setUsername("");
+
         return;
       }
 
@@ -70,6 +87,48 @@ function createState(): Player {
           return;
         }
 
+        let PXEs: string[] = [];
+        try {
+          const response = await fetch(`${process.env.BACKEND_URL}/PXEs`);
+          PXEs = await response.json();
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (_err) {
+          return;
+        }
+
+        let promises: Promise<any>[] = [];
+
+        for (const playerPXEURL of PXEs) {
+          if (playerPXEURL === pxeURL) continue;
+
+          const pxeClient = createPXEClient(playerPXEURL);
+          promises.push(
+            pxeClient.registerAccount(
+              new Fr(BigInt(secret)),
+              wallet.getCompleteAddress().partialAddress,
+            ),
+          );
+        }
+
+        await Promise.all(promises);
+
+        async function handleNewPlayerJoined(ev: MessageEvent<string>) {
+          if (!ev.data.includes("newPlayer ")) return;
+
+          const url = ev.data.split(" ")[1];
+
+          if (!url) return;
+          if (url === pxeURL) return;
+
+          const pxeClient = createPXEClient(url);
+          await pxeClient.registerAccount(
+            new Fr(BigInt(secret)),
+            wallet.getCompleteAddress().partialAddress,
+          );
+        }
+
+        addSocketEventHandler("message", handleNewPlayerJoined);
+
         toast.success("Wallet initialized!", { id: toastId });
 
         const registered = await contract.methods
@@ -82,8 +141,15 @@ function createState(): Player {
             .simulate();
           const name = bigIntToString(nameAsBigInt);
 
+          const profile = await contract.methods
+            .view_profile(wallet.getAddress())
+            .simulate();
+
+          setTraderId(profile.trader_id);
           setUsername(name);
           setRegistered(true);
+          fetchStash();
+
           toast(`Welcome ${name}!`);
 
           return;
@@ -94,6 +160,7 @@ function createState(): Player {
           // toast.error("Failed to register player");
           localStorage.removeItem("secret");
           setSecret("");
+
           return;
         }
 
@@ -101,19 +168,22 @@ function createState(): Player {
 
         const nameAsBigInt = stringToBigInt(username);
         await contract.methods.register(nameAsBigInt).send().wait();
+
         setRegistered(true);
+
         toast.success("Player registered!", { id: toastId });
         setTimeout(toast, 750, `Welcome ${username}!`);
       }
 
       initializeWallet();
     }, //
-    [pxeClient, secret],
+    [pxeClient, pxeURL, secret],
   );
 
   return {
     username,
     setUsername,
+    traderId,
     registered,
     hasSecret: !!secret,
     setSecret: (newSecret: SetStateAction<string>) => {
@@ -121,6 +191,8 @@ function createState(): Player {
       localStorage.setItem("secret", newSecret);
       setSecret(newSecret);
     },
+    stash,
+    fetchStash,
     aztec:
       pxeClient && wallet && gateway
         ? {

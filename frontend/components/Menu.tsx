@@ -1,18 +1,18 @@
 import { useState } from "react";
 
-import { LineMenuButton } from "frontend/components/LineMenuButton";
-import { LineMenuPopupList } from "frontend/components/LineMenuPopupList";
+import { MenuButton } from "frontend/components/MenuButton";
+import { MenuPopupList } from "frontend/components/MenuPopupList";
 
-export default function LineMenu() {
+export default function Menu() {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="fixed bottom-6 left-6">
-      <LineMenuButton
+      <MenuButton
         open={open}
         setOpen={setOpen}
       />
-      <LineMenuPopupList
+      <MenuPopupList
         open={open}
         setOpen={setOpen}
       />

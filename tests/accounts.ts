@@ -25,7 +25,7 @@ function createPXE(): Promise<string> {
 }
 
 async function createPXEWallet(account: AccountWithContracts) {
-  account.pxe_url = await createPXE();
+  account.pxe_url = await createPXE(); // GAME_MASTER.pxe_url;
   account.pxe = createPXEClient(account.pxe_url);
   account.wallet = await createWallet(account.secret, account.pxe);
 }

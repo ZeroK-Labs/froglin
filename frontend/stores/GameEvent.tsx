@@ -43,6 +43,7 @@ function createState(): GameEventClient {
   const [revealedFroglins, setRevealedFroglins] = useState<Froglin[]>([]);
   const [capturedFroglins, setCapturedFroglins] = useState<Froglin[]>([]);
   const [capturing, setCapturing] = useState<boolean>(false);
+  const [selectedFroglin, setSelectedFroglin] = useState<number | null>(null);
 
   const location = useLocation();
   const { aztec, registered } = usePlayer();
@@ -328,6 +329,8 @@ function createState(): GameEventClient {
     capturing,
     capturedFroglins,
     captureFroglins,
+    selectedFroglin,
+    setSelectedFroglin,
   };
 }
 

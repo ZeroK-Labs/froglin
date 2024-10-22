@@ -13,6 +13,7 @@ import { createSocketServer, destroySocketServer } from "./utils/sockets";
 import {
   addSandboxWatcherEventHandler,
   startSandboxWatcher,
+  stopSandboxWatcher,
 } from "./utils/SandboxWatcher";
 import {
   getEventBounds,
@@ -23,6 +24,7 @@ import {
 } from "./endpoints";
 import { errorHandler } from "./middlewares/error-handler";
 import { asyncHandler } from "./utils/async-wrapper";
+import { getPlayerPXEs } from "./endpoints/PlayerPXEs";
 
 export const CLIENT_SESSION_DATA: { [key: string]: ClientSessionData } = {};
 
@@ -30,7 +32,13 @@ export const CLIENT_SESSION_DATA: { [key: string]: ClientSessionData } = {};
 function cleanup() {
   console.log("Shutting down...");
 
+  GAME_EVENT.stop();
+
+  stopSandboxWatcher();
+
   destroySocketServer();
+
+  if (!html_server) return;
 
   html_server.close(() => {
     process.exit();
@@ -50,6 +58,7 @@ app.use(express.json());
 app.get("/gateway", getGatewayAddress);
 app.get("/interest-points", getInterestPoints);
 app.get("/event-bounds", getEventBounds);
+app.get("/PXEs", getPlayerPXEs);
 
 app.post("/location", asyncHandler(setPlayerLocation));
 app.post("/reveal", revealFroglins);

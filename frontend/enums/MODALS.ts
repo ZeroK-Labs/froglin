@@ -4,6 +4,12 @@ enum MODALS {
   ACCOUNT = 2,
   LEADERBOARD = 3,
   ALBUM = 4,
+  FROGLIN = 5,
+  BATTLE = 6,
+  SWAP = 7,
+  DATE = 8,
+  NOTICEBOARD = 9,
+  CLAIMS = 10,
 }
 
 export default MODALS;

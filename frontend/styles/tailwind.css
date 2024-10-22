@@ -82,6 +82,9 @@ body::-webkit-scrollbar {
   font-weight: 600;
   font-size: 20px;
 }
+.no-text-shadow {
+  text-shadow: none !important;
+}
 
 .mapboxgl-ctrl-logo {
   display: none !important;

@@ -6,9 +6,13 @@ type Player = {
   hasSecret: boolean;
   registered: boolean;
   username: string;
+  traderId: bigint | null;
   setUsername: Dispatch<SetStateAction<string>>;
   setSecret: Dispatch<SetStateAction<string>>;
   aztec: AccountWithContracts | null;
+
+  stash: number[];
+  fetchStash: () => void;
 };
 
 export default Player;
