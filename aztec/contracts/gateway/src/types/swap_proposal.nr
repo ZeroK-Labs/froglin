@@ -1,6 +1,6 @@
 use dep::aztec::{protocol_types::{traits::{Deserialize, Serialize}}};
 
-global SWAP_PROPOSAL_FIELD_COUNT: Field = 5;
+global SWAP_PROPOSAL_FIELD_COUNT: u32 = 5;
 
 struct SwapProposal {
     trader_id: Field,

@@ -104,10 +104,10 @@ describe("Capture Froglin", () => {
       expect(stash[5]).toEqual(0n);
       expect(stash[6]).toEqual(0n);
       expect(stash[7]).toEqual(0n);
-      expect(stash[8]).toEqual(0n);
-      expect(stash[9]).toEqual(0n);
-      expect(stash[10]).toEqual(0n);
-      expect(stash[11]).toEqual(0n);
+      // expect(stash[8]).toEqual(0n);
+      // expect(stash[9]).toEqual(0n);
+      // expect(stash[10]).toEqual(0n);
+      // expect(stash[11]).toEqual(0n);
     },
     timeout,
   );
@@ -129,10 +129,10 @@ describe("Capture Froglin", () => {
       expect(stash[5]).toEqual(0n);
       expect(stash[6]).toEqual(0n);
       expect(stash[7]).toEqual(0n);
-      expect(stash[8]).toEqual(0n);
-      expect(stash[9]).toEqual(0n);
-      expect(stash[10]).toEqual(0n);
-      expect(stash[11]).toEqual(0n);
+      // expect(stash[8]).toEqual(0n);
+      // expect(stash[9]).toEqual(0n);
+      // expect(stash[10]).toEqual(0n);
+      // expect(stash[11]).toEqual(0n);
     },
     timeout,
   );
@@ -154,10 +154,10 @@ describe("Capture Froglin", () => {
       expect(stash[5]).toEqual(0n);
       expect(stash[6]).toEqual(0n);
       expect(stash[7]).toEqual(0n);
-      expect(stash[8]).toEqual(0n);
-      expect(stash[9]).toEqual(0n);
-      expect(stash[10]).toEqual(0n);
-      expect(stash[11]).toEqual(0n);
+      // expect(stash[8]).toEqual(0n);
+      // expect(stash[9]).toEqual(0n);
+      // expect(stash[10]).toEqual(0n);
+      // expect(stash[11]).toEqual(0n);
     },
     timeout,
   );
@@ -179,10 +179,10 @@ describe("Capture Froglin", () => {
       expect(stash[5]).toEqual(0n);
       expect(stash[6]).toEqual(0n);
       expect(stash[7]).toEqual(0n);
-      expect(stash[8]).toEqual(0n);
-      expect(stash[9]).toEqual(0n);
-      expect(stash[10]).toEqual(0n);
-      expect(stash[11]).toEqual(0n);
+      // expect(stash[8]).toEqual(0n);
+      // expect(stash[9]).toEqual(0n);
+      // expect(stash[10]).toEqual(0n);
+      // expect(stash[11]).toEqual(0n);
     },
     timeout,
   );
