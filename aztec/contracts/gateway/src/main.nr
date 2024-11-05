@@ -7,9 +7,10 @@ contract FroglinGateway {
     use dep::aztec::macros::{storage::storage, events::event, functions::{initializer, private, view, public, internal}};
     use dep::aztec::{
         keys::getters::get_public_keys, hash::compute_secret_hash,
-        encrypted_logs::encrypted_note_emission::encode_and_encrypt_note, prelude::{AztecAddress, Map, NoteGetterOptions},
+        encrypted_logs::encrypted_note_emission::encode_and_encrypt_note,
+        prelude::{AztecAddress, Map, NoteGetterOptions, NoteViewerOptions},
         state_vars::{PrivateMutable, PrivateSet, PrivateImmutable, PublicMutable, SharedImmutable},
-        utils::comparison::Comparator,
+        utils::comparison::Comparator
     };
     use dep::authwit::auth::{assert_current_call_valid_authwit, compute_authwit_nullifier};
     use dep::value_note::value_note::ValueNote;
@@ -215,17 +216,40 @@ contract FroglinGateway {
             froglin_type = proposal.offered_froglin_type;
         }
         // create winner note
-       let winner_keys = get_public_keys(winner);
-       let mut note = ValueNote::new(froglin_type.to_field(), winner_keys.npk_m.hash());
+        let winner_keys = get_public_keys(winner);
+        let mut note = ValueNote::new(froglin_type.to_field(), winner_keys.npk_m.hash());
 
-       storage.winners.at(winner).insert(&mut note).emit(encode_and_encrypt_note(
-            &mut context,
-            winner_keys.ovpk_m,
-            winner_keys.ivpk_m,
-            winner,
-        ));
+        storage.winners.at(winner).insert(&mut note).emit(encode_and_encrypt_note(&mut context, winner_keys.ovpk_m, winner_keys.ivpk_m, winner));
         // change status of the proposal to completed
         FroglinGateway::at(context.this_address())._change_battle_status(proposal_id, 3).enqueue(&mut context);
+    }
+    #[private]
+    fn claim_winnings(froglin_type: u8) {
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let mut options = NoteGetterOptions::new();
+        options = options
+            .select(ValueNote::properties().value, Comparator.EQ, froglin_type.to_field())
+            .set_limit(1);
+        let notes = storage.winners.at(player).pop_notes(options);
+        assert(notes.len() == 1, "note not popped");
+        let note = notes.get(0);
+        let won_froglin_type = note.value as u8;
+        let keys = get_public_keys(player);
+
+        // create new note for selected stash
+        if (won_froglin_type < stash_midpoint_index) {
+            let mut new_stash = StashNote::copy(storage.stashes_1.at(player).get_note().note, keys.npk_m.hash());
+            new_stash.increment_slot(won_froglin_type);
+            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, keys.ovpk_m, keys.ivpk_m, player));
+        } //
+        else {
+            let mut new_stash = StashNote::copy(storage.stashes_2.at(player).get_note().note, keys.npk_m.hash());
+            new_stash.increment_slot(won_froglin_type - stash_midpoint_index);
+            storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, keys.ovpk_m, keys.ivpk_m, player));
+        }
     }
 
     #[internal]
@@ -835,5 +859,34 @@ contract FroglinGateway {
         }
 
         claimable_proposals
+    }
+
+    #[view]
+    unconstrained fn view_active_battle_proposals() -> pub [BattleProposal; 10] {
+        let proposal_count = storage.battle_proposal_count.read();
+        let mut active_proposals: [BattleProposal; 10] = [BattleProposal::empty(); 10];
+        for i in 0..proposal_count {
+            let proposal = storage.battle_proposals.at(i).read();
+            if (proposal.status == 1) & (i < 10) {
+                active_proposals[i] = proposal;
+            }
+        }
+
+        active_proposals
+    }
+
+    #[view]
+    unconstrained fn view_won_in_battle(player: AztecAddress) -> pub [u8; 5] {
+        let mut options = NoteViewerOptions::new();
+        options = options.set_limit(5);
+        let set = storage.winners.at(player);
+        let notes = set.view_notes(options);
+
+        let mut won_notes: [u8; 5] = [0; 5];
+        for i in 0..notes.len() {
+            won_notes[i] = notes.get_unchecked(i).value as u8;
+        }
+
+        won_notes
     }
 }
