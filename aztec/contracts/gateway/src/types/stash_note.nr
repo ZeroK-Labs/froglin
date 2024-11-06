@@ -1,8 +1,8 @@
 use dep::aztec::{
     protocol_types::{traits::{Deserialize, Serialize}, constants::GENERATOR_INDEX__NOTE_NULLIFIER},
-    macros::notes::note, hash::poseidon2_hash_with_separator,
+    prelude::AztecAddress, macros::notes::note, hash::poseidon2_hash_with_separator,
     note::{note_header::NoteHeader, note_interface::NullifiableNote, utils::compute_note_hash_for_nullify},
-    keys::getters::get_nsk_app, context::PrivateContext
+    keys::getters::{get_nsk_app, get_public_keys}, context::PrivateContext
 };
 
 // global STASH_NOTE_LEN: u32 = 1 + (crate::settings::FROGLIN_TYPE_COUNT / 2) as u32;
@@ -11,7 +11,7 @@ global STASH_NOTE_LEN: u32 = 1 + 4 as u32;
 
 #[note]
 struct StashNote {
-    npk_m_hash: Field,
+    owner: AztecAddress,
     froglin_0: Field,
     froglin_1: Field,
     froglin_2: Field,
@@ -22,7 +22,8 @@ struct StashNote {
 
 impl NullifiableNote for StashNote {
     fn compute_nullifier(self, context: &mut PrivateContext, note_hash_for_nullify: Field) -> Field {
-        let secret = context.request_nsk_app(self.npk_m_hash);
+        let owner_npk_m_hash: Field = get_public_keys(self.owner).npk_m.hash();
+        let secret = context.request_nsk_app(owner_npk_m_hash);
         poseidon2_hash_with_separator(
             [
             note_hash_for_nullify,
@@ -34,7 +35,8 @@ impl NullifiableNote for StashNote {
 
     unconstrained fn compute_nullifier_without_context(self) -> Field {
         let note_hash_for_nullify = compute_note_hash_for_nullify(self);
-        let secret = get_nsk_app(self.npk_m_hash);
+        let owner_npk_m_hash: Field = get_public_keys(self.owner).npk_m.hash();
+        let secret = get_nsk_app(owner_npk_m_hash);
         poseidon2_hash_with_separator(
             [
             note_hash_for_nullify,
@@ -46,10 +48,10 @@ impl NullifiableNote for StashNote {
 }
 
 impl StashNote {
-    pub fn new(npk_m_hash: Field) -> Self {
+    pub fn new(owner: AztecAddress) -> Self {
         Self {
             header: NoteHeader::empty(),
-            npk_m_hash,
+            owner,
             froglin_0: 0,
             froglin_1: 0,
             froglin_2: 0,
@@ -60,13 +62,13 @@ impl StashNote {
     }
 
     pub fn empty() -> Self {
-        StashNote::new(0)
+        StashNote::new(AztecAddress::zero())
     }
 
-    pub fn copy(other: Self, npk_m_hash: Field) -> Self {
+    pub fn copy(other: Self, owner: AztecAddress) -> Self {
         Self {
             header: NoteHeader::empty(),
-            npk_m_hash,
+            owner,
             froglin_0: other.froglin_0,
             froglin_1: other.froglin_1,
             froglin_2: other.froglin_2,
@@ -135,7 +137,7 @@ impl Deserialize<STASH_NOTE_LEN> for StashNote {
     fn deserialize(values: [Field; STASH_NOTE_LEN]) -> Self {
         Self {
             header: NoteHeader::empty(),
-            npk_m_hash: values[0],
+            owner: AztecAddress::from_field(values[0]),
             froglin_0: values[1],
             froglin_1: values[2],
             froglin_2: values[3],
@@ -149,7 +151,7 @@ impl Deserialize<STASH_NOTE_LEN> for StashNote {
 impl Serialize<STASH_NOTE_LEN> for StashNote {
     fn serialize(self) -> [Field; STASH_NOTE_LEN] {
         [
-            self.npk_m_hash,
+            self.owner.to_field(),
             self.froglin_0,
             self.froglin_1,
             self.froglin_2,
@@ -162,7 +164,7 @@ impl Serialize<STASH_NOTE_LEN> for StashNote {
 
 impl Eq for StashNote {
     fn eq(self, other: Self) -> bool {
-        (self.npk_m_hash == other.npk_m_hash)
+        (self.owner == other.owner)
             & (self.froglin_0 == other.froglin_0)
             & (self.froglin_1 == other.froglin_1)
             & (self.froglin_2 == other.froglin_2)

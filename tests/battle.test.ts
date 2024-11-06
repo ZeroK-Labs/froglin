@@ -57,6 +57,7 @@ describe("Battle Froglins", () => {
 
     await Promise.all(promises);
 
+    console.log("Registering pxes...");
     promises = [
       ACCOUNTS.bob.pxe.registerAccount(
         new Fr(BigInt(ACCOUNTS.alice.secret)),
@@ -104,14 +105,15 @@ describe("Battle Froglins", () => {
   test(
     "create battle proposal",
     async () => {
+      console.log("Starting event...");
       await GAME_MASTER.contracts.gateway.methods
         .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
         .send()
         .wait();
-
+      console.log("Event started");
       await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait();
       await ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(2).send().wait();
-
+      console.log("Froglin captured");
       // const stash1Bob = await ACCOUNTS.bob.contracts.gateway.methods
       //   .view_stash(ACCOUNTS.bob.wallet.getAddress())
       //   .simulate();
