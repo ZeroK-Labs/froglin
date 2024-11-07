@@ -1,11 +1,16 @@
 use dep::aztec::{
-    protocol_types::{traits::{Deserialize, Serialize}, constants::GENERATOR_INDEX__NOTE_NULLIFIER},
-    prelude::AztecAddress, macros::notes::note, hash::poseidon2_hash_with_separator,
-    note::{note_header::NoteHeader, note_interface::NullifiableNote, utils::compute_note_hash_for_nullify},
-    keys::getters::{get_nsk_app, get_public_keys}, context::PrivateContext
+    context::PrivateContext,
+    hash::poseidon2_hash_with_separator,
+    keys::getters::{get_nsk_app, get_public_keys},
+    macros::notes::note,
+    note::{
+        note_header::NoteHeader, note_interface::NullifiableNote,
+        utils::compute_note_hash_for_nullify,
+    },
+    prelude::AztecAddress,
+    protocol_types::{constants::GENERATOR_INDEX__NOTE_NULLIFIER, traits::{Deserialize, Serialize}},
 };
 
-// global STASH_NOTE_LEN: u32 = 1 + (crate::settings::FROGLIN_TYPE_COUNT / 2) as u32;
 global STASH_NOTE_LEN: u32 = 1 + 4 as u32;
 // STASH_NOTE_LEN * 32 + 32(storage_slot as bytes) + 32(note_type_id as bytes)
 
@@ -21,15 +26,16 @@ struct StashNote {
 }
 
 impl NullifiableNote for StashNote {
-    fn compute_nullifier(self, context: &mut PrivateContext, note_hash_for_nullify: Field) -> Field {
+    fn compute_nullifier(
+        self,
+        context: &mut PrivateContext,
+        note_hash_for_nullify: Field,
+    ) -> Field {
         let owner_npk_m_hash: Field = get_public_keys(self.owner).npk_m.hash();
         let secret = context.request_nsk_app(owner_npk_m_hash);
         poseidon2_hash_with_separator(
-            [
-            note_hash_for_nullify,
-            secret
-        ],
-            GENERATOR_INDEX__NOTE_NULLIFIER as Field
+            [note_hash_for_nullify, secret],
+            GENERATOR_INDEX__NOTE_NULLIFIER as Field,
         )
     }
 
@@ -38,11 +44,8 @@ impl NullifiableNote for StashNote {
         let owner_npk_m_hash: Field = get_public_keys(self.owner).npk_m.hash();
         let secret = get_nsk_app(owner_npk_m_hash);
         poseidon2_hash_with_separator(
-            [
-            note_hash_for_nullify,
-            secret
-        ],
-            GENERATOR_INDEX__NOTE_NULLIFIER as Field
+            [note_hash_for_nullify, secret],
+            GENERATOR_INDEX__NOTE_NULLIFIER as Field,
         )
     }
 }
@@ -169,7 +172,7 @@ impl Eq for StashNote {
             & (self.froglin_1 == other.froglin_1)
             & (self.froglin_2 == other.froglin_2)
             & (self.froglin_3 == other.froglin_3)
-            // & (self.froglin_4 == other.froglin_4)
-            // & (self.froglin_5 == other.froglin_5)
+        // & (self.froglin_4 == other.froglin_4)
+        // & (self.froglin_5 == other.froglin_5)
     }
 }
