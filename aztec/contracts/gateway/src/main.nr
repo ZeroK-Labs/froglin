@@ -303,49 +303,6 @@ contract FroglinGateway {
         FroglinGateway::at(context.this_address())._capture_froglin(player).enqueue(&mut context);
     }
 
-    #[private]
-    fn claim_froglin() {
-        // get player address and keys
-        let player = context.msg_sender();
-        unsafe {
-            _check_registration(player);
-        }
-        let keys = get_public_keys(player);
-
-        // ensure player has transfer available
-        unsafe {
-            _check_transfer_availability(player);
-        }
-
-        let froglin_type = storage.transfers.at(player).get_note().note.value as u8;
-
-        // create a ptr to selected stash
-        let stash_in_storage = if (froglin_type < stash_midpoint_index) {
-            storage.stashes_1.at(player)
-        } else {
-            storage.stashes_2.at(player)
-        };
-
-        // select the slot
-        let slot_id = if (froglin_type < stash_midpoint_index) {
-            froglin_type
-        } else {
-            froglin_type - stash_midpoint_index
-        };
-
-        // create new note for selected stash
-        let mut new_stash_note = StashNote::copy(stash_in_storage.get_note().note, player);
-        new_stash_note.increment_slot(slot_id);
-
-        // update private stash
-        stash_in_storage.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
-            &mut context,
-            keys.ovpk_m,
-            player,
-            player,
-        ));
-    }
-
     #[internal]
     #[public]
     fn _create_swap_proposal(trader_id: Field, offered_froglin_type: u8, wanted_froglin_type: u8) {
