@@ -1,11 +1,10 @@
-import { beforeAll, describe, expect, test } from "bun:test";
-// import { type IntentAction } from "node_modules/@aztec/aztec.js/dest/utils/authwit";
 import { Fr } from "@aztec/aztec.js";
+import { assert } from "console";
+import { beforeAll, describe, expect, test } from "bun:test";
 
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { GAME_MASTER, ACCOUNTS } from "./accounts";
 import { stringToBigInt } from "common/utils/bigint";
-// import { assert } from "console";
 
 describe("Swap Froglin", () => {
   const timeout = 60_000;
@@ -21,9 +20,9 @@ describe("Swap Froglin", () => {
     )
       .send()
       .deployed();
-    // 0x0f92414ca79636330ef64ccf906ba27a7e4b323cf984945695e3f189b662bfd0
+
     expect(GAME_MASTER.contracts.gateway).not.toBeNull();
-    console.log("Contract deployed at", GAME_MASTER.contracts.gateway.address);
+
     // register deployed contract in each PXE
     let promises: Promise<any>[] = [
       ACCOUNTS.alice.pxe.registerContract({
@@ -91,77 +90,145 @@ describe("Swap Froglin", () => {
     //   // ACCOUNTS.alice.pxe.registerRecipient(ACCOUNTS.bob.wallet.getCompleteAddress()),
     // ];
     // await Promise.all(promises);
+
+    console.log("Starting event...");
+
+    await GAME_MASTER.contracts.gateway.methods
+      .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
+      .send()
+      .wait();
+
+    console.log("Capturing Froglins...");
+
+    promises = [
+      ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait(),
+      ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(2).send().wait(),
+    ];
+    await Promise.all(promises);
+
+    const stashAlice = await ACCOUNTS.alice.contracts.gateway.methods
+      .view_stash(ACCOUNTS.alice.wallet.getAddress())
+      .simulate();
+    assert(stashAlice[1] == 1n);
+
+    const stashBob = await ACCOUNTS.bob.contracts.gateway.methods
+      .view_stash(ACCOUNTS.bob.wallet.getAddress())
+      .simulate();
+    assert(stashBob[2] == 1n);
   });
 
   test(
-    "player cannot create offer with froglin he does not own",
-    async () => {
-      await GAME_MASTER.contracts.gateway.methods
-        .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
-        .send()
-        .wait();
-
+    "fails when player tries to create an offer with a Froglin he does not own",
+    () => {
       expect(
         ACCOUNTS.alice.contracts.gateway.methods
-          .create_swap_proposal(1, 2)
+          .create_swap_proposal(0, 2)
           .send()
           .wait(),
-      ).rejects.toThrowError("player does not have the offered froglin type");
+      ).rejects.toThrowError("player does not have the offered Froglin type");
     },
     timeout,
   );
 
   test(
-    "create swap offer",
+    "player can create swap offer with a Froglin he owns",
     async () => {
-      // await GAME_MASTER.contracts.gateway.methods
-      //   .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
-      //   .send()
-      //   .wait();
-
-      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait();
-      await ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(2).send().wait();
-
-      const stash1Bob = await ACCOUNTS.bob.contracts.gateway.methods
-        .view_stash(ACCOUNTS.bob.wallet.getAddress())
-        .simulate();
-      const stash1Alice = await ACCOUNTS.alice.contracts.gateway.methods
-        .view_stash(ACCOUNTS.alice.wallet.getAddress())
-        .simulate();
-      console.log("stassh1111Bob", stash1Bob);
-      console.log("stassh1111Alice", stash1Alice);
-
       await ACCOUNTS.alice.contracts.gateway.methods
         .create_swap_proposal(1, 2)
         .send()
         .wait();
 
-      const swaps = await ACCOUNTS.bob.contracts.gateway.methods
-        .view_active_swap_proposals()
+      let proposal = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_swap_proposal(0)
         .simulate();
-      console.log("swaps", swaps[0]);
-      await ACCOUNTS.bob.contracts.gateway.methods
-        .accept_swap_proposal(0)
-        .send()
-        .wait();
 
+      expect(proposal.status).toBe(1n);
+    },
+    timeout,
+  );
+
+  test(
+    "player can cancel swap offer before it's accepted by counterparty",
+    async () => {
       await ACCOUNTS.alice.contracts.gateway.methods
-        .claim_swap_proposal(0)
+        .cancel_swap_proposal(0)
         .send()
         .wait();
 
-      const stashBob = await ACCOUNTS.bob.contracts.gateway.methods
-        .view_stash(ACCOUNTS.bob.wallet.getAddress())
+      let proposal = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_swap_proposal(0)
         .simulate();
-      const stashAlice = await ACCOUNTS.alice.contracts.gateway.methods
-        .view_stash(ACCOUNTS.alice.wallet.getAddress())
+
+      expect(proposal.status).toBe(4n);
+    },
+    timeout,
+  );
+
+  test(
+    "counterparty player can accept swap offer",
+    async () => {
+      // create a new proposal for alice
+      await ACCOUNTS.alice.contracts.gateway.methods
+        .create_swap_proposal(1, 2)
+        .send()
+        .wait();
+
+      await ACCOUNTS.bob.contracts.gateway.methods
+        .accept_swap_proposal(1)
+        .send()
+        .wait();
+
+      let proposal = await ACCOUNTS.bob.contracts.gateway.methods
+        .view_swap_proposal(1)
         .simulate();
-      console.log("stasshBob", stashBob);
-      console.log("stasshAlice", stashAlice);
-      // const allSwaps = await ACCOUNTS.bob.contracts.gateway.methods
-      //   .view_all_proposals()
-      //   .simulate();
-      // console.log("allSwaps", allSwaps);
+
+      expect(proposal.status).toBe(2n);
+    },
+    timeout,
+  );
+
+  test(
+    "fails when player tries to cancel swap offer after it was accepted by counterparty",
+    async () => {
+      expect(
+        ACCOUNTS.alice.contracts.gateway.methods.cancel_swap_proposal(1).send().wait(),
+      ).rejects.toThrow();
+
+      const proposal = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_swap_proposal(1)
+        .simulate();
+      expect(proposal.status).toBe(2n);
+    },
+    timeout,
+  );
+
+  test(
+    "player can claim swap offer",
+    async () => {
+      await ACCOUNTS.alice.contracts.gateway.methods
+        .claim_swap_proposal(1)
+        .send()
+        .wait();
+
+      const proposal = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_swap_proposal(1)
+        .simulate();
+      expect(proposal.status).toBe(4n);
+    },
+    timeout,
+  );
+
+  test(
+    "fails when player tries to cancel swap offer after it was claimed",
+    async () => {
+      expect(
+        ACCOUNTS.alice.contracts.gateway.methods.cancel_swap_proposal(1).send().wait(),
+      ).rejects.toThrow();
+
+      const proposal = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_swap_proposal(1)
+        .simulate();
+      expect(proposal.status).toBe(4n);
     },
     timeout,
   );

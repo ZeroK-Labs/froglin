@@ -115,26 +115,6 @@ contract FroglinGateway {
 
     #[internal]
     #[public]
-    fn _create_swap_proposal(trader_id: Field, offered_froglin_type: u8, wanted_froglin_type: u8) {
-        // increment public stash
-        let current_count = storage.public_stash.at(offered_froglin_type).read();
-        storage.public_stash.at(offered_froglin_type).write(current_count + 1);
-        // create the proposal, first time is going to be 0 so we can create empty SwapProposal with id 0
-        let proposal_id = storage.swap_proposal_count.read();
-
-        let new_proposal = SwapProposal::new(
-            trader_id,
-            offered_froglin_type,
-            wanted_froglin_type,
-            proposal_id,
-        );
-
-        storage.swap_proposals.at(proposal_id).write(new_proposal);
-        storage.swap_proposal_count.write(proposal_id + 1);
-    }
-
-    #[internal]
-    #[public]
     fn _create_battle_proposal(
         trader_id: Field,
         offered_froglin_type: u8,
@@ -362,276 +342,12 @@ contract FroglinGateway {
         // else {
         //     let mut new_stash = StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
         //     let froglin_count = new_stash.get_slot(offered_froglin_type - stash_midpoint_index) as u8;
-        //     assert(froglin_count > 0, "player does not have the offered froglin type");
+        //     assert(froglin_count > 0, "player does not have the offered Froglin type");
         //     new_stash.decrement_slot(offered_froglin_type - stash_midpoint_index);
         //     storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, keys.ovpk_m, keys.ivpk_m, player));
         //     // increment the froglin count of the player
         //     FroglinGateway::at(context.this_address())._create_battle_proposal(trader_id, offered_froglin_type, wanted_froglin_type).enqueue(&mut context);
         // }
-    }
-
-    #[internal]
-    #[public]
-    fn _accept_swap_proposal(proposal_id: u8) {
-        let mut proposal = storage.swap_proposals.at(proposal_id).read();
-        let trader_id = proposal.trader_id;
-        let offered_froglin_type = proposal.offered_froglin_type;
-        let wanted_froglin_type = proposal.wanted_froglin_type;
-
-        // decrement public stash
-        let current_count = storage.public_stash.at(offered_froglin_type).read();
-        storage.public_stash.at(offered_froglin_type).write(current_count - 1);
-
-        // change status of the proposal to claimable
-        proposal.change_status(2);
-        storage.swap_proposals.at(proposal_id).write(proposal);
-    }
-
-    #[internal]
-    #[public]
-    fn _complete_swap_proposal(proposal_id: u8) {
-        let mut proposal = storage.swap_proposals.at(proposal_id).read();
-        // mark the proposal as completed
-        proposal.change_status(4);
-        storage.swap_proposals.at(proposal_id).write(proposal);
-    }
-
-    #[private]
-    fn create_swap_proposal(offered_froglin_type: u8, wanted_froglin_type: u8) {
-        let player = context.msg_sender();
-        unsafe {
-            _check_registration(player);
-        }
-
-        assert(offered_froglin_type < settings::FROGLIN_TYPE_COUNT, "Invalid offered Froglin type");
-        assert(wanted_froglin_type < settings::FROGLIN_TYPE_COUNT, "Invalid wanted Froglin type");
-        assert(
-            offered_froglin_type != wanted_froglin_type,
-            "Cannot swap for the same Froglin type",
-        );
-
-        let trader_id: Field = _view_trader_id(player) as Field;
-        let keys = get_public_keys(player);
-        // create new note for selected stash
-        if (offered_froglin_type < stash_midpoint_index) {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
-            let froglin_count = new_stash.get_slot(offered_froglin_type) as u8;
-            assert(froglin_count > 0, "player does not have the offered froglin type");
-
-            new_stash.decrement_slot(offered_froglin_type);
-
-            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-            // increment the froglin count of the player
-            FroglinGateway::at(context.this_address())
-                ._create_swap_proposal(trader_id, offered_froglin_type, wanted_froglin_type)
-                .enqueue(&mut context);
-        } //
-        else {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
-            let froglin_count =
-                new_stash.get_slot(offered_froglin_type - stash_midpoint_index) as u8;
-            assert(froglin_count > 0, "player does not have the offered froglin type");
-
-            new_stash.decrement_slot(offered_froglin_type - stash_midpoint_index);
-
-            storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-            // increment the froglin count of the player
-            FroglinGateway::at(context.this_address())
-                ._create_swap_proposal(trader_id, offered_froglin_type, wanted_froglin_type)
-                .enqueue(&mut context);
-        }
-    }
-
-    #[private]
-    fn accept_swap_proposal(proposal_id: u8) {
-        let player = context.msg_sender();
-        unsafe {
-            _check_registration(player);
-        }
-
-        let proposal = view_swap_proposal(proposal_id);
-        assert(proposal.status == 1, "proposal is not active");
-
-        let wanted_froglin_type = proposal.wanted_froglin_type;
-        let offered_froglin_type = proposal.offered_froglin_type;
-
-        let keys = get_public_keys(player);
-
-        if (wanted_froglin_type < stash_midpoint_index) {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
-            let froglin_count = new_stash.get_slot(wanted_froglin_type) as u8;
-            assert(froglin_count > 0, "player does not have the wanted froglin type");
-
-            new_stash.decrement_slot(wanted_froglin_type);
-            if (offered_froglin_type < stash_midpoint_index) {
-                new_stash.increment_slot(offered_froglin_type);
-            } //
-            else {
-                let mut new_stash2 =
-                    StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
-                new_stash2.increment_slot(offered_froglin_type - stash_midpoint_index);
-                storage.stashes_2.at(player).replace(&mut new_stash2).emit(encode_and_encrypt_note(
-                    &mut context,
-                    keys.ovpk_m,
-                    player,
-                    player,
-                ));
-            }
-
-            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-            // change status of the proposal to claimable and settle the public stash
-            FroglinGateway::at(context.this_address())._accept_swap_proposal(proposal_id).enqueue(
-                &mut context,
-            );
-        } //
-        else {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
-            let froglin_count =
-                new_stash.get_slot(wanted_froglin_type - stash_midpoint_index) as u8;
-            assert(froglin_count > 0, "player does not have the wanted froglin type");
-
-            new_stash.decrement_slot(wanted_froglin_type - stash_midpoint_index);
-            if (offered_froglin_type < stash_midpoint_index) {
-                let mut new_stash1 =
-                    StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
-                new_stash1.increment_slot(offered_froglin_type - stash_midpoint_index);
-                storage.stashes_1.at(player).replace(&mut new_stash1).emit(encode_and_encrypt_note(
-                    &mut context,
-                    keys.ovpk_m,
-                    player,
-                    player,
-                ));
-            } //
-            else {
-                new_stash.increment_slot(offered_froglin_type - stash_midpoint_index);
-            }
-
-            storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-            // change status of the proposal to claimable and settle the public stash
-            FroglinGateway::at(context.this_address())._accept_swap_proposal(proposal_id).enqueue(
-                &mut context,
-            );
-        }
-    }
-
-    #[private]
-    fn claim_swap_proposal(proposal_id: u8) {
-        let player = context.msg_sender();
-        unsafe {
-            _check_registration(player);
-        }
-
-        let proposal = view_swap_proposal(proposal_id);
-        let trader_id: Field = _view_trader_id(player) as Field;
-
-        assert(proposal.status == 2, "proposal is not claimable");
-        assert(trader_id == proposal.trader_id, "only the trader can claim the proposal");
-
-        let wanted_froglin_type = proposal.wanted_froglin_type;
-        let keys = get_public_keys(player);
-
-        if (wanted_froglin_type < stash_midpoint_index) {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
-            new_stash.increment_slot(wanted_froglin_type);
-            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-            // mark the proposal as completed
-            FroglinGateway::at(context.this_address())._complete_swap_proposal(proposal_id).enqueue(
-                &mut context,
-            );
-        } //
-        else {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
-            new_stash.increment_slot(wanted_froglin_type - stash_midpoint_index);
-            storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-            // mark the proposal as completed
-            FroglinGateway::at(context.this_address())._complete_swap_proposal(proposal_id).enqueue(
-                &mut context,
-            );
-        }
-    }
-
-    #[private]
-    fn cancel_swap_proposal(proposal_id: u8) {
-        let player = context.msg_sender();
-        unsafe {
-            _check_registration(player);
-        }
-
-        let proposal = view_swap_proposal(proposal_id);
-        let trader_id: Field = _view_trader_id(player) as Field;
-
-        assert(proposal.status == 1, "proposal is not active");
-        assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
-
-        let offered_froglin_type = proposal.offered_froglin_type;
-        let keys = get_public_keys(player);
-
-        if (offered_froglin_type < stash_midpoint_index) {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
-            new_stash.increment_slot(offered_froglin_type);
-            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-            // mark the proposal as completed
-            FroglinGateway::at(context.this_address())._complete_swap_proposal(proposal_id).enqueue(
-                &mut context,
-            );
-        } //
-        else {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
-            new_stash.increment_slot(offered_froglin_type - stash_midpoint_index);
-            storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-            // mark the proposal as completed
-            FroglinGateway::at(context.this_address())._complete_swap_proposal(proposal_id).enqueue(
-                &mut context,
-            );
-        }
     }
 
     #[internal]
@@ -863,6 +579,256 @@ contract FroglinGateway {
             player,
             player,
         ));
+    }
+
+    #[internal]
+    #[public]
+    fn _create_swap_proposal(trader_id: Field, offered_froglin_type: u8, wanted_froglin_type: u8) {
+        // first time is going to be 0 so we can create empty SwapProposal with id 0
+        let proposal_id = storage.swap_proposal_count.read();
+
+        let new_proposal = SwapProposal::new(
+            trader_id,
+            offered_froglin_type,
+            wanted_froglin_type,
+            proposal_id,
+        );
+
+        storage.swap_proposals.at(proposal_id).write(new_proposal);
+        storage.swap_proposal_count.write(proposal_id + 1);
+
+        // increment public stash
+        let current_count = storage.public_stash.at(offered_froglin_type).read();
+        storage.public_stash.at(offered_froglin_type).write(current_count + 1);
+    }
+
+    #[private]
+    fn create_swap_proposal(offered_froglin_type: u8, wanted_froglin_type: u8) {
+        // ensure parameters are correct
+        assert(offered_froglin_type < settings::FROGLIN_TYPE_COUNT, "Invalid offered Froglin type");
+        assert(wanted_froglin_type < settings::FROGLIN_TYPE_COUNT, "Invalid wanted Froglin type");
+        assert(
+            offered_froglin_type != wanted_froglin_type,
+            "Cannot swap for the same Froglin type",
+        );
+
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        // create a ptr to selected stash
+        let stash_in_storage = if (offered_froglin_type < stash_midpoint_index) {
+            storage.stashes_1.at(player)
+        } else {
+            storage.stashes_2.at(player)
+        };
+
+        // select the slot
+        let slot_id = if (offered_froglin_type < stash_midpoint_index) {
+            offered_froglin_type
+        } else {
+            offered_froglin_type - stash_midpoint_index
+        };
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash_in_storage.get_note().note, player);
+
+        // ensure player has the Froglin
+        let froglin_count = new_stash_note.get_slot(slot_id) as u8;
+        assert(froglin_count > 0, "player does not have the offered Froglin type");
+
+        new_stash_note.decrement_slot(slot_id);
+
+        // update private stash
+        stash_in_storage.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        // increment the froglin count of the player
+        let trader_id: Field = _view_trader_id(player) as Field;
+
+        FroglinGateway::at(context.this_address())
+            ._create_swap_proposal(trader_id, offered_froglin_type, wanted_froglin_type)
+            .enqueue(&mut context);
+    }
+
+    #[internal]
+    #[public]
+    fn _accept_swap_proposal(proposal_id: u8) {
+        let mut proposal = storage.swap_proposals.at(proposal_id).read();
+        let trader_id = proposal.trader_id;
+        let offered_froglin_type = proposal.offered_froglin_type;
+        let wanted_froglin_type = proposal.wanted_froglin_type;
+
+        // change status of the proposal to claimable
+        proposal.change_status(2);
+        storage.swap_proposals.at(proposal_id).write(proposal);
+
+        // decrement public stash
+        let current_count = storage.public_stash.at(offered_froglin_type).read();
+        storage.public_stash.at(offered_froglin_type).write(current_count - 1);
+    }
+
+    #[private]
+    fn accept_swap_proposal(proposal_id: u8) {
+        // ensure state is correct
+        let proposal = view_swap_proposal(proposal_id);
+        assert(proposal.status == 1, "proposal is not active");
+
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        // create a ptr to selected stash
+        let stash_in_storage = if (proposal.offered_froglin_type < stash_midpoint_index) {
+            storage.stashes_1.at(player)
+        } else {
+            storage.stashes_2.at(player)
+        };
+
+        // select slot to remove
+        let slot_id_to_remove = if (proposal.wanted_froglin_type < stash_midpoint_index) {
+            proposal.wanted_froglin_type
+        } else {
+            proposal.wanted_froglin_type - stash_midpoint_index
+        };
+
+        // select slot to add
+        let slot_id_to_add = if (proposal.offered_froglin_type < stash_midpoint_index) {
+            proposal.offered_froglin_type
+        } else {
+            proposal.offered_froglin_type - stash_midpoint_index
+        };
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash_in_storage.get_note().note, player);
+        new_stash_note.decrement_slot(slot_id_to_remove);
+        new_stash_note.increment_slot(slot_id_to_add);
+
+        // update private stash
+        stash_in_storage.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        // change status of the proposal to claimable and settle the public stash
+        FroglinGateway::at(context.this_address())._accept_swap_proposal(proposal_id).enqueue(
+            &mut context,
+        );
+    }
+
+    #[internal]
+    #[public]
+    fn _complete_swap_proposal(proposal_id: u8) {
+        let mut proposal = storage.swap_proposals.at(proposal_id).read();
+        // mark the proposal as completed
+        proposal.change_status(4);
+        storage.swap_proposals.at(proposal_id).write(proposal);
+    }
+
+    #[private]
+    fn claim_swap_proposal(proposal_id: u8) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        let proposal = view_swap_proposal(proposal_id);
+        assert(proposal.status == 2, "proposal is not claimable");
+
+        let trader_id = _view_trader_id(player);
+        assert(trader_id == proposal.trader_id, "only the trader can claim the proposal");
+
+        // create a ptr to selected stash
+        let stash_in_storage = if (proposal.wanted_froglin_type < stash_midpoint_index) {
+            storage.stashes_1.at(player)
+        } else {
+            storage.stashes_2.at(player)
+        };
+
+        // select the slot
+        let slot_id = if (proposal.wanted_froglin_type < stash_midpoint_index) {
+            proposal.wanted_froglin_type
+        } else {
+            proposal.wanted_froglin_type - stash_midpoint_index
+        };
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash_in_storage.get_note().note, player);
+        new_stash_note.increment_slot(slot_id);
+
+        // update private stash
+        stash_in_storage.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        // mark the proposal as completed
+        FroglinGateway::at(context.this_address())._complete_swap_proposal(proposal_id).enqueue(
+            &mut context,
+        );
+    }
+
+    #[private]
+    fn cancel_swap_proposal(proposal_id: u8) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        let proposal = view_swap_proposal(proposal_id);
+        assert(proposal.status == 1, "proposal is not active");
+
+        let trader_id = _view_trader_id(player);
+        assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
+
+        // create a ptr to selected stash
+        let stash_in_storage = if (proposal.offered_froglin_type < stash_midpoint_index) {
+            storage.stashes_1.at(player)
+        } else {
+            storage.stashes_2.at(player)
+        };
+
+        // select the slot
+        let slot_id = if (proposal.offered_froglin_type < stash_midpoint_index) {
+            proposal.offered_froglin_type
+        } else {
+            proposal.offered_froglin_type - stash_midpoint_index
+        };
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash_in_storage.get_note().note, player);
+        new_stash_note.increment_slot(slot_id);
+
+        // update private stash
+        stash_in_storage.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        // mark the proposal as completed
+        FroglinGateway::at(context.this_address())._complete_swap_proposal(proposal_id).enqueue(
+            &mut context,
+        );
     }
 
     #[view]
