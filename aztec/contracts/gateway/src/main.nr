@@ -77,18 +77,6 @@ contract FroglinGateway {
         storage.accounts.at(player).view_note().trader_id
     }
 
-    #[internal]
-    #[view]
-    unconstrained fn _view_stash_1(player: AztecAddress) -> pub StashNote {
-        storage.stashes_1.at(player).view_note()
-    }
-
-    #[internal]
-    #[view]
-    unconstrained fn _view_stash_2(player: AztecAddress) -> pub StashNote {
-        storage.stashes_2.at(player).view_note()
-    }
-
     // for external calls from other contracts
     #[private]
     fn check_registration(player: AztecAddress) {
@@ -815,68 +803,6 @@ contract FroglinGateway {
 
         // modify public data
         FroglinGateway::at(context.this_address())._capture_froglin(player).enqueue(&mut context);
-    }
-
-    #[private]
-    fn increment_froglin(froglin_type: u8, player: AztecAddress) {
-        if (!player.eq(context.msg_sender())) {
-            assert_current_call_valid_authwit(&mut context, player);
-        }
-
-        let keys = get_public_keys(player);
-
-        // create new note for selected stash
-        if (froglin_type < stash_midpoint_index) {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
-            new_stash.increment_slot(froglin_type);
-            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-        } //
-        else {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
-            new_stash.increment_slot(froglin_type - stash_midpoint_index);
-            storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-        }
-    }
-    #[private]
-    fn transfer(to: AztecAddress, froglin_type: u8) {
-        let from = context.msg_sender();
-        unsafe {
-            _check_registration(from);
-            _check_registration(to);
-        }
-
-        let from_keys = get_public_keys(from);
-        let to_keys = get_public_keys(to);
-
-        let mut from_stash_note = StashNote::copy(storage.stashes_1.at(from).get_note().note, from);
-
-        from_stash_note.decrement_slot(froglin_type);
-
-        storage.stashes_1.at(from).replace(&mut from_stash_note).emit(encode_and_encrypt_note(
-            &mut context,
-            from_keys.ovpk_m,
-            from,
-            from,
-        ));
-        let mut note = ValueNote::new(froglin_type as Field, to);
-        storage.transfers.at(to).initialize(&mut note).emit(encode_and_encrypt_note(
-            &mut context,
-            to_keys.ovpk_m,
-            to,
-            to,
-        ));
     }
 
     #[private]
