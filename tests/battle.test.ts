@@ -105,28 +105,39 @@ describe("Battle Froglins", () => {
   test(
     "create battle proposal",
     async () => {
-      console.log("Starting event...");
       await GAME_MASTER.contracts.gateway.methods
         .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
         .send()
         .wait();
       console.log("Event started");
+
       await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait();
+
+      const stashAlice = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_stash(ACCOUNTS.alice.wallet.getAddress())
+        .simulate();
+      expect(stashAlice[1]).toEqual(1n);
+
       await ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(2).send().wait();
-      console.log("Froglin captured");
-      // const stash1Bob = await ACCOUNTS.bob.contracts.gateway.methods
-      //   .view_stash(ACCOUNTS.bob.wallet.getAddress())
-      //   .simulate();
-      // const stash1Alice = await ACCOUNTS.alice.contracts.gateway.methods
-      //   .view_stash(ACCOUNTS.alice.wallet.getAddress())
-      //   .simulate();
-      // console.log("stassh1111Bob", stash1Bob);
-      // console.log("stassh1111Alice", stash1Alice);
+
+      const stashBob = await ACCOUNTS.bob.contracts.gateway.methods
+        .view_stash(ACCOUNTS.bob.wallet.getAddress())
+        .simulate();
+      expect(stashBob[2]).toEqual(1n);
+
+      console.log("Froglins captured");
 
       await ACCOUNTS.alice.contracts.gateway.methods
         .create_battle_proposal(1, 2, 3)
         .send()
         .wait();
+
+      let proposal = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_battle_proposal(0)
+        .simulate();
+
+      expect(proposal.status).toBe(1n);
+      console.log("Battle proposal created");
 
       // const allBattles = await ACCOUNTS.bob.contracts.gateway.methods
       //   .view_active_battle_proposals()
@@ -136,7 +147,16 @@ describe("Battle Froglins", () => {
         .accept_battle_proposal(0)
         .send()
         .wait();
+
+      proposal = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_battle_proposal(0)
+        .simulate();
+
+      expect(proposal.status).toBe(2n);
+      console.log("Battle proposal accepted");
+
       await GAME_MASTER.contracts.gateway.methods.make_battle(0, 1).send().wait();
+      console.log("Battle logic resolved");
 
       // const wonInBattle = await ACCOUNTS.alice.contracts.gateway.methods
       //   .view_won_in_battle(ACCOUNTS.alice.wallet.getAddress())

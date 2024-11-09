@@ -115,243 +115,6 @@ contract FroglinGateway {
 
     #[internal]
     #[public]
-    fn _create_battle_proposal(
-        trader_id: Field,
-        offered_froglin_type: u8,
-        wanted_froglin_type: u8,
-        choices: u8,
-        player: AztecAddress,
-        secret_hash: Field,
-    ) {
-        // increment public stash
-        let current_count = storage.public_stash.at(offered_froglin_type).read();
-        storage.public_stash.at(offered_froglin_type).write(current_count + 1);
-
-        let battle_id = storage.battle_proposal_count.read();
-        debug_log("here in _create_battle_proposal");
-        debug_log_format("hash!!!!!!!!! {0}", [secret_hash]);
-        let new_proposal = BattleProposal::new(
-            trader_id,
-            offered_froglin_type,
-            wanted_froglin_type,
-            battle_id,
-        );
-
-        let mut new_battle_note = BattleNote::new(
-            secret_hash,
-            choices.to_field(),
-            player,
-            AztecAddress::zero(),
-            battle_id.to_field(),
-        );
-        let battle_notes = storage.battle_notes;
-
-        battle_notes.insert_from_public(&mut new_battle_note);
-
-        storage.battle_proposals.at(battle_id).write(new_proposal);
-        storage.battle_proposal_count.write(battle_id + 1);
-    }
-
-    #[private]
-    fn accept_battle_proposal(proposal_id: u32) {
-        let player = context.msg_sender();
-        unsafe {
-            _check_registration(player);
-        }
-
-        let proposal = view_battle_proposal(proposal_id);
-        assert(proposal.status == 1, "proposal is not active");
-
-        let wanted_froglin_type = proposal.wanted_froglin_type;
-        let offered_froglin_type = proposal.offered_froglin_type;
-
-        let keys = get_public_keys(player);
-
-        FroglinGateway::at(context.this_address())._accept_battle_proposal(proposal_id).enqueue(
-            &mut context,
-        );
-    }
-
-    #[private]
-    fn make_battle(proposal_id: u32, choices: u8) {
-        let game_master = storage.game_master.read_private();
-        assert(game_master == context.msg_sender(), "only game master can call this method");
-        // get the proposal
-        let proposal = view_battle_proposal(proposal_id);
-
-        let trader_id = proposal.trader_id;
-        // get the note with the secret_hash
-        let secret_note = storage.secrets.at(trader_id).get_note();
-        let secret_hash = secret_note.note.value;
-        debug_log_format("hash in make battle!!!!!!!!! {0}", [secret_hash]);
-        let mut options = NoteGetterOptions::new();
-        options = options.set_limit(1);
-        let set = storage.battle_notes;
-        let notes = set.get_notes(options);
-        // .select(BattleNote::properties().secret_hash, Comparator.EQ, secret_hash)
-        assert(notes.len() == 1, "note not popped");
-        let note = notes.get(0);
-        // let player1 = note.address1;
-        // let player2 = note.address2;
-        let choices1 = note.choices;
-        debug_log_format("choices {0}", [choices1]);
-        // let choices2 = choices;
-        // let mut winner = AztecAddress::zero();
-        // let mut froglin_type = 69;
-        // if (choices1 > choices2) {
-        //     winner = player1;
-        //     froglin_type = proposal.wanted_froglin_type;
-        // } else if (choices1 < choices2) {
-        //     winner = player2;
-        //     froglin_type = proposal.offered_froglin_type;
-        // }
-        // // create winner note
-        // let winner_keys = get_public_keys(winner);
-        // let mut note = ValueNote::new(froglin_type.to_field(), winner);
-        // storage.winners.at(winner).insert(&mut note).emit(encode_and_encrypt_note(&mut context, winner_keys.ovpk_m, winner_keys.ivpk_m, winner));
-        // // change status of the proposal to completed
-        // FroglinGateway::at(context.this_address())._change_battle_status(proposal_id, 3).enqueue(&mut context);
-    }
-    #[private]
-    fn claim_winnings(froglin_type: u8) {
-        let player = context.msg_sender();
-        unsafe {
-            _check_registration(player);
-        }
-        let mut options = NoteGetterOptions::new();
-        options = options
-            .select(ValueNote::properties().value, Comparator.EQ, froglin_type.to_field())
-            .set_limit(1);
-        let notes = storage.winners.at(player).pop_notes(options);
-        assert(notes.len() == 1, "note not popped");
-        let note = notes.get(0);
-        let won_froglin_type = note.value as u8;
-        let keys = get_public_keys(player);
-
-        // create new note for selected stash
-        if (won_froglin_type < stash_midpoint_index) {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
-            new_stash.increment_slot(won_froglin_type);
-            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-        } //
-        else {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
-            new_stash.increment_slot(won_froglin_type - stash_midpoint_index);
-            storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-        }
-    }
-
-    #[internal]
-    #[public]
-    fn _change_battle_status(proposal_id: u32, status: u8) {
-        let mut proposal = storage.battle_proposals.at(proposal_id).read();
-        proposal.change_status(status);
-        storage.battle_proposals.at(proposal_id).write(proposal);
-    }
-
-    #[internal]
-    #[public]
-    fn _accept_battle_proposal(proposal_id: u32) {
-        let mut proposal = storage.battle_proposals.at(proposal_id).read();
-        let trader_id = proposal.trader_id;
-        let offered_froglin_type = proposal.offered_froglin_type;
-        let wanted_froglin_type = proposal.wanted_froglin_type;
-
-        // increment public stash
-        let current_count = storage.public_stash.at(wanted_froglin_type).read();
-        storage.public_stash.at(wanted_froglin_type).write(current_count + 1);
-
-        // change status of the proposal to battle ready
-        proposal.change_status(2);
-        storage.battle_proposals.at(proposal_id).write(proposal);
-    }
-
-    #[private]
-    fn create_battle_proposal(offered_froglin_type: u8, wanted_froglin_type: u8, choices: u8) {
-        let player = context.msg_sender();
-        unsafe {
-            _check_registration(player);
-        }
-        debug_log("here");
-        assert(offered_froglin_type < settings::FROGLIN_TYPE_COUNT, "Invalid offered Froglin type");
-        assert(wanted_froglin_type < settings::FROGLIN_TYPE_COUNT, "Invalid wanted Froglin type");
-        assert(
-            offered_froglin_type != wanted_froglin_type,
-            "Cannot battle for the same Froglin type",
-        );
-
-        let trader_id: Field = _view_trader_id(player) as Field;
-        let keys = get_public_keys(player);
-        let game_master = storage.game_master.read_private();
-        let game_master_keys = get_public_keys(game_master);
-        let secret = random();
-        let secret_hash = compute_secret_hash(secret);
-        debug_log_format("secret hash {0}", [secret_hash]);
-
-        // create new note for selected stash
-        if (offered_froglin_type < stash_midpoint_index) {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
-            let froglin_count = new_stash.get_slot(offered_froglin_type) as u8;
-            assert(froglin_count > 0, "player does not have the offered froglin type");
-            debug_log("AAAAAAAAAA");
-            new_stash.decrement_slot(offered_froglin_type);
-
-            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-
-            // create a note with the secret_hash for the contract
-            let mut new_secret_note = ValueNote::new(secret_hash, game_master);
-            debug_log_format("secret hash!!!!!!!!!", [secret_hash]);
-            storage.secrets.at(trader_id).initialize(&mut new_secret_note).emit(
-                encode_and_encrypt_note(
-                    &mut context,
-                    game_master_keys.ovpk_m,
-                    game_master,
-                    game_master,
-                ),
-            );
-
-            FroglinGateway::at(context.this_address())
-                ._create_battle_proposal(
-                    trader_id,
-                    offered_froglin_type,
-                    wanted_froglin_type,
-                    choices,
-                    player,
-                    secret_hash,
-                )
-                .enqueue(&mut context);
-        } //
-        // else {
-        //     let mut new_stash = StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
-        //     let froglin_count = new_stash.get_slot(offered_froglin_type - stash_midpoint_index) as u8;
-        //     assert(froglin_count > 0, "player does not have the offered Froglin type");
-        //     new_stash.decrement_slot(offered_froglin_type - stash_midpoint_index);
-        //     storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(&mut context, keys.ovpk_m, keys.ivpk_m, player));
-        //     // increment the froglin count of the player
-        //     FroglinGateway::at(context.this_address())._create_battle_proposal(trader_id, offered_froglin_type, wanted_froglin_type).enqueue(&mut context);
-        // }
-    }
-
-    #[internal]
-    #[public]
     unconstrained fn _register(player: AztecAddress) {
         let accounts_size = storage.accounts_size.read();
         storage.leaderboard.at(accounts_size as u8).write(LeaderBoardEntry::new(player, 0));
@@ -829,6 +592,262 @@ contract FroglinGateway {
         FroglinGateway::at(context.this_address())._complete_swap_proposal(proposal_id).enqueue(
             &mut context,
         );
+    }
+
+    #[internal]
+    #[public]
+    fn _create_battle_proposal(
+        trader_id: Field,
+        offered_froglin_type: u8,
+        wanted_froglin_type: u8,
+        choices: u8,
+        player: AztecAddress,
+        secret_hash: Field,
+    ) {
+        let battle_id = storage.battle_proposal_count.read();
+        debug_log("here in _create_battle_proposal");
+        debug_log_format("hash!!!!!!!!! {0}", [secret_hash]);
+
+        let new_proposal = BattleProposal::new(
+            trader_id,
+            offered_froglin_type,
+            wanted_froglin_type,
+            battle_id,
+        );
+
+        let mut new_battle_note = BattleNote::new(
+            secret_hash,
+            choices.to_field(),
+            player,
+            AztecAddress::zero(),
+            battle_id.to_field(),
+        );
+
+        storage.battle_notes.insert_from_public(&mut new_battle_note);
+
+        storage.battle_proposals.at(battle_id).write(new_proposal);
+        storage.battle_proposal_count.write(battle_id + 1);
+
+        // increment public stash
+        let current_count = storage.public_stash.at(offered_froglin_type).read();
+        storage.public_stash.at(offered_froglin_type).write(current_count + 1);
+    }
+
+    #[private]
+    fn create_battle_proposal(offered_froglin_type: u8, wanted_froglin_type: u8, choices: u8) {
+        // ensure parameters are correct
+        assert(offered_froglin_type < settings::FROGLIN_TYPE_COUNT, "Invalid offered Froglin type");
+        assert(wanted_froglin_type < settings::FROGLIN_TYPE_COUNT, "Invalid wanted Froglin type");
+        assert(
+            offered_froglin_type != wanted_froglin_type,
+            "Cannot battle for the same Froglin type",
+        );
+
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        debug_log("create_battle_proposal");
+
+        // create a ptr to selected stash
+        let stash_in_storage = if (offered_froglin_type < stash_midpoint_index) {
+            storage.stashes_1.at(player)
+        } else {
+            storage.stashes_2.at(player)
+        };
+
+        // select the slot
+        let slot_id = if (offered_froglin_type < stash_midpoint_index) {
+            offered_froglin_type
+        } else {
+            offered_froglin_type - stash_midpoint_index
+        };
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash_in_storage.get_note().note, player);
+
+        // ensure player has the Froglin
+        let froglin_count = new_stash_note.get_slot(slot_id) as u8;
+        assert(froglin_count > 0, "player does not have the offered froglin type");
+
+        new_stash_note.decrement_slot(slot_id);
+
+        // update private stash
+        stash_in_storage.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        // create a note with the secret_hash for the contract
+        let trader_id: Field = _view_trader_id(player) as Field;
+        let game_master = storage.game_master.read_private();
+        let game_master_keys = get_public_keys(game_master);
+        let secret = random();
+        let secret_hash = compute_secret_hash(secret);
+        debug_log_format("secret hash {0}", [secret_hash]);
+
+        let mut new_secret_note = ValueNote::new(secret_hash, game_master);
+        debug_log_format("secret hash!!!!!!!!!", [secret_hash]);
+
+        storage.secrets.at(trader_id).initialize(&mut new_secret_note).emit(encode_and_encrypt_note(
+            &mut context,
+            game_master_keys.ovpk_m,
+            game_master,
+            game_master,
+        ));
+
+        // modify public data
+        FroglinGateway::at(context.this_address())
+            ._create_battle_proposal(
+                trader_id,
+                offered_froglin_type,
+                wanted_froglin_type,
+                choices,
+                player,
+                secret_hash,
+            )
+            .enqueue(&mut context);
+    }
+
+    #[internal]
+    #[public]
+    fn _accept_battle_proposal(proposal_id: u32) {
+        let mut proposal = storage.battle_proposals.at(proposal_id).read();
+        let trader_id = proposal.trader_id;
+        let offered_froglin_type = proposal.offered_froglin_type;
+        let wanted_froglin_type = proposal.wanted_froglin_type;
+
+        // change status of the proposal to battle ready
+        proposal.change_status(2);
+        storage.battle_proposals.at(proposal_id).write(proposal);
+
+        // increment public stash
+        let current_count = storage.public_stash.at(wanted_froglin_type).read();
+        storage.public_stash.at(wanted_froglin_type).write(current_count + 1);
+    }
+
+    #[private]
+    fn accept_battle_proposal(proposal_id: u32) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        // ensure proposal is active
+        let proposal = view_battle_proposal(proposal_id);
+        assert(proposal.status == 1, "proposal is not active");
+
+        let wanted_froglin_type = proposal.wanted_froglin_type;
+        let offered_froglin_type = proposal.offered_froglin_type;
+
+        FroglinGateway::at(context.this_address())._accept_battle_proposal(proposal_id).enqueue(
+            &mut context,
+        );
+    }
+
+    #[internal]
+    #[public]
+    fn _change_battle_status(proposal_id: u32, status: u8) {
+        let mut proposal = storage.battle_proposals.at(proposal_id).read();
+        proposal.change_status(status);
+        storage.battle_proposals.at(proposal_id).write(proposal);
+    }
+
+    #[private]
+    fn make_battle(proposal_id: u32, choices: u8) {
+        let game_master = context.msg_sender();
+        assert(
+            game_master == storage.game_master.read_private(),
+            "only game master can call this method",
+        );
+
+        // get the proposal
+        let proposal = view_battle_proposal(proposal_id);
+
+        let trader_id = proposal.trader_id;
+        // get the note with the secret_hash
+        let secret_note = storage.secrets.at(trader_id).get_note();
+        let secret_hash = secret_note.note.value;
+        debug_log_format("hash in make battle!!!!!!!!! {0}", [secret_hash]);
+        let mut options = NoteGetterOptions::new();
+        options = options.set_limit(1);
+        let set = storage.battle_notes;
+        let notes = set.get_notes(options);
+        // .select(BattleNote::properties().secret_hash, Comparator.EQ, secret_hash)
+        assert(notes.len() == 1, "note not popped");
+        let note = notes.get(0);
+        // let player1 = note.address1;
+        // let player2 = note.address2;
+        let choices1 = note.choices;
+        debug_log_format("choices {0}", [choices1]);
+        // let choices2 = choices;
+        // let mut winner = AztecAddress::zero();
+        // let mut froglin_type = 69;
+        // if (choices1 > choices2) {
+        //     winner = player1;
+        //     froglin_type = proposal.wanted_froglin_type;
+        // } else if (choices1 < choices2) {
+        //     winner = player2;
+        //     froglin_type = proposal.offered_froglin_type;
+        // }
+        // // create winner note
+        // let winner_keys = get_public_keys(winner);
+        // let mut note = ValueNote::new(froglin_type.to_field(), winner);
+        // storage.winners.at(winner).insert(&mut note).emit(encode_and_encrypt_note(&mut context, winner_keys.ovpk_m, winner_keys.ivpk_m, winner));
+        // // change status of the proposal to completed
+        // FroglinGateway::at(context.this_address())._change_battle_status(proposal_id, 3).enqueue(&mut context);
+    }
+
+    #[private]
+    fn claim_winnings(froglin_type: u8) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        let mut options = NoteGetterOptions::new();
+        options = options
+            .select(ValueNote::properties().value, Comparator.EQ, froglin_type.to_field())
+            .set_limit(1);
+        let notes = storage.winners.at(player).pop_notes(options);
+        assert(notes.len() == 1, "note not popped");
+        let note = notes.get(0);
+        let won_froglin_type = note.value as u8;
+
+        // create a ptr to selected stash
+        let stash_in_storage = if (won_froglin_type < stash_midpoint_index) {
+            storage.stashes_1.at(player)
+        } else {
+            storage.stashes_2.at(player)
+        };
+
+        // select the slot
+        let slot_id = if (won_froglin_type < stash_midpoint_index) {
+            won_froglin_type
+        } else {
+            won_froglin_type - stash_midpoint_index
+        };
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash_in_storage.get_note().note, player);
+        new_stash_note.increment_slot(slot_id);
+
+        // update private stash
+        stash_in_storage.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
     }
 
     #[view]
