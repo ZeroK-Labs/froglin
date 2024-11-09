@@ -73,6 +73,15 @@ contract FroglinGateway {
 
     #[view]
     #[internal]
+    unconstrained fn _check_transfer_availability(player: AztecAddress) {
+        assert(
+            storage.transfers.at(player).is_initialized(),
+            "only registered players can call this method",
+        );
+    }
+
+    #[view]
+    #[internal]
     unconstrained fn _view_trader_id(player: AztecAddress) -> pub Field {
         storage.accounts.at(player).view_note().trader_id
     }
@@ -764,42 +773,50 @@ contract FroglinGateway {
 
     #[private]
     fn capture_froglin(froglin_type: u8) {
-        let player = context.msg_sender();
-        unsafe {
-            _check_registration(player);
-            assert(view_epoch_count() != 0, "event is stopped");
-            assert(view_froglin_count() != 0, "all available Froglins have been captured");
-        }
+        // ensure parameters are correct
         assert(
             froglin_type < crate::settings::FROGLIN_TYPE_COUNT,
             "tried to capture an unknown Froglin type",
         );
 
+        // ensure state is correct
+        unsafe {
+            assert(view_epoch_count() != 0, "event is stopped");
+            assert(view_froglin_count() != 0, "all available Froglins have been captured");
+        }
+
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
         let keys = get_public_keys(player);
 
+        // create a ptr to selected stash
+        let stash_in_storage = if (froglin_type < stash_midpoint_index) {
+            storage.stashes_1.at(player)
+        } else {
+            storage.stashes_2.at(player)
+        };
+
+        // select the slot
+        let slot_id = if (froglin_type < stash_midpoint_index) {
+            froglin_type
+        } else {
+            froglin_type - stash_midpoint_index
+        };
+
         // create new note for selected stash
-        if (froglin_type < stash_midpoint_index) {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
-            new_stash.increment_slot(froglin_type);
-            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-        } //
-        else {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
-            new_stash.increment_slot(froglin_type - stash_midpoint_index);
-            storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-        }
+        let mut new_stash_note = StashNote::copy(stash_in_storage.get_note().note, player);
+        new_stash_note.increment_slot(slot_id);
+
+        // update private stash
+        stash_in_storage.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
 
         // modify public data
         FroglinGateway::at(context.this_address())._capture_froglin(player).enqueue(&mut context);
@@ -807,38 +824,45 @@ contract FroglinGateway {
 
     #[private]
     fn claim_froglin() {
+        // get player address and keys
         let player = context.msg_sender();
         unsafe {
             _check_registration(player);
         }
-
-        // check if there is a note in storage transfers
-        let froglin_type: u8 = storage.transfers.at(player).get_note().note.value as u8;
         let keys = get_public_keys(player);
 
-        // create new note for selected stash
-        if (froglin_type < stash_midpoint_index) {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
-            new_stash.increment_slot(froglin_type);
-            storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
-        } //
-        else {
-            let mut new_stash =
-                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
-            new_stash.increment_slot(froglin_type - stash_midpoint_index);
-            storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
-                &mut context,
-                keys.ovpk_m,
-                player,
-                player,
-            ));
+        // ensure player has transfer available
+        unsafe {
+            _check_transfer_availability(player);
         }
+
+        let froglin_type: u8 = storage.transfers.at(player).get_note().note.value as u8;
+
+        // create a ptr to selected stash
+        let stash_in_storage = if (froglin_type < stash_midpoint_index) {
+            storage.stashes_1.at(player)
+        } else {
+            storage.stashes_2.at(player)
+        };
+
+        // select the slot
+        let slot_id = if (froglin_type < stash_midpoint_index) {
+            froglin_type
+        } else {
+            froglin_type - stash_midpoint_index
+        };
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash_in_storage.get_note().note, player);
+        new_stash_note.increment_slot(slot_id);
+
+        // update private stash
+        stash_in_storage.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
     }
 
     #[view]

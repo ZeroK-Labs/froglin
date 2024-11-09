@@ -3,11 +3,11 @@ import { beforeAll, describe, expect, test } from "bun:test";
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { GAME_MASTER, ACCOUNTS } from "./accounts";
 import { stringToBigInt } from "common/utils/bigint";
-// import { assert } from "console";
+import { assert } from "console";
 
 describe("Capture Froglin", () => {
   const timeout = 40_000;
-  const FROGLIN_COUNT = 5;
+  const FROGLIN_COUNT = 7;
   const EPOCH_COUNT = 3;
   const EPOCH_DURATION = 20_000;
 
@@ -76,16 +76,15 @@ describe("Capture Froglin", () => {
   test(
     "registered account can capture a Froglin when the event is started",
     async () => {
-      console.log("Starting event...");
       await GAME_MASTER.contracts.gateway.methods
         .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
         .send()
         .wait();
-      console.log("Event started");
+
       const froglin_count = Number(
         await GAME_MASTER.contracts.gateway.methods.view_froglin_count().simulate(),
       );
-      console.log(`Froglin count: ${froglin_count}`);
+
       await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
 
       const new_froglin_count = Number(
@@ -109,134 +108,184 @@ describe("Capture Froglin", () => {
     timeout,
   );
 
-  // test(
-  //   "registered account can capture a second Froglin of the same type",
-  //   async () => {
-  //     await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
+  test(
+    "registered account can capture a second Froglin of the same type",
+    async () => {
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
 
-  //     const stash = await ACCOUNTS.alice.contracts.gateway.methods
-  //       .view_stash(ACCOUNTS.alice.wallet.getAddress())
-  //       .simulate();
+      const stash = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_stash(ACCOUNTS.alice.wallet.getAddress())
+        .simulate();
 
-  //     expect(stash[0]).toEqual(2n);
-  //     expect(stash[1]).toEqual(0n);
-  //     expect(stash[2]).toEqual(0n);
-  //     expect(stash[3]).toEqual(0n);
-  //     expect(stash[4]).toEqual(0n);
-  //     expect(stash[5]).toEqual(0n);
-  //     expect(stash[6]).toEqual(0n);
-  //     expect(stash[7]).toEqual(0n);
-  //     // expect(stash[8]).toEqual(0n);
-  //     // expect(stash[9]).toEqual(0n);
-  //     // expect(stash[10]).toEqual(0n);
-  //     // expect(stash[11]).toEqual(0n);
-  //   },
-  //   timeout,
-  // );
+      expect(stash[0]).toEqual(2n);
+      expect(stash[1]).toEqual(0n);
+      expect(stash[2]).toEqual(0n);
+      expect(stash[3]).toEqual(0n);
+      expect(stash[4]).toEqual(0n);
+      expect(stash[5]).toEqual(0n);
+      expect(stash[6]).toEqual(0n);
+      expect(stash[7]).toEqual(0n);
+      // expect(stash[8]).toEqual(0n);
+      // expect(stash[9]).toEqual(0n);
+      // expect(stash[10]).toEqual(0n);
+      // expect(stash[11]).toEqual(0n);
+    },
+    timeout,
+  );
 
-  // test(
-  //   "registered account can capture different Froglin types",
-  //   async () => {
-  //     await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait();
+  test(
+    "registered account can capture different Froglin types",
+    async () => {
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait();
 
-  //     const stash = await ACCOUNTS.alice.contracts.gateway.methods
-  //       .view_stash(ACCOUNTS.alice.wallet.getAddress())
-  //       .simulate();
+      const stash = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_stash(ACCOUNTS.alice.wallet.getAddress())
+        .simulate();
 
-  //     expect(stash[0]).toEqual(2n);
-  //     expect(stash[1]).toEqual(1n);
-  //     expect(stash[2]).toEqual(0n);
-  //     expect(stash[3]).toEqual(0n);
-  //     expect(stash[4]).toEqual(0n);
-  //     expect(stash[5]).toEqual(0n);
-  //     expect(stash[6]).toEqual(0n);
-  //     expect(stash[7]).toEqual(0n);
-  //     // expect(stash[8]).toEqual(0n);
-  //     // expect(stash[9]).toEqual(0n);
-  //     // expect(stash[10]).toEqual(0n);
-  //     // expect(stash[11]).toEqual(0n);
-  //   },
-  //   timeout,
-  // );
+      expect(stash[0]).toEqual(2n);
+      expect(stash[1]).toEqual(1n);
+      expect(stash[2]).toEqual(0n);
+      expect(stash[3]).toEqual(0n);
+      expect(stash[4]).toEqual(0n);
+      expect(stash[5]).toEqual(0n);
+      expect(stash[6]).toEqual(0n);
+      expect(stash[7]).toEqual(0n);
+      // expect(stash[8]).toEqual(0n);
+      // expect(stash[9]).toEqual(0n);
+      // expect(stash[10]).toEqual(0n);
+      // expect(stash[11]).toEqual(0n);
+    },
+    timeout,
+  );
 
-  // test(
-  //   "a different registered account can capture a Froglin when the event is started",
-  //   async () => {
-  //     await ACCOUNTS.charlie.contracts.gateway.methods.capture_froglin(0).send().wait();
+  test(
+    "registered account can capture different Froglin types (2nd stash)",
+    async () => {
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(4).send().wait();
 
-  //     const stash = await ACCOUNTS.charlie.contracts.gateway.methods
-  //       .view_stash(ACCOUNTS.charlie.wallet.getAddress())
-  //       .simulate();
+      const stash = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_stash(ACCOUNTS.alice.wallet.getAddress())
+        .simulate();
 
-  //     expect(stash[0]).toEqual(1n);
-  //     expect(stash[1]).toEqual(0n);
-  //     expect(stash[2]).toEqual(0n);
-  //     expect(stash[3]).toEqual(0n);
-  //     expect(stash[4]).toEqual(0n);
-  //     expect(stash[5]).toEqual(0n);
-  //     expect(stash[6]).toEqual(0n);
-  //     expect(stash[7]).toEqual(0n);
-  //     // expect(stash[8]).toEqual(0n);
-  //     // expect(stash[9]).toEqual(0n);
-  //     // expect(stash[10]).toEqual(0n);
-  //     // expect(stash[11]).toEqual(0n);
-  //   },
-  //   timeout,
-  // );
+      expect(stash[0]).toEqual(2n);
+      expect(stash[1]).toEqual(1n);
+      expect(stash[2]).toEqual(0n);
+      expect(stash[3]).toEqual(0n);
+      expect(stash[4]).toEqual(1n);
+      expect(stash[5]).toEqual(0n);
+      expect(stash[6]).toEqual(0n);
+      expect(stash[7]).toEqual(0n);
+      // expect(stash[8]).toEqual(0n);
+      // expect(stash[9]).toEqual(0n);
+      // expect(stash[10]).toEqual(0n);
+      // expect(stash[11]).toEqual(0n);
+    },
+    timeout,
+  );
 
-  // test("fails when a registered account tries to capture a Froglin with of an unknown type", () => {
-  //   expect(
-  //     ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(99).send().wait(),
-  //   ).rejects.toThrow("Assertion failed: tried to capture an unknown Froglin type");
-  // });
+  test(
+    "registered account can capture different Froglin types (2nd stash)",
+    async () => {
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(7).send().wait();
 
-  // test("fails when an un-registered account tries to capture a Froglin", () => {
-  //   expect(
-  //     ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(0).send().wait(),
-  //   ).rejects.toThrow("Assertion failed: only registered players can call this method");
-  // });
+      const stash = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_stash(ACCOUNTS.alice.wallet.getAddress())
+        .simulate();
 
-  // test("fails when an un-registered account tries view its stash", () => {
-  //   expect(
-  //     ACCOUNTS.bob.contracts.gateway.methods
-  //       .view_stash(ACCOUNTS.bob.wallet.getAddress())
-  //       .simulate(),
-  //   ).rejects.toThrow("Assertion failed: only registered players can call this method");
-  // });
+      expect(stash[0]).toEqual(2n);
+      expect(stash[1]).toEqual(1n);
+      expect(stash[2]).toEqual(0n);
+      expect(stash[3]).toEqual(0n);
+      expect(stash[4]).toEqual(1n);
+      expect(stash[5]).toEqual(0n);
+      expect(stash[6]).toEqual(0n);
+      expect(stash[7]).toEqual(1n);
+      // expect(stash[8]).toEqual(0n);
+      // expect(stash[9]).toEqual(0n);
+      // expect(stash[10]).toEqual(0n);
+      // expect(stash[11]).toEqual(0n);
+    },
+    timeout,
+  );
 
-  // test("fails when a registered account tries to view the stash of a different registered account", () => {
-  //   expect(
-  //     ACCOUNTS.charlie.contracts.gateway.methods
-  //       .view_stash(ACCOUNTS.alice.wallet.getAddress())
-  //       .simulate(),
-  //   ).rejects.toThrow("Assertion failed: Attempted to read past end of BoundedVec");
-  // });
+  test(
+    "a different registered account can capture a Froglin when the event is started",
+    async () => {
+      await ACCOUNTS.charlie.contracts.gateway.methods.capture_froglin(0).send().wait();
 
-  // test("fails when a registered account tries to view the stash of an un-registered account", () => {
-  //   expect(
-  //     ACCOUNTS.alice.contracts.gateway.methods
-  //       .view_stash(ACCOUNTS.bob.wallet.getAddress())
-  //       .simulate(),
-  //   ).rejects.toThrow("Assertion failed: only registered players can call this method");
-  // });
+      const stash = await ACCOUNTS.charlie.contracts.gateway.methods
+        .view_stash(ACCOUNTS.charlie.wallet.getAddress())
+        .simulate();
 
-  // test(
-  //   "fails when all available Froglins are captured and registered account tries to capture a Froglin",
-  //   async () => {
-  //     const froglin_count = Number(
-  //       await GAME_MASTER.contracts.gateway.methods.view_froglin_count().simulate(),
-  //     );
-  //     assert(
-  //       froglin_count === 1,
-  //       `expected froglin_count to be 1, found ${froglin_count}`,
-  //     );
+      expect(stash[0]).toEqual(1n);
+      expect(stash[1]).toEqual(0n);
+      expect(stash[2]).toEqual(0n);
+      expect(stash[3]).toEqual(0n);
+      expect(stash[4]).toEqual(0n);
+      expect(stash[5]).toEqual(0n);
+      expect(stash[6]).toEqual(0n);
+      expect(stash[7]).toEqual(0n);
+      // expect(stash[8]).toEqual(0n);
+      // expect(stash[9]).toEqual(0n);
+      // expect(stash[10]).toEqual(0n);
+      // expect(stash[11]).toEqual(0n);
+    },
+    timeout,
+  );
 
-  //     await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
+  test("fails when a registered account tries to capture a Froglin with of an unknown type", () => {
+    expect(
+      ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(99).send().wait(),
+    ).rejects.toThrow("Assertion failed: tried to capture an unknown Froglin type");
+  });
 
-  //     expect(
-  //       ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait(),
-  //     ).rejects.toThrow("Assertion failed: all available Froglins have been captured");
-  //   },
-  //   timeout,
-  // );
+  test("fails when an un-registered account tries to capture a Froglin", () => {
+    expect(
+      ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(0).send().wait(),
+    ).rejects.toThrow("Assertion failed: only registered players can call this method");
+  });
+
+  test("fails when an un-registered account tries view its stash", () => {
+    expect(
+      ACCOUNTS.bob.contracts.gateway.methods
+        .view_stash(ACCOUNTS.bob.wallet.getAddress())
+        .simulate(),
+    ).rejects.toThrow("Assertion failed: only registered players can call this method");
+  });
+
+  test("fails when a registered account tries to view the stash of a different registered account", () => {
+    expect(
+      ACCOUNTS.charlie.contracts.gateway.methods
+        .view_stash(ACCOUNTS.alice.wallet.getAddress())
+        .simulate(),
+    ).rejects.toThrow("Assertion failed: Attempted to read past end of BoundedVec");
+  });
+
+  test("fails when a registered account tries to view the stash of an un-registered account", () => {
+    expect(
+      ACCOUNTS.alice.contracts.gateway.methods
+        .view_stash(ACCOUNTS.bob.wallet.getAddress())
+        .simulate(),
+    ).rejects.toThrow("Assertion failed: only registered players can call this method");
+  });
+
+  test(
+    "fails when all available Froglins are captured and registered account tries to capture a Froglin",
+    async () => {
+      const froglin_count = Number(
+        await GAME_MASTER.contracts.gateway.methods.view_froglin_count().simulate(),
+      );
+      assert(
+        froglin_count === 1,
+        `expected froglin_count to be 1, found ${froglin_count}`,
+      );
+
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
+
+      expect(
+        ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait(),
+      ).rejects.toThrow("Assertion failed: all available Froglins have been captured");
+    },
+    timeout,
+  );
 });
