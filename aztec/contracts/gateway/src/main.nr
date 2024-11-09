@@ -253,10 +253,8 @@ contract FroglinGateway {
 
         // create new note for selected stash
         if (won_froglin_type < stash_midpoint_index) {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_1.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
             new_stash.increment_slot(won_froglin_type);
             storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
                 &mut context,
@@ -266,10 +264,8 @@ contract FroglinGateway {
             ));
         } //
         else {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_2.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
             new_stash.increment_slot(won_froglin_type - stash_midpoint_index);
             storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
                 &mut context,
@@ -329,10 +325,8 @@ contract FroglinGateway {
 
         // create new note for selected stash
         if (offered_froglin_type < stash_midpoint_index) {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_1.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
             let froglin_count = new_stash.get_slot(offered_froglin_type) as u8;
             assert(froglin_count > 0, "player does not have the offered froglin type");
             debug_log("AAAAAAAAAA");
@@ -423,10 +417,8 @@ contract FroglinGateway {
         let keys = get_public_keys(player);
         // create new note for selected stash
         if (offered_froglin_type < stash_midpoint_index) {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_1.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
             let froglin_count = new_stash.get_slot(offered_froglin_type) as u8;
             assert(froglin_count > 0, "player does not have the offered froglin type");
 
@@ -444,10 +436,8 @@ contract FroglinGateway {
                 .enqueue(&mut context);
         } //
         else {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_2.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
             let froglin_count =
                 new_stash.get_slot(offered_froglin_type - stash_midpoint_index) as u8;
             assert(froglin_count > 0, "player does not have the offered froglin type");
@@ -483,10 +473,8 @@ contract FroglinGateway {
         let keys = get_public_keys(player);
 
         if (wanted_froglin_type < stash_midpoint_index) {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_1.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
             let froglin_count = new_stash.get_slot(wanted_froglin_type) as u8;
             assert(froglin_count > 0, "player does not have the wanted froglin type");
 
@@ -495,10 +483,8 @@ contract FroglinGateway {
                 new_stash.increment_slot(offered_froglin_type);
             } //
             else {
-                let mut new_stash2 = StashNote::copy(
-                    storage.stashes_2.at(player).get_note().note,
-                    player,
-                );
+                let mut new_stash2 =
+                    StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
                 new_stash2.increment_slot(offered_froglin_type - stash_midpoint_index);
                 storage.stashes_2.at(player).replace(&mut new_stash2).emit(encode_and_encrypt_note(
                     &mut context,
@@ -520,20 +506,16 @@ contract FroglinGateway {
             );
         } //
         else {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_2.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
             let froglin_count =
                 new_stash.get_slot(wanted_froglin_type - stash_midpoint_index) as u8;
             assert(froglin_count > 0, "player does not have the wanted froglin type");
 
             new_stash.decrement_slot(wanted_froglin_type - stash_midpoint_index);
             if (offered_froglin_type < stash_midpoint_index) {
-                let mut new_stash1 = StashNote::copy(
-                    storage.stashes_1.at(player).get_note().note,
-                    player,
-                );
+                let mut new_stash1 =
+                    StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
                 new_stash1.increment_slot(offered_froglin_type - stash_midpoint_index);
                 storage.stashes_1.at(player).replace(&mut new_stash1).emit(encode_and_encrypt_note(
                     &mut context,
@@ -576,10 +558,8 @@ contract FroglinGateway {
         let keys = get_public_keys(player);
 
         if (wanted_froglin_type < stash_midpoint_index) {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_1.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
             new_stash.increment_slot(wanted_froglin_type);
             storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
                 &mut context,
@@ -593,10 +573,8 @@ contract FroglinGateway {
             );
         } //
         else {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_2.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
             new_stash.increment_slot(wanted_froglin_type - stash_midpoint_index);
             storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
                 &mut context,
@@ -628,10 +606,8 @@ contract FroglinGateway {
         let keys = get_public_keys(player);
 
         if (offered_froglin_type < stash_midpoint_index) {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_1.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
             new_stash.increment_slot(offered_froglin_type);
             storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
                 &mut context,
@@ -645,10 +621,8 @@ contract FroglinGateway {
             );
         } //
         else {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_2.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
             new_stash.increment_slot(offered_froglin_type - stash_midpoint_index);
             storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
                 &mut context,
@@ -817,10 +791,8 @@ contract FroglinGateway {
 
         // create new note for selected stash
         if (froglin_type < stash_midpoint_index) {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_1.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
             new_stash.increment_slot(froglin_type);
             storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
                 &mut context,
@@ -830,10 +802,8 @@ contract FroglinGateway {
             ));
         } //
         else {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_2.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
             new_stash.increment_slot(froglin_type - stash_midpoint_index);
             storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
                 &mut context,
@@ -857,10 +827,8 @@ contract FroglinGateway {
 
         // create new note for selected stash
         if (froglin_type < stash_midpoint_index) {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_1.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
             new_stash.increment_slot(froglin_type);
             storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
                 &mut context,
@@ -870,10 +838,8 @@ contract FroglinGateway {
             ));
         } //
         else {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_2.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
             new_stash.increment_slot(froglin_type - stash_midpoint_index);
             storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
                 &mut context,
@@ -894,10 +860,7 @@ contract FroglinGateway {
         let from_keys = get_public_keys(from);
         let to_keys = get_public_keys(to);
 
-        let mut from_stash_note = StashNote::copy(
-            storage.stashes_1.at(from).get_note().note,
-            from,
-        );
+        let mut from_stash_note = StashNote::copy(storage.stashes_1.at(from).get_note().note, from);
 
         from_stash_note.decrement_slot(froglin_type);
 
@@ -929,10 +892,8 @@ contract FroglinGateway {
 
         // create new note for selected stash
         if (froglin_type < stash_midpoint_index) {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_1.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_1.at(player).get_note().note, player);
             new_stash.increment_slot(froglin_type);
             storage.stashes_1.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
                 &mut context,
@@ -942,10 +903,8 @@ contract FroglinGateway {
             ));
         } //
         else {
-            let mut new_stash = StashNote::copy(
-                storage.stashes_2.at(player).get_note().note,
-                player,
-            );
+            let mut new_stash =
+                StashNote::copy(storage.stashes_2.at(player).get_note().note, player);
             new_stash.increment_slot(froglin_type - stash_midpoint_index);
             storage.stashes_2.at(player).replace(&mut new_stash).emit(encode_and_encrypt_note(
                 &mut context,
