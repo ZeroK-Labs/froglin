@@ -36,7 +36,7 @@ contract FroglinGateway {
     #[storage]
     struct Storage<Context> {
         game_master: SharedImmutable<AztecAddress, Context>,
-        accounts_size: PublicMutable<u32, Context>,
+        accounts_size: PublicMutable<u8, Context>,
         accounts: Map<AztecAddress, PrivateMutable<PlayerNote, Context>, Context>,
         transfers: Map<AztecAddress, PrivateMutable<ValueNote, Context>, Context>,
         stashes_1: Map<AztecAddress, PrivateMutable<StashNote, Context>, Context>,
@@ -117,7 +117,7 @@ contract FroglinGateway {
     #[public]
     unconstrained fn _register(player: AztecAddress) {
         let accounts_size = storage.accounts_size.read();
-        storage.leaderboard.at(accounts_size as u8).write(LeaderBoardEntry::new(player, 0));
+        storage.leaderboard.at(accounts_size).write(LeaderBoardEntry::new(player, 0));
         storage.accounts_size.write(accounts_size + 1);
     }
 
@@ -238,16 +238,18 @@ contract FroglinGateway {
         let accounts_size = storage.accounts_size.read();
         let mut player_index = settings::PLAYER_COUNT;
         for i in 0..accounts_size {
-            if (player == storage.leaderboard.at(i as u8).read().player) {
+            if (player == storage.leaderboard.at(i).read().player) {
                 player_index = i;
                 break;
             }
         }
 
-        let mut new_leaderboard_entry = storage.leaderboard.at(player_index as u8).read();
+        assert(player_index != settings::PLAYER_COUNT, "missing player can't capture Froglin");
+
+        let mut new_leaderboard_entry = storage.leaderboard.at(player_index).read();
         new_leaderboard_entry.score = new_leaderboard_entry.score + 1;
 
-        storage.leaderboard.at(player_index as u8).write(new_leaderboard_entry);
+        storage.leaderboard.at(player_index).write(new_leaderboard_entry);
     }
 
     #[private]
@@ -315,7 +317,7 @@ contract FroglinGateway {
             _check_transfer_availability(player);
         }
 
-        let froglin_type: u8 = storage.transfers.at(player).get_note().note.value as u8;
+        let froglin_type = storage.transfers.at(player).get_note().note.value as u8;
 
         // create a ptr to selected stash
         let stash_in_storage = if (froglin_type < stash_midpoint_index) {
@@ -414,7 +416,7 @@ contract FroglinGateway {
         ));
 
         // increment the froglin count of the player
-        let trader_id: Field = _view_trader_id(player) as Field;
+        let trader_id = _view_trader_id(player);
 
         FroglinGateway::at(context.this_address())
             ._create_swap_proposal(trader_id, offered_froglin_type, wanted_froglin_type)
@@ -684,7 +686,7 @@ contract FroglinGateway {
         ));
 
         // create a note with the secret_hash for the contract
-        let trader_id: Field = _view_trader_id(player) as Field;
+        let trader_id = _view_trader_id(player);
         let game_master = storage.game_master.read_private();
         let game_master_keys = get_public_keys(game_master);
         let secret = random();
@@ -856,7 +858,7 @@ contract FroglinGateway {
     }
 
     #[view]
-    unconstrained fn view_accounts_size() -> pub u32 {
+    unconstrained fn view_accounts_size() -> pub u8 {
         storage.accounts_size.read()
     }
 
@@ -915,11 +917,11 @@ contract FroglinGateway {
 
     #[view]
     unconstrained fn view_leaderboard() -> pub [LeaderBoardEntry; settings::PLAYER_COUNT] {
+        let mut leaderboard = [LeaderBoardEntry::zero(); settings::PLAYER_COUNT_U32];
+
         let accounts_size = storage.accounts_size.read();
-        let mut leaderboard: [LeaderBoardEntry; settings::PLAYER_COUNT] =
-            [LeaderBoardEntry::zero(); settings::PLAYER_COUNT];
         for i in 0..accounts_size {
-            leaderboard[i] = storage.leaderboard.at(i as u8).read();
+            leaderboard[i] = storage.leaderboard.at(i).read();
         }
 
         leaderboard
