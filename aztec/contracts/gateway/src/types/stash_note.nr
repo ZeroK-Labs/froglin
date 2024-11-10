@@ -11,18 +11,12 @@ use dep::aztec::{
     protocol_types::{constants::GENERATOR_INDEX__NOTE_NULLIFIER, traits::{Deserialize, Serialize}},
 };
 
-global STASH_NOTE_LEN: u32 = 1 + 4 as u32;
-// STASH_NOTE_LEN * 32 + 32(storage_slot as bytes) + 32(note_type_id as bytes)
+global STASH_NOTE_LEN = 2 as u32;
 
 #[note]
 struct StashNote {
     owner: AztecAddress,
-    froglin_0: Field,
-    froglin_1: Field,
-    froglin_2: Field,
-    froglin_3: Field,
-    // froglin_4: Field,
-    // froglin_5: Field,
+    stash: u64,
 }
 
 impl NullifiableNote for StashNote {
@@ -52,16 +46,7 @@ impl NullifiableNote for StashNote {
 
 impl StashNote {
     pub fn new(owner: AztecAddress) -> Self {
-        Self {
-            header: NoteHeader::empty(),
-            owner,
-            froglin_0: 0,
-            froglin_1: 0,
-            froglin_2: 0,
-            froglin_3: 0,
-            // froglin_4: 0,
-            // froglin_5: 0
-        }
+        Self { header: NoteHeader::empty(), owner, stash: 0 }
     }
 
     pub fn empty() -> Self {
@@ -69,70 +54,40 @@ impl StashNote {
     }
 
     pub fn copy(other: Self, owner: AztecAddress) -> Self {
-        Self {
-            header: NoteHeader::empty(),
-            owner,
-            froglin_0: other.froglin_0,
-            froglin_1: other.froglin_1,
-            froglin_2: other.froglin_2,
-            froglin_3: other.froglin_3,
-            // froglin_4: other.froglin_4,
-            // froglin_5: other.froglin_5
+        Self { header: NoteHeader::empty(), owner, stash: other.stash }
+    }
+
+    pub fn increment_slot(&mut self, index: u8) {
+        let mut index_mask = 1;
+        for i in 0..7 {
+            if i < index {
+                index_mask *= 256;
+            }
         }
+
+        self.stash = self.stash + index_mask;
     }
 
-    pub fn increment_slot(&mut self, slot: u8) {
-        if (slot == 0) {
-            self.froglin_0 += 1;
-        } else if (slot == 1) {
-            self.froglin_1 += 1;
-        } else if (slot == 2) {
-            self.froglin_2 += 1;
-        } else if (slot == 3) {
-            self.froglin_3 += 1;
-        } //
-        // else if (slot == 4) {
-        //     self.froglin_4 += 1;
-        // } else if (slot == 5) {
-        //     self.froglin_5 += 1;
-        // }
-    }
-
-    pub fn decrement_slot(&mut self, slot: u8) {
-        if (slot == 0) {
-            self.froglin_0 -= 1;
-        } else if (slot == 1) {
-            self.froglin_1 -= 1;
-        } else if (slot == 2) {
-            self.froglin_2 -= 1;
-        } else if (slot == 3) {
-            self.froglin_3 -= 1;
-        } //
-        //  else if (slot == 4) {
-        //     self.froglin_4 -= 1;
-        // } else if (slot == 5) {
-        //     self.froglin_5 -= 1;
-        // }
-    }
-
-    pub fn get_slot(&mut self, slot: u8) -> Field {
-        if (slot == 0) {
-            self.froglin_0
-        } else if (slot == 1) {
-            self.froglin_1
-        } else if (slot == 2) {
-            self.froglin_2
-        } else if (slot == 3) {
-            self.froglin_3
-        } //
-        // else if (slot == 4) {
-        //     self.froglin_4
-        // } else if (slot == 5) {
-        //     self.froglin_5
-        // } //
-        else {
-            0
+    pub fn decrement_slot(&mut self, index: u8) {
+        let mut index_mask = 1;
+        for i in 0..7 {
+            if i < index {
+                index_mask *= 256;
+            }
         }
+
+        self.stash = self.stash - index_mask;
+    }
+
+    pub fn get_slot(self, index: u8) -> u8 {
+        let mut index_mask = 1;
+        for i in 0..7 {
+            if i < index {
+                index_mask *= 256;
+            }
+        }
+
+        (self.stash / index_mask) as u8
     }
 }
 
@@ -141,38 +96,19 @@ impl Deserialize<STASH_NOTE_LEN> for StashNote {
         Self {
             header: NoteHeader::empty(),
             owner: AztecAddress::from_field(values[0]),
-            froglin_0: values[1],
-            froglin_1: values[2],
-            froglin_2: values[3],
-            froglin_3: values[4],
-            // froglin_4: values[5],
-            // froglin_5: values[6]
+            stash: values[1] as u64,
         }
     }
 }
 
 impl Serialize<STASH_NOTE_LEN> for StashNote {
     fn serialize(self) -> [Field; STASH_NOTE_LEN] {
-        [
-            self.owner.to_field(),
-            self.froglin_0,
-            self.froglin_1,
-            self.froglin_2,
-            self.froglin_3,
-            // self.froglin_4,
-            // self.froglin_5
-        ]
+        [self.owner.to_field(), self.stash as Field]
     }
 }
 
 impl Eq for StashNote {
     fn eq(self, other: Self) -> bool {
-        (self.owner == other.owner)
-            & (self.froglin_0 == other.froglin_0)
-            & (self.froglin_1 == other.froglin_1)
-            & (self.froglin_2 == other.froglin_2)
-            & (self.froglin_3 == other.froglin_3)
-        // & (self.froglin_4 == other.froglin_4)
-        // & (self.froglin_5 == other.froglin_5)
+        (self.owner == other.owner) & (self.stash == other.stash)
     }
 }
