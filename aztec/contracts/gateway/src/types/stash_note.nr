@@ -11,12 +11,14 @@ use dep::aztec::{
     protocol_types::{constants::GENERATOR_INDEX__NOTE_NULLIFIER, traits::{Deserialize, Serialize}},
 };
 
-global STASH_NOTE_LEN = 2 as u32;
+global STASH_NOTE_LEN = 3 as u32;
+global STASH_COUNT = 2 as u8;
 
 #[note]
 struct StashNote {
     owner: AztecAddress,
-    stash: u64,
+    stash_1: u64,
+    stash_2: u64,
 }
 
 impl NullifiableNote for StashNote {
@@ -46,7 +48,7 @@ impl NullifiableNote for StashNote {
 
 impl StashNote {
     pub fn new(owner: AztecAddress) -> Self {
-        Self { header: NoteHeader::empty(), owner, stash: 0 }
+        Self { header: NoteHeader::empty(), owner, stash_1: 0, stash_2: 0 }
     }
 
     pub fn empty() -> Self {
@@ -54,40 +56,81 @@ impl StashNote {
     }
 
     pub fn copy(other: Self, owner: AztecAddress) -> Self {
-        Self { header: NoteHeader::empty(), owner, stash: other.stash }
+        Self { header: NoteHeader::empty(), owner, stash_1: other.stash_1, stash_2: other.stash_2 }
     }
 
     pub fn increment_slot(&mut self, index: u8) {
+        let mut stash_index = index;
+        for _i in 0..STASH_COUNT {
+            if stash_index >= 8 {
+                stash_index = stash_index - 8;
+            }
+        }
+
         let mut index_mask = 1;
         for i in 0..7 {
-            if i < index {
+            if i < stash_index {
                 index_mask *= 256;
             }
         }
 
-        self.stash = self.stash + index_mask;
+        if (index < 8) {
+            self.stash_1 = self.stash_1 + index_mask;
+        } //
+        else if (index < 16) {
+            self.stash_2 = self.stash_2 + index_mask;
+        }
     }
 
     pub fn decrement_slot(&mut self, index: u8) {
+        let mut stash_index = index;
+        for _i in 0..STASH_COUNT {
+            if stash_index >= 8 {
+                stash_index = stash_index - 8;
+            }
+        }
+
         let mut index_mask = 1;
         for i in 0..7 {
-            if i < index {
+            if i < stash_index {
                 index_mask *= 256;
             }
         }
 
-        self.stash = self.stash - index_mask;
+        if (index < 8) {
+            self.stash_1 = self.stash_1 - index_mask;
+        } //
+        else if (index < 16) {
+            self.stash_2 = self.stash_2 - index_mask;
+        }
     }
 
     pub fn get_slot(self, index: u8) -> u8 {
+        let mut stash_index = index;
+        for _i in 0..STASH_COUNT {
+            if stash_index >= 8 {
+                stash_index = stash_index - 8;
+            }
+        }
+
         let mut index_mask = 1;
         for i in 0..7 {
-            if i < index {
+            if i < stash_index {
                 index_mask *= 256;
             }
         }
 
-        (self.stash / index_mask) as u8
+        let stash = if (index < 8) {
+            self.stash_1
+        } //
+        else if (index < 16) {
+            self.stash_2
+        } //
+        else {
+            0
+        };
+
+        (stash / index_mask) as u8
     }
 }
 
@@ -96,19 +139,22 @@ impl Deserialize<STASH_NOTE_LEN> for StashNote {
         Self {
             header: NoteHeader::empty(),
             owner: AztecAddress::from_field(values[0]),
-            stash: values[1] as u64,
+            stash_1: values[1] as u64,
+            stash_2: values[2] as u64,
         }
     }
 }
 
 impl Serialize<STASH_NOTE_LEN> for StashNote {
     fn serialize(self) -> [Field; STASH_NOTE_LEN] {
-        [self.owner.to_field(), self.stash as Field]
+        [self.owner.to_field(), self.stash_1 as Field, self.stash_2 as Field]
     }
 }
 
 impl Eq for StashNote {
     fn eq(self, other: Self) -> bool {
-        (self.owner == other.owner) & (self.stash == other.stash)
+        (self.owner == other.owner)
+            & (self.stash_1 == other.stash_1)
+            & (self.stash_2 == other.stash_2)
     }
 }

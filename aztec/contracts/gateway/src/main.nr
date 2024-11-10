@@ -1,5 +1,6 @@
 mod settings;
 mod types;
+
 use dep::aztec::macros::aztec;
 
 #[aztec]
@@ -271,7 +272,7 @@ contract FroglinGateway {
         }
         let keys = get_public_keys(player);
 
-        // create a ptr to selected stash
+        // select stash
         let stash = storage.stashes.at(player);
 
         // create new note for selected stash
@@ -328,7 +329,7 @@ contract FroglinGateway {
         }
         let keys = get_public_keys(player);
 
-        // create a ptr to selected stash
+        // select stash
         let stash = storage.stashes.at(player);
 
         // create new note for selected stash
@@ -385,7 +386,7 @@ contract FroglinGateway {
         }
         let keys = get_public_keys(player);
 
-        // create a ptr to selected stash
+        // select stash
         let stash = storage.stashes.at(player);
 
         // create new note for selected stash
@@ -431,7 +432,7 @@ contract FroglinGateway {
         let trader_id = _view_trader_id(player);
         assert(trader_id == proposal.trader_id, "only the trader can claim the proposal");
 
-        // create a ptr to selected stash
+        // select stash
         let stash = storage.stashes.at(player);
 
         // create new note for selected stash
@@ -467,7 +468,7 @@ contract FroglinGateway {
         let trader_id = _view_trader_id(player);
         assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
 
-        // create a ptr to selected stash
+        // select stash
         let stash = storage.stashes.at(player);
 
         // create new note for selected stash
@@ -546,7 +547,7 @@ contract FroglinGateway {
 
         debug_log("create_battle_proposal");
 
-        // create a ptr to selected stash
+        // select stash
         let stash = storage.stashes.at(player);
 
         // create new note for selected stash
@@ -705,7 +706,7 @@ contract FroglinGateway {
         let note = notes.get(0);
         let won_froglin_type = note.value as u8;
 
-        // create a ptr to selected stash
+        // select stash
         let stash = storage.stashes.at(player);
 
         // create new note for selected stash
