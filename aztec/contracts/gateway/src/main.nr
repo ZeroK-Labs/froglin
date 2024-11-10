@@ -771,16 +771,12 @@ contract FroglinGateway {
 
         let stash = storage.stashes.at(player).view_note();
 
-        [
-            stash.get_slot(0),
-            stash.get_slot(1),
-            stash.get_slot(2),
-            stash.get_slot(3),
-            stash.get_slot(4),
-            stash.get_slot(5),
-            stash.get_slot(6),
-            stash.get_slot(7),
-        ]
+        let mut array = [0; settings::FROGLIN_TYPE_COUNT_U32];
+        for i in 0..settings::FROGLIN_TYPE_COUNT {
+            array[i] = stash.get_slot(i);
+        }
+
+        array
     }
 
     #[view]
