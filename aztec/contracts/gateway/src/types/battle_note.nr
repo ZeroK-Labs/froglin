@@ -1,65 +1,77 @@
 use dep::aztec::{
-    protocol_types::{traits::Serialize, constants::GENERATOR_INDEX__NOTE_NULLIFIER},
-    prelude::AztecAddress, macros::notes::note, hash::poseidon2_hash_with_separator,
-    note::{note_header::NoteHeader, note_interface::NullifiableNote, utils::compute_note_hash_for_nullify},
-    keys::getters::get_nsk_app, context::PrivateContext
+    context::PrivateContext,
+    hash::poseidon2_hash_with_separator,
+    keys::getters::{get_nsk_app, get_public_keys},
+    macros::notes::note,
+    note::{
+        note_header::NoteHeader, note_interface::NullifiableNote,
+        utils::compute_note_hash_for_nullify,
+    },
+    prelude::AztecAddress,
+    protocol_types::{constants::GENERATOR_INDEX__NOTE_NULLIFIER, traits::Serialize},
 };
 use dep::std::mem::zeroed;
 use aztec::oracle::random::random;
 
-global PLAYER_NOTE_LEN: u32 = 5;
+global PLAYER_NOTE_LEN: u32 = 4;
 // PLAYER_NOTE_LEN * 32 + 32(storage_slot as bytes) + 32(note_type_id as bytes)
 // global PLAYER_NOTE_BYTES_LEN: u32 = PLAYER_NOTE_LEN * 32 + 64;
 
 #[note]
 struct BattleNote {
-    secret_hash: Field,
+    owner: AztecAddress,
     choices: Field,
-    address1: AztecAddress,
-    address2: AztecAddress,
     proposal_id: Field,
+    player_address: AztecAddress,
 }
 
 impl NullifiableNote for BattleNote {
-    fn compute_nullifier(self, context: &mut PrivateContext, note_hash_for_nullify: Field) -> Field {
-        let note_hash_for_nullify = compute_note_hash_for_nullify(self);
+    fn compute_nullifier(
+        self,
+        context: &mut PrivateContext,
+        note_hash_for_nullify: Field,
+    ) -> Field {
+        let owner_npk_m_hash: Field = get_public_keys(self.owner).npk_m.hash();
+        let secret = context.request_nsk_app(owner_npk_m_hash);
         poseidon2_hash_with_separator(
-            [note_hash_for_nullify],
-            GENERATOR_INDEX__NOTE_NULLIFIER as Field
+            [note_hash_for_nullify, secret],
+            GENERATOR_INDEX__NOTE_NULLIFIER as Field,
         )
     }
 
     unconstrained fn compute_nullifier_without_context(self) -> Field {
-        self.compute_nullifier(zeroed(), zeroed())
+        let note_hash_for_nullify = compute_note_hash_for_nullify(self);
+        let owner_npk_m_hash: Field = get_public_keys(self.owner).npk_m.hash();
+        let secret = get_nsk_app(owner_npk_m_hash);
+        poseidon2_hash_with_separator(
+            [note_hash_for_nullify, secret],
+            GENERATOR_INDEX__NOTE_NULLIFIER as Field,
+        )
     }
 }
 
 impl BattleNote {
     pub fn new(
-        secret_hash: Field,
+        owner: AztecAddress,
         choices: Field,
-        address1: AztecAddress,
-        address2: AztecAddress,
-        proposal_id: Field
+        proposal_id: Field,
+        player_address: AztecAddress,
     ) -> Self {
-        BattleNote { header: NoteHeader::empty(), secret_hash, choices, address1, address2, proposal_id }
+        BattleNote { header: NoteHeader::empty(), owner, choices, proposal_id, player_address }
     }
 }
 
 impl Serialize<PLAYER_NOTE_LEN> for BattleNote {
     fn serialize(self) -> [Field; PLAYER_NOTE_LEN] {
-        [
-            self.secret_hash, self.choices, self.address1.to_field(), self.address2.to_field(), self.proposal_id
-        ]
+        [self.owner.to_field(), self.choices, self.proposal_id, self.player_address.to_field()]
     }
 }
 
 impl Eq for BattleNote {
     fn eq(self, other: Self) -> bool {
-        (self.secret_hash == other.secret_hash)
+        (self.owner == other.owner)
             & (self.choices == other.choices)
-            & (self.address1 == other.address1)
-            & (self.address2 == other.address2)
             & (self.proposal_id == other.proposal_id)
+            & (self.player_address == other.player_address)
     }
 }
