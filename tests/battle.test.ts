@@ -75,6 +75,14 @@ describe("Battle Froglins", () => {
         new Fr(BigInt(GAME_MASTER.secret)),
         GAME_MASTER.wallet.getCompleteAddress().partialAddress,
       ),
+      GAME_MASTER.pxe.registerAccount(
+        new Fr(BigInt(ACCOUNTS.alice.secret)),
+        ACCOUNTS.alice.wallet.getCompleteAddress().partialAddress,
+      ),
+      GAME_MASTER.pxe.registerAccount(
+        new Fr(BigInt(ACCOUNTS.bob.secret)),
+        ACCOUNTS.bob.wallet.getCompleteAddress().partialAddress,
+      ),
     ];
     await Promise.all(promises);
 
@@ -144,7 +152,7 @@ describe("Battle Froglins", () => {
       //   .simulate();
       // console.log("allBattles", allBattles);
       await ACCOUNTS.bob.contracts.gateway.methods
-        .accept_battle_proposal(0)
+        .accept_battle_proposal(0, 1)
         .send()
         .wait();
 
@@ -155,7 +163,7 @@ describe("Battle Froglins", () => {
       expect(proposal.status).toBe(2n);
       console.log("Battle proposal accepted");
 
-      await GAME_MASTER.contracts.gateway.methods.make_battle(0, 1).send().wait();
+      await GAME_MASTER.contracts.gateway.methods.make_battle(0).send().wait();
       console.log("Battle logic resolved");
 
       // const wonInBattle = await ACCOUNTS.alice.contracts.gateway.methods
