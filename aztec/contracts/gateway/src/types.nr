@@ -5,3 +5,4 @@ mod battle_note;
 mod swap_proposal;
 mod battle_proposal;
 mod win_note;
+mod date_proposal;
