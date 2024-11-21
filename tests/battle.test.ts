@@ -109,16 +109,20 @@ describe("Battle Froglins", () => {
     // ];
     // await Promise.all(promises);
   });
-
   test(
-    "create battle proposal",
+    "start event",
     async () => {
       await GAME_MASTER.contracts.gateway.methods
         .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
         .send()
         .wait();
       console.log("Event started");
-
+    },
+    timeout,
+  );
+  test(
+    "alice and bob capture a froglin",
+    async () => {
       await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait();
 
       const stashAlice = await ACCOUNTS.alice.contracts.gateway.methods
@@ -134,42 +138,62 @@ describe("Battle Froglins", () => {
       expect(stashBob[2]).toEqual(1n);
 
       console.log("Froglins captured");
+    },
+    timeout,
+  );
 
+  test(
+    "alice creates battle proposal",
+    async () => {
       await ACCOUNTS.alice.contracts.gateway.methods
         .create_battle_proposal(1, 2, 3)
         .send()
         .wait();
 
-      let proposal = await ACCOUNTS.alice.contracts.gateway.methods
+      const proposal = await ACCOUNTS.alice.contracts.gateway.methods
         .view_battle_proposal(0)
         .simulate();
 
       expect(proposal.status).toBe(1n);
       console.log("Battle proposal created");
+    },
+    timeout,
+  );
 
-      // const allBattles = await ACCOUNTS.bob.contracts.gateway.methods
-      //   .view_active_battle_proposals()
-      //   .simulate();
-      // console.log("allBattles", allBattles);
+  test(
+    "bob accepts battle proposal",
+    async () => {
       await ACCOUNTS.bob.contracts.gateway.methods
         .accept_battle_proposal(0, 1)
         .send()
         .wait();
 
-      proposal = await ACCOUNTS.alice.contracts.gateway.methods
+      const proposal = await ACCOUNTS.alice.contracts.gateway.methods
         .view_battle_proposal(0)
         .simulate();
 
       expect(proposal.status).toBe(2n);
       console.log("Battle proposal accepted");
+    },
+    timeout,
+  );
+
+  test(
+    "create battle proposal",
+    async () => {
+      // const allBattles = await ACCOUNTS.bob.contracts.gateway.methods
+      //   .view_active_battle_proposals()
+      //   .simulate();
+      // console.log("allBattles", allBattles);
 
       await GAME_MASTER.contracts.gateway.methods.make_battle(0).send().wait();
       console.log("Battle logic resolved");
 
-      // const wonInBattle = await ACCOUNTS.alice.contracts.gateway.methods
-      //   .view_won_in_battle(ACCOUNTS.alice.wallet.getAddress())
-      //   .simulate();
-      // console.log("wonInBattle", wonInBattle);
+      const wonInBattle = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_won_in_battle(ACCOUNTS.alice.wallet.getAddress())
+        .simulate();
+      expect(wonInBattle[0]).toEqual(2n);
+      console.log("wonInBattle", wonInBattle);
     },
     timeout,
   );
