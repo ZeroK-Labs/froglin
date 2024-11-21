@@ -30,6 +30,7 @@ contract FroglinGateway {
     use crate::types::player_note::PlayerNote;
     use crate::types::stash_note::StashNote;
     use crate::types::swap_proposal::SwapProposal;
+    use crate::types::win_note::WinNote;
     use std::array;
 
     global stash_midpoint_index = settings::FROGLIN_TYPE_COUNT / 2;
@@ -52,7 +53,7 @@ contract FroglinGateway {
         battle_proposal_count: PublicMutable<u32, Context>,
         battle_notes_1: Map<u32, PrivateMutable<BattleNote, Context>, Context>,
         battle_notes_2: Map<u32, PrivateMutable<BattleNote, Context>, Context>,
-        battle_winners: Map<AztecAddress, PrivateSet<ValueNote, Context>, Context>,
+        battle_winners: Map<AztecAddress, PrivateSet<WinNote, Context>, Context>,
     }
 
     #[view]
@@ -494,7 +495,7 @@ contract FroglinGateway {
 
         storage.battle_proposals.at(battle_id).write(new_proposal);
         storage.battle_proposal_count.write(battle_id + 1);
-
+        // TODO: find out how to nullify a note emited for the game_master
         // increment public stash
         let current_count = storage.public_stash.at(offered_froglin_type).read();
         storage.public_stash.at(offered_froglin_type).write(current_count + 1);
@@ -538,7 +539,6 @@ contract FroglinGateway {
             player,
         ));
 
-        // create a note with the secret_hash for the contract
         let game_master = storage.game_master.read_private();
         let game_master_keys = get_public_keys(game_master);
         // create private note for game master in battle_notes_1
@@ -645,16 +645,24 @@ contract FroglinGateway {
         let player2_choice = player2_note.choices as u8;
         let mut winner_address = AztecAddress::zero();
         let mut froglin_type = 101;
+        let mut froglin_to_recover = 101;
         // temporary logic to determine the winner
         if (player1_choice > player2_choice) {
             winner_address = player1_note.player_address;
             froglin_type = proposal.wanted_froglin_type;
+            froglin_to_recover = proposal.offered_froglin_type;
         } else {
             winner_address = player2_note.player_address;
             froglin_type = proposal.offered_froglin_type;
+            froglin_to_recover = proposal.wanted_froglin_type;
         }
         // create a note for the winner
-        let mut note = ValueNote::new(froglin_type as Field, winner_address);
+        let mut note = WinNote::new(
+            winner_address,
+            froglin_type as Field,
+            froglin_to_recover as Field,
+        );
+
         storage.battle_winners.at(winner_address).insert(&mut note).emit(encode_and_encrypt_note(
             &mut context,
             get_public_keys(winner_address).ovpk_m,
@@ -667,6 +675,16 @@ contract FroglinGateway {
         );
     }
 
+    // compare the choices
+    // if function returns 0 nobody gets anything but we emit a private note so players can
+    // aknowledge the result
+    // if check function returns 1 we randomly select a player to win and randomly select a froglin_type
+    // if it returns 2 both players get a note issued
+    // so notes need to be issued in all cases for players to get back their escrows
+    // when a date is created we will make a date proposal, identical with the battle
+    // proposal
+    // based on the status
+
     #[private]
     fn claim_winnings(froglin_type: u8) {
         // get player address and keys
@@ -678,12 +696,14 @@ contract FroglinGateway {
 
         let mut options = NoteGetterOptions::new();
         options = options
-            .select(ValueNote::properties().value, Comparator.EQ, froglin_type.to_field())
+            .select(WinNote::properties().froglin_won, Comparator.EQ, froglin_type.to_field())
             .set_limit(1);
+        // maybe add another check here for froglin to recover?
         let notes = storage.battle_winners.at(player).pop_notes(options);
         assert(notes.len() == 1, "note not popped");
         let note = notes.get(0);
-        let won_froglin_type = note.value as u8;
+        let won_froglin_type = note.froglin_won as u8;
+        let froglin_to_recover = note.froglin_to_recover as u8;
 
         // select stash
         let stash = storage.stashes.at(player);
@@ -692,7 +712,9 @@ contract FroglinGateway {
         let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
 
         new_stash_note.increment_slot(won_froglin_type);
+        new_stash_note.increment_slot(froglin_to_recover);
 
+        // increment the battled froglin
         stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
             &mut context,
             keys.ovpk_m,
@@ -853,7 +875,7 @@ contract FroglinGateway {
 
         let mut won_notes: [u8; 5] = [0; 5];
         for i in 0..notes.len() {
-            won_notes[i] = notes.get_unchecked(i).value as u8;
+            won_notes[i] = notes.get_unchecked(i).froglin_won as u8;
         }
 
         won_notes
