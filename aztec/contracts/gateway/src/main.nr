@@ -733,7 +733,7 @@ contract FroglinGateway {
         let game_master = storage.game_master.read_private();
         let game_master_keys = get_public_keys(game_master);
         // create private note for game master in battle_notes_1
-        let date_id = view_battle_proposals_count();
+        let date_id = view_date_proposals_count();
         let mut note = BattleNote::new(game_master, choices as Field, date_id as Field, player);
 
         storage.battle_notes_1.at(date_id).initialize(&mut note).emit(encode_and_encrypt_note(
@@ -757,6 +757,62 @@ contract FroglinGateway {
 
         storage.date_proposals.at(date_id).write(new_proposal);
         storage.date_proposal_count.write(date_id + 1);
+    }
+
+    #[private]
+    fn accept_date_proposal(date_id: u32, choices: u8, dating_froglin: u8) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        // ensure proposal is active
+        let proposal = view_battle_proposal(date_id);
+        assert(proposal.status == 1, "proposal is not active");
+        // check for sex with the offset
+        // decrement froglin
+        let stash = storage.stashes.at(player);
+        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
+
+        // ensure player has the Froglin
+        let froglin_count = new_stash_note.get_slot(dating_froglin) as u8;
+        assert(froglin_count > 0, "player does not have the offered froglin type");
+
+        new_stash_note.decrement_slot(dating_froglin);
+
+        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        // create a note for the game_master
+        let game_master = storage.game_master.read_private();
+        let game_master_keys = get_public_keys(game_master);
+        // create private note for game master in date_notes_2
+        let mut note = BattleNote::new(game_master, choices as Field, date_id as Field, player);
+
+        storage.battle_notes_2.at(date_id).initialize(&mut note).emit(encode_and_encrypt_note(
+            &mut context,
+            game_master_keys.ovpk_m,
+            game_master,
+            game_master,
+        ));
+
+        FroglinGateway::at(context.this_address())._accept_date_proposal(date_id).enqueue(
+            &mut context,
+        );
+    }
+
+    #[internal]
+    #[private]
+    fn _accept_date_proposal(date_id: u32) {
+        let mut proposal = storage.date_proposals.at(date_id).read();
+        proposal.change_status(2);
+        storage.date_proposals.at(date_id).write(proposal);
     }
 
     #[private]
@@ -829,6 +885,11 @@ contract FroglinGateway {
     #[view]
     unconstrained fn view_battle_proposals_count() -> pub u32 {
         storage.battle_proposal_count.read()
+    }
+
+    #[view]
+    unconstrained fn view_date_proposals_count() -> pub u32 {
+        storage.date_proposal_count.read()
     }
 
     #[view]
