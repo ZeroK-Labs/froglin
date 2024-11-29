@@ -26,6 +26,7 @@ contract FroglinGateway {
     use crate::settings;
     use crate::types::battle_note::BattleNote;
     use crate::types::battle_proposal::BattleProposal;
+    use crate::types::date_note::DateNote;
     use crate::types::date_proposal::DateProposal;
     use crate::types::leaderboard_entry::LeaderBoardEntry;
     use crate::types::player_note::PlayerNote;
@@ -57,6 +58,8 @@ contract FroglinGateway {
         battle_winners: Map<AztecAddress, PrivateSet<WinNote, Context>, Context>,
         date_proposals: Map<u32, PublicMutable<DateProposal, Context>, Context>,
         date_proposal_count: PublicMutable<u32, Context>,
+        date_notes_1: Map<u32, PrivateMutable<DateNote, Context>, Context>,
+        date_notes_2: Map<u32, PrivateMutable<DateNote, Context>, Context>,
     }
 
     #[view]
@@ -708,26 +711,17 @@ contract FroglinGateway {
         );
         // get notes from both players
         // TODO: change the battle notes to date_notes
-        let player1_note = storage.battle_notes_1.at(date_id).get_note().note;
-        let player2_note = storage.battle_notes_2.at(date_id).get_note().note;
+        let player1_note = storage.date_notes_1.at(date_id).get_note().note;
+        let player2_note = storage.date_notes_2.at(date_id).get_note().note;
         let proposal = view_date_proposal(date_id);
         // compare the choices
         let player1_choice = player1_note.choices as u8;
         let player2_choice = player2_note.choices as u8;
-
         // compare the choices
-
-    }
-    #[private]
-    fn compare_choices(choices1: u8, choices2: u8) -> u8 {
-        let mut result: u8 = 0;
-        if (choices1 > choices2) {
-            result = 1
-        }
-        if (choices1 < choices2) {
-            result = 2
-        }
-        result
+        // if (choices1 > choices2) {
+        // }
+        // if (choices1 < choices2) {
+        // }
     }
 
     #[private]
@@ -765,9 +759,9 @@ contract FroglinGateway {
         let game_master_keys = get_public_keys(game_master);
         // create private note for game master in battle_notes_1
         let date_id = view_date_proposals_count();
-        let mut note = BattleNote::new(game_master, choices as Field, date_id as Field, player);
+        let mut note = DateNote::new(game_master, choices as Field, date_id as Field, 101, player);
 
-        storage.battle_notes_1.at(date_id).initialize(&mut note).emit(encode_and_encrypt_note(
+        storage.date_notes_1.at(date_id).initialize(&mut note).emit(encode_and_encrypt_note(
             &mut context,
             game_master_keys.ovpk_m,
             game_master,
@@ -824,9 +818,15 @@ contract FroglinGateway {
         let game_master = storage.game_master.read_private();
         let game_master_keys = get_public_keys(game_master);
         // create private note for game master in date_notes_2
-        let mut note = BattleNote::new(game_master, choices as Field, date_id as Field, player);
+        let mut note = DateNote::new(
+            game_master,
+            choices as Field,
+            date_id as Field,
+            dating_froglin as Field,
+            player,
+        );
 
-        storage.battle_notes_2.at(date_id).initialize(&mut note).emit(encode_and_encrypt_note(
+        storage.date_notes_2.at(date_id).initialize(&mut note).emit(encode_and_encrypt_note(
             &mut context,
             game_master_keys.ovpk_m,
             game_master,
