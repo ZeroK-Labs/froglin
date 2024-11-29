@@ -1,5 +1,4 @@
 import { beforeAll, describe, expect, test } from "bun:test";
-// import { type IntentAction } from "node_modules/@aztec/aztec.js/dest/utils/authwit";
 import { Fr } from "@aztec/aztec.js";
 
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
@@ -179,21 +178,29 @@ describe("Battle Froglins", () => {
   );
 
   test(
-    "create battle proposal",
+    "make battle",
     async () => {
-      // const allBattles = await ACCOUNTS.bob.contracts.gateway.methods
-      //   .view_active_battle_proposals()
-      //   .simulate();
-      // console.log("allBattles", allBattles);
-
       await GAME_MASTER.contracts.gateway.methods.make_battle(0).send().wait();
       console.log("Battle logic resolved");
 
       const wonInBattle = await ACCOUNTS.alice.contracts.gateway.methods
         .view_won_in_battle(ACCOUNTS.alice.wallet.getAddress())
         .simulate();
-      expect(wonInBattle[0]).toEqual(2n);
       console.log("wonInBattle", wonInBattle);
+      expect(wonInBattle[0]).toEqual(2n);
+    },
+    timeout,
+  );
+
+  test(
+    "return froglin from battle",
+    async () => {
+      await ACCOUNTS.alice.contracts.gateway.methods.claim_winnings(2).send().wait();
+      const stashAlice = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_stash(ACCOUNTS.alice.wallet.getAddress())
+        .simulate();
+      console.log("stashAlice", stashAlice);
+      expect(stashAlice[1]).toEqual(1n);
     },
     timeout,
   );
