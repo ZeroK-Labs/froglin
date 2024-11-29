@@ -700,6 +700,37 @@ contract FroglinGateway {
     // based on the status
 
     #[private]
+    fn make_date(date_id: u32) {
+        let game_master = context.msg_sender();
+        assert(
+            game_master == storage.game_master.read_private(),
+            "only game master can call this method",
+        );
+        // get notes from both players
+        // TODO: change the battle notes to date_notes
+        let player1_note = storage.battle_notes_1.at(date_id).get_note().note;
+        let player2_note = storage.battle_notes_2.at(date_id).get_note().note;
+        let proposal = view_date_proposal(date_id);
+        // compare the choices
+        let player1_choice = player1_note.choices as u8;
+        let player2_choice = player2_note.choices as u8;
+
+        // compare the choices
+
+    }
+    #[private]
+    fn compare_choices(choices1: u8, choices2: u8) -> u8 {
+        let mut result: u8 = 0;
+        if (choices1 > choices2) {
+            result = 1
+        }
+        if (choices1 < choices2) {
+            result = 2
+        }
+        result
+    }
+
+    #[private]
     fn create_date_proposal(dating_froglin: u8, choices: u8) {
         // ensure parameters are correct
         assert(dating_froglin < settings::FROGLIN_TYPE_COUNT, "Invalid offered Froglin type");
@@ -808,8 +839,8 @@ contract FroglinGateway {
     }
 
     #[internal]
-    #[private]
-    fn _accept_date_proposal(date_id: u32) {
+    #[public]
+    unconstrained fn _accept_date_proposal(date_id: u32) {
         let mut proposal = storage.date_proposals.at(date_id).read();
         proposal.change_status(2);
         storage.date_proposals.at(date_id).write(proposal);
@@ -941,6 +972,11 @@ contract FroglinGateway {
     #[view]
     unconstrained fn view_battle_proposal(proposal_id: u32) -> pub BattleProposal {
         storage.battle_proposals.at(proposal_id).read()
+    }
+
+    #[view]
+    unconstrained fn view_date_proposal(proposal_id: u32) -> pub DateProposal {
+        storage.date_proposals.at(proposal_id).read()
     }
 
     #[view]
