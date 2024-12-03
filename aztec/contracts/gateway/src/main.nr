@@ -7,14 +7,12 @@ use dep::aztec::macros::aztec;
 contract FroglinGateway {
     use dep::aztec::{
         encrypted_logs::encrypted_note_emission::encode_and_encrypt_note,
-        hash::compute_secret_hash,
         keys::getters::get_public_keys,
         prelude::{AztecAddress, Map, NoteGetterOptions, NoteViewerOptions},
         state_vars::{PrivateMutable, PrivateSet, PublicImmutable, PublicMutable},
         utils::comparison::Comparator,
     };
     use dep::aztec::macros::{
-        events::event,
         functions::{initializer, internal, private, public, view},
         storage::storage,
     };
@@ -332,7 +330,7 @@ contract FroglinGateway {
         ));
 
         // increment the Froglin count of the player
-        let trader_id = _view_trader_id(player);
+        let trader_id = unsafe { _view_trader_id(player) };
 
         FroglinGateway::at(context.this_address())
             ._create_swap_proposal(trader_id, offered_froglin_type, wanted_froglin_type)
@@ -343,9 +341,7 @@ contract FroglinGateway {
     #[public]
     fn _accept_swap_proposal(proposal_id: u8) {
         let mut proposal = storage.swap_proposals.at(proposal_id).read();
-        let trader_id = proposal.trader_id;
         let offered_froglin_type = proposal.offered_froglin_type;
-        let wanted_froglin_type = proposal.wanted_froglin_type;
 
         // change status of the proposal to claimable
         proposal.change_status(2);
@@ -359,7 +355,7 @@ contract FroglinGateway {
     #[private]
     fn accept_swap_proposal(proposal_id: u8) {
         // ensure state is correct
-        let proposal = view_swap_proposal(proposal_id);
+        let proposal = unsafe { view_swap_proposal(proposal_id) };
         assert(proposal.status == 1, "proposal is not active");
 
         // get player address and keys
@@ -409,10 +405,10 @@ contract FroglinGateway {
         }
         let keys = get_public_keys(player);
 
-        let proposal = view_swap_proposal(proposal_id);
+        let proposal = unsafe { view_swap_proposal(proposal_id) };
         assert(proposal.status == 2, "proposal is not claimable");
 
-        let trader_id = _view_trader_id(player);
+        let trader_id = unsafe { _view_trader_id(player) };
         assert(trader_id == proposal.trader_id, "only the trader can claim the proposal");
 
         // select stash
@@ -445,10 +441,10 @@ contract FroglinGateway {
         }
         let keys = get_public_keys(player);
 
-        let proposal = view_swap_proposal(proposal_id);
+        let proposal = unsafe { view_swap_proposal(proposal_id) };
         assert(proposal.status == 1, "proposal is not active");
 
-        let trader_id = _view_trader_id(player);
+        let trader_id = unsafe { _view_trader_id(player) };
         assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
 
         // select stash
@@ -530,7 +526,7 @@ contract FroglinGateway {
         let game_master_keys = get_public_keys(game_master);
 
         // create 1st note for game_master
-        let battle_id = view_battle_proposals_count();
+        let battle_id = unsafe { view_battle_proposals_count() };
         let mut note = BattleNote::new(game_master, choices as Field, battle_id as Field, player);
 
         storage.battle_notes_1.at(battle_id).initialize(&mut note).emit(encode_and_encrypt_note(
@@ -556,7 +552,7 @@ contract FroglinGateway {
         let keys = get_public_keys(player);
 
         // ensure proposal is active
-        let proposal = view_battle_proposal(proposal_id);
+        let proposal = unsafe { view_battle_proposal(proposal_id) };
         assert(proposal.status == 1, "proposal is not active");
 
         let wanted_froglin_type = proposal.wanted_froglin_type;
@@ -612,7 +608,7 @@ contract FroglinGateway {
         // get notes from both players
         let player1_note = storage.battle_notes_1.at(proposal_id).get_note().note;
         let player2_note = storage.battle_notes_2.at(proposal_id).get_note().note;
-        let proposal = view_battle_proposal(proposal_id);
+        let proposal = unsafe { view_battle_proposal(proposal_id) };
 
         // compare the choices
         let player1_choice = player1_note.choices as u8;
@@ -725,7 +721,7 @@ contract FroglinGateway {
         let game_master_keys = get_public_keys(game_master);
 
         // create 1st note for game_master
-        let proposal_id = view_date_proposals_count();
+        let proposal_id = unsafe { view_date_proposals_count() };
         let mut note = DateNote::new(
             game_master,
             choices as Field,
@@ -743,16 +739,14 @@ contract FroglinGateway {
 
         // modify public data - create public proposal
         FroglinGateway::at(context.this_address())
-            ._create_date_proposal(dating_froglin_type, player, proposal_id)
+            ._create_date_proposal(dating_froglin_type, proposal_id)
             .enqueue(&mut context);
     }
 
     #[internal]
     #[public]
-    fn _create_date_proposal(dating_froglin_type: u8, player: AztecAddress, proposal_id: u32) {
-        // create date proposal
+    fn _create_date_proposal(dating_froglin_type: u8, proposal_id: u32) {
         let new_proposal = DateProposal::new(dating_froglin_type, proposal_id);
-
         storage.date_proposals.at(proposal_id).write(new_proposal);
         storage.date_proposal_count.write(proposal_id + 1);
     }
@@ -767,7 +761,7 @@ contract FroglinGateway {
         let keys = get_public_keys(player);
 
         // ensure proposal is active
-        let proposal = view_date_proposal(proposal_id);
+        let proposal = unsafe { view_date_proposal(proposal_id) };
         assert(proposal.status == 1, "proposal is not active");
 
         // ensure sexes are different
@@ -865,7 +859,7 @@ contract FroglinGateway {
         assert(game_master == storage.game_master.read(), "only game master can call this method");
 
         // ensure proposal is `accepted`
-        let proposal = view_date_proposal(proposal_id);
+        let proposal = unsafe { view_date_proposal(proposal_id) };
         assert(proposal.status == 2, "proposal is not accepted");
 
         // get notes from both players
