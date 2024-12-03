@@ -195,7 +195,7 @@ contract FroglinGateway {
             assert(elapsed_time >= stored_epoch_duration, "too soon to start a new event");
         }
 
-        assert(froglin_count >= 5, "froglin count should be at least 5");
+        assert(froglin_count >= 5, "Froglin count should be at least 5");
         storage.froglin_count.write(froglin_count);
 
         storage.epoch_start_time.write(epoch_start_time);
@@ -345,7 +345,7 @@ contract FroglinGateway {
             player,
         ));
 
-        // increment the froglin count of the player
+        // increment the Froglin count of the player
         let trader_id = _view_trader_id(player);
 
         FroglinGateway::at(context.this_address())
@@ -529,7 +529,7 @@ contract FroglinGateway {
 
         // ensure player has the Froglin
         let froglin_count = new_stash_note.get_slot(offered_froglin_type) as u8;
-        assert(froglin_count > 0, "player does not have the offered froglin type");
+        assert(froglin_count > 0, "player does not have the offered Froglin type");
 
         new_stash_note.decrement_slot(offered_froglin_type);
 
@@ -542,7 +542,8 @@ contract FroglinGateway {
 
         let game_master = storage.game_master.read_private();
         let game_master_keys = get_public_keys(game_master);
-        // create private note for game master in battle_notes_1
+
+        // create 1st note for game_master
         let battle_id = view_battle_proposals_count();
         let mut note = BattleNote::new(game_master, choices as Field, battle_id as Field, player);
 
@@ -557,20 +558,6 @@ contract FroglinGateway {
         FroglinGateway::at(context.this_address())
             ._create_battle_proposal(offered_froglin_type, wanted_froglin_type, battle_id)
             .enqueue(&mut context);
-    }
-
-    #[internal]
-    #[public]
-    fn _accept_battle_proposal(proposal_id: u32) {
-        let mut proposal = storage.battle_proposals.at(proposal_id).read();
-        // let offered_froglin_type = proposal.offered_froglin_type;
-        // let wanted_froglin_type = proposal.wanted_froglin_type;
-        // change status of the proposal to battle ready
-        proposal.change_status(2);
-        storage.battle_proposals.at(proposal_id).write(proposal);
-        // increment public stash
-        // let current_count = storage.public_stash.at(wanted_froglin_type).read();
-        // storage.public_stash.at(wanted_froglin_type).write(current_count + 1);
     }
 
     #[private]
@@ -593,7 +580,7 @@ contract FroglinGateway {
 
         // ensure player has the Froglin
         let froglin_count = new_stash_note.get_slot(wanted_froglin_type) as u8;
-        assert(froglin_count > 0, "player does not have the offered froglin type");
+        assert(froglin_count > 0, "player does not have the offered Froglin type");
 
         new_stash_note.decrement_slot(wanted_froglin_type);
 
@@ -604,10 +591,10 @@ contract FroglinGateway {
             player,
         ));
 
-        // create a note with the secret_hash for the contract
+        // create 2nd note for game_master
         let game_master = storage.game_master.read_private();
         let game_master_keys = get_public_keys(game_master);
-        // create private note for game master in battle_notes_1
+
         let mut note = BattleNote::new(game_master, choices as Field, proposal_id as Field, player);
 
         storage.battle_notes_2.at(proposal_id).initialize(&mut note).emit(encode_and_encrypt_note(
@@ -617,14 +604,15 @@ contract FroglinGateway {
             game_master,
         ));
 
-        FroglinGateway::at(context.this_address())._accept_battle_proposal(proposal_id).enqueue(
-            &mut context,
-        );
+        // change status of proposal to 'accepted'
+        FroglinGateway::at(context.this_address())
+            ._change_battle_proposal_status(proposal_id, 2)
+            .enqueue(&mut context);
     }
 
     #[internal]
     #[public]
-    fn _change_battle_status(proposal_id: u32, status: u8) {
+    fn _change_battle_proposal_status(proposal_id: u32, status: u8) {
         let mut proposal = storage.battle_proposals.at(proposal_id).read();
         proposal.change_status(status);
         storage.battle_proposals.at(proposal_id).write(proposal);
@@ -637,16 +625,19 @@ contract FroglinGateway {
             game_master == storage.game_master.read_private(),
             "only game master can call this method",
         );
+
         // get notes from both players
         let player1_note = storage.battle_notes_1.at(proposal_id).get_note().note;
         let player2_note = storage.battle_notes_2.at(proposal_id).get_note().note;
         let proposal = view_battle_proposal(proposal_id);
+
         // compare the choices
         let player1_choice = player1_note.choices as u8;
         let player2_choice = player2_note.choices as u8;
         let mut winner_address = AztecAddress::zero();
         let mut froglin_type = 101;
         let mut froglin_to_recover = 101;
+
         // temporary logic to determine the winner
         if (player1_choice > player2_choice) {
             winner_address = player1_note.player_address;
@@ -657,6 +648,7 @@ contract FroglinGateway {
             froglin_type = proposal.offered_froglin_type;
             froglin_to_recover = proposal.wanted_froglin_type;
         }
+
         // create a note for the winner
         let mut note = WinNote::new(
             winner_address,
@@ -670,180 +662,11 @@ contract FroglinGateway {
             winner_address,
             winner_address,
         ));
-        // // change status of the proposal to completed
-        FroglinGateway::at(context.this_address())._change_battle_status(proposal_id, 3).enqueue(
-            &mut context,
-        );
-    }
-    // when u go on a date u do not select a wanted froglin
-    // you escrow your froglin
-    // read the value of the public dates count
-    // you create a date note for the game_master with your choices, the dating froglin, and the date_id
-    // create a public date with the offered froglin
-    //
-    // accept (date_id, choices, dating froglin)
-    // decrement froglin in private
-    // create date note for game_master with date_id, choices and dating froglin)
-    // change public note status
-    // make sure you check the gender when the other player accepts
-    //
-    // make date
-    // compare the choices
-    // if function returns 0 nobody we emit a private note for the players to claim back their
-    // froglins
-    // if check function returns 1 we randomly select a player to win and randomly select a froglin_type
-    // we issue again notes for both players but only one of them has something to claim and
-    // both of them recover their froglins
-    // we can use by convention a number in the win slot so the players
-    // can still query the notes but they can only claim their recover froglin
-    // if it returns 2 both players get a note issued
-    // so notes need to be issued in all cases for players to get back their escrows
-    // when a date is created we will make a date proposal, identical with the battle
-    // proposal
-    // based on the status
 
-    #[private]
-    fn make_date(date_id: u32) {
-        let game_master = context.msg_sender();
-        assert(
-            game_master == storage.game_master.read_private(),
-            "only game master can call this method",
-        );
-        // get notes from both players
-        // TODO: change the battle notes to date_notes
-        let player1_note = storage.date_notes_1.at(date_id).get_note().note;
-        let player2_note = storage.date_notes_2.at(date_id).get_note().note;
-        let proposal = view_date_proposal(date_id);
-        // compare the choices
-        let player1_choice = player1_note.choices as u8;
-        let player2_choice = player2_note.choices as u8;
-        // compare the choices
-        // if (choices1 > choices2) {
-        // }
-        // if (choices1 < choices2) {
-        // }
-    }
-
-    #[private]
-    fn create_date_proposal(dating_froglin: u8, choices: u8) {
-        // ensure parameters are correct
-        assert(dating_froglin < settings::FROGLIN_TYPE_COUNT, "Invalid offered Froglin type");
-
-        // get player address and keys
-        let player = context.msg_sender();
-        unsafe {
-            _check_registration(player);
-        }
-        let keys = get_public_keys(player);
-
-        // select stash
-        let stash = storage.stashes.at(player);
-
-        // create new note for selected stash
-        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
-
-        // ensure player has the Froglin
-        let froglin_count = new_stash_note.get_slot(dating_froglin) as u8;
-        assert(froglin_count > 0, "player does not have the offered froglin type");
-
-        new_stash_note.decrement_slot(dating_froglin);
-
-        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
-            &mut context,
-            keys.ovpk_m,
-            player,
-            player,
-        ));
-
-        let game_master = storage.game_master.read_private();
-        let game_master_keys = get_public_keys(game_master);
-        // create private note for game master in battle_notes_1
-        let date_id = view_date_proposals_count();
-        let mut note = DateNote::new(game_master, choices as Field, date_id as Field, 101, player);
-
-        storage.date_notes_1.at(date_id).initialize(&mut note).emit(encode_and_encrypt_note(
-            &mut context,
-            game_master_keys.ovpk_m,
-            game_master,
-            game_master,
-        ));
-
-        // modify public data - create public proposal
+        // change status of proposal to 'completed'
         FroglinGateway::at(context.this_address())
-            ._create_date_proposal(dating_froglin, player, date_id)
+            ._change_battle_proposal_status(proposal_id, 3)
             .enqueue(&mut context);
-    }
-
-    #[internal]
-    #[public]
-    fn _create_date_proposal(dating_froglin: u8, player: AztecAddress, date_id: u32) {
-        // create date proposal
-        let new_proposal = DateProposal::new(dating_froglin, date_id);
-
-        storage.date_proposals.at(date_id).write(new_proposal);
-        storage.date_proposal_count.write(date_id + 1);
-    }
-
-    #[private]
-    fn accept_date_proposal(date_id: u32, choices: u8, dating_froglin: u8) {
-        // get player address and keys
-        let player = context.msg_sender();
-        unsafe {
-            _check_registration(player);
-        }
-        let keys = get_public_keys(player);
-
-        // ensure proposal is active
-        let proposal = view_battle_proposal(date_id);
-        assert(proposal.status == 1, "proposal is not active");
-        // check for sex with the offset
-        // decrement froglin
-        let stash = storage.stashes.at(player);
-        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
-
-        // ensure player has the Froglin
-        let froglin_count = new_stash_note.get_slot(dating_froglin) as u8;
-        assert(froglin_count > 0, "player does not have the offered froglin type");
-
-        new_stash_note.decrement_slot(dating_froglin);
-
-        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
-            &mut context,
-            keys.ovpk_m,
-            player,
-            player,
-        ));
-
-        // create a note for the game_master
-        let game_master = storage.game_master.read_private();
-        let game_master_keys = get_public_keys(game_master);
-        // create private note for game master in date_notes_2
-        let mut note = DateNote::new(
-            game_master,
-            choices as Field,
-            date_id as Field,
-            dating_froglin as Field,
-            player,
-        );
-
-        storage.date_notes_2.at(date_id).initialize(&mut note).emit(encode_and_encrypt_note(
-            &mut context,
-            game_master_keys.ovpk_m,
-            game_master,
-            game_master,
-        ));
-
-        FroglinGateway::at(context.this_address())._accept_date_proposal(date_id).enqueue(
-            &mut context,
-        );
-    }
-
-    #[internal]
-    #[public]
-    unconstrained fn _accept_date_proposal(date_id: u32) {
-        let mut proposal = storage.date_proposals.at(date_id).read();
-        proposal.change_status(2);
-        storage.date_proposals.at(date_id).write(proposal);
     }
 
     #[private]
@@ -859,7 +682,7 @@ contract FroglinGateway {
         options = options
             .select(WinNote::properties().froglin_won, Comparator.EQ, froglin_type.to_field())
             .set_limit(1);
-        // maybe add another check here for froglin to recover?
+        // maybe add another check here for Froglin to recover?
         let notes = storage.battle_winners.at(player).pop_notes(options);
         assert(notes.len() == 1, "note not popped");
         let note = notes.get(0);
@@ -875,13 +698,226 @@ contract FroglinGateway {
         new_stash_note.increment_slot(won_froglin_type);
         new_stash_note.increment_slot(froglin_to_recover);
 
-        // increment the battled froglin
+        // increment the battled Froglin
         stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
             &mut context,
             keys.ovpk_m,
             player,
             player,
         ));
+    }
+
+    #[private]
+    fn create_date_proposal(dating_froglin_type: u8, choices: u8) {
+        // ensure parameters are correct
+        assert(dating_froglin_type < settings::FROGLIN_TYPE_COUNT, "Invalid offered Froglin type");
+
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        // select stash
+        let stash = storage.stashes.at(player);
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
+
+        // ensure player has the Froglin
+        let froglin_count = new_stash_note.get_slot(dating_froglin_type) as u8;
+        assert(froglin_count > 0, "player does not have the Froglin type");
+
+        new_stash_note.decrement_slot(dating_froglin_type);
+
+        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        let game_master = storage.game_master.read_private();
+        let game_master_keys = get_public_keys(game_master);
+
+        // create 1st note for game_master
+        let proposal_id = view_date_proposals_count();
+        let mut note = DateNote::new(
+            game_master,
+            choices as Field,
+            proposal_id as Field,
+            101,
+            player,
+        );
+
+        storage.date_notes_1.at(proposal_id).initialize(&mut note).emit(encode_and_encrypt_note(
+            &mut context,
+            game_master_keys.ovpk_m,
+            game_master,
+            game_master,
+        ));
+
+        // modify public data - create public proposal
+        FroglinGateway::at(context.this_address())
+            ._create_date_proposal(dating_froglin_type, player, proposal_id)
+            .enqueue(&mut context);
+    }
+
+    #[internal]
+    #[public]
+    fn _create_date_proposal(dating_froglin_type: u8, player: AztecAddress, proposal_id: u32) {
+        // create date proposal
+        let new_proposal = DateProposal::new(dating_froglin_type, proposal_id);
+
+        storage.date_proposals.at(proposal_id).write(new_proposal);
+        storage.date_proposal_count.write(proposal_id + 1);
+    }
+
+    #[private]
+    fn accept_date_proposal(proposal_id: u32, dating_froglin_type: u8, choices: u8) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        // ensure proposal is active
+        let proposal = view_date_proposal(proposal_id);
+        assert(proposal.status == 1, "proposal is not active");
+
+        // ensure sexes are different
+        assert(
+            (
+                proposal.offered_froglin_type < stash_midpoint_index
+                    & dating_froglin_type >= stash_midpoint_index
+            )
+                | (
+                    proposal.offered_froglin_type >= stash_midpoint_index
+                        & dating_froglin_type < stash_midpoint_index
+                ),
+            "sexes must differ",
+        );
+
+        // decrement Froglin from stash
+        let stash = storage.stashes.at(player);
+        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
+
+        // ensure player has the Froglin
+        let froglin_count = new_stash_note.get_slot(dating_froglin_type) as u8;
+        assert(froglin_count > 0, "player does not have the Froglin type");
+
+        new_stash_note.decrement_slot(dating_froglin_type);
+
+        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        // create 2nd note the game_master
+        let game_master = storage.game_master.read_private();
+        let game_master_keys = get_public_keys(game_master);
+
+        let mut note = DateNote::new(
+            game_master,
+            choices as Field,
+            proposal_id as Field,
+            dating_froglin_type as Field,
+            player,
+        );
+
+        storage.date_notes_2.at(proposal_id).initialize(&mut note).emit(encode_and_encrypt_note(
+            &mut context,
+            game_master_keys.ovpk_m,
+            game_master,
+            game_master,
+        ));
+
+        // change status of the proposal to 'accepted'
+        FroglinGateway::at(context.this_address())
+            ._change_date_proposal_status(proposal_id, 2)
+            .enqueue(&mut context);
+    }
+
+    #[internal]
+    #[public]
+    fn _change_date_proposal_status(proposal_id: u32, status: u8) {
+        let mut proposal = storage.date_proposals.at(proposal_id).read();
+        proposal.change_status(status);
+        storage.date_proposals.at(proposal_id).write(proposal);
+    }
+
+    // when u go on a date u do not select a wanted Froglin
+    // you escrow your Froglin
+    // read the value of the public dates count
+    // you create a date note for the game_master with your choices, the dating Froglin, and the proposal_id
+    // create a public date with the offered Froglin
+    //
+    // accept (proposal_id, choices, dating Froglin)
+    // decrement Froglin in private
+    // create date note for game_master with proposal_id, choices and dating Froglin)
+    // change public note status
+    // make sure you check the gender when the other player accepts
+    //
+    // make date
+    // compare the choices
+    // if function returns 0 nobody we emit a private note for the players to claim back their
+    // Froglins
+    // if check function returns 1 we randomly select a player to win and randomly select a froglin_type
+    // we issue again notes for both players but only one of them has something to claim and
+    // both of them recover their Froglins
+    // we can use by convention a number in the win slot so the players
+    // can still query the notes but they can only claim their recover Froglin
+    // if it returns 2 both players get a note issued
+    // so notes need to be issued in all cases for players to get back their escrows
+    // when a date is created we will make a date proposal, identical with the battle
+    // proposal
+    // based on the status
+    #[private]
+    fn make_date(proposal_id: u32) {
+        let game_master = context.msg_sender();
+        assert(
+            game_master == storage.game_master.read_private(),
+            "only game master can call this method",
+        );
+
+        // ensure proposal is `accepted`
+        let proposal = view_date_proposal(proposal_id);
+        assert(proposal.status == 2, "proposal is not accepted");
+
+        // get notes from both players
+        let player1_note = storage.date_notes_1.at(proposal_id).get_note().note;
+        let player2_note = storage.date_notes_2.at(proposal_id).get_note().note;
+
+        // compare the choices
+        let player1_choice = player1_note.choices as u8;
+        let player2_choice = player2_note.choices as u8;
+
+        // if (choices1 > choices2) {
+        // random Froglin to player1
+        // }
+        // if (choices1 < choices2) {
+        // random Froglin to player2
+        // }
+        // // create a note for the winner
+        // let mut note = WinNote::new(
+        //     winner_address,
+        //     froglin_type as Field,
+        //     froglin_to_recover as Field,
+        // );
+        // storage.battle_winners.at(winner_address).insert(&mut note).emit(encode_and_encrypt_note(
+        //     &mut context,
+        //     get_public_keys(winner_address).ovpk_m,sa
+        //     winner_address,
+        //     winner_address,
+        // ));
+        // change status of the proposal to 'completed'
+        FroglinGateway::at(context.this_address())
+            ._change_date_proposal_status(proposal_id, 3)
+            .enqueue(&mut context);
     }
 
     #[view]
