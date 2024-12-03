@@ -5,13 +5,12 @@ use dep::aztec::macros::aztec;
 
 #[aztec]
 contract FroglinGateway {
-    use dep::authwit::auth::{assert_current_call_valid_authwit, compute_authwit_nullifier};
     use dep::aztec::{
         encrypted_logs::encrypted_note_emission::encode_and_encrypt_note,
         hash::compute_secret_hash,
         keys::getters::get_public_keys,
         prelude::{AztecAddress, Map, NoteGetterOptions, NoteViewerOptions},
-        state_vars::{PrivateImmutable, PrivateMutable, PrivateSet, PublicMutable, SharedImmutable},
+        state_vars::{PrivateMutable, PrivateSet, PublicImmutable, PublicMutable},
         utils::comparison::Comparator,
     };
     use dep::aztec::macros::{
@@ -19,9 +18,7 @@ contract FroglinGateway {
         functions::{initializer, internal, private, public, view},
         storage::storage,
     };
-    use dep::aztec::oracle::debug_log::{debug_log, debug_log_format};
-    use dep::value_note::value_note::ValueNote;
-    use aztec::oracle::random::random;
+    use dep::aztec::oracle::debug_log::debug_log;
 
     use crate::settings;
     use crate::types::battle_note::BattleNote;
@@ -39,7 +36,7 @@ contract FroglinGateway {
 
     #[storage]
     struct Storage<Context> {
-        game_master: SharedImmutable<AztecAddress, Context>,
+        game_master: PublicImmutable<AztecAddress, Context>,
         accounts_size: PublicMutable<u8, Context>,
         accounts: Map<AztecAddress, PrivateMutable<PlayerNote, Context>, Context>,
         stashes: Map<AztecAddress, PrivateMutable<StashNote, Context>, Context>,
@@ -60,6 +57,25 @@ contract FroglinGateway {
         date_proposal_count: PublicMutable<u32, Context>,
         date_notes_1: Map<u32, PrivateMutable<DateNote, Context>, Context>,
         date_notes_2: Map<u32, PrivateMutable<DateNote, Context>, Context>,
+    }
+
+    #[public]
+    #[initializer]
+    fn construct_public() {
+        let game_master = context.msg_sender();
+        storage.game_master.initialize(game_master);
+
+        storage.accounts_size.write(0);
+        storage.froglin_count.write(0);
+        storage.epoch_count.write(0);
+        storage.epoch_duration.write(0);
+        storage.epoch_start_time.write(0);
+        storage.swap_proposal_count.write(0);
+        storage.battle_proposal_count.write(0);
+
+        for i in 0..settings::FROGLIN_TYPE_COUNT {
+            storage.public_stash.at(i).write(0);
+        }
     }
 
     #[view]
@@ -91,25 +107,6 @@ contract FroglinGateway {
         }
     }
 
-    #[initializer]
-    #[public]
-    fn construct_public() {
-        let game_master = context.msg_sender();
-        storage.game_master.initialize(game_master);
-
-        storage.accounts_size.write(0);
-        storage.froglin_count.write(0);
-        storage.epoch_count.write(0);
-        storage.epoch_duration.write(0);
-        storage.epoch_start_time.write(0);
-        storage.swap_proposal_count.write(0);
-        storage.battle_proposal_count.write(0);
-
-        for i in 0..settings::FROGLIN_TYPE_COUNT {
-            storage.public_stash.at(i).write(0);
-        }
-    }
-
     #[internal]
     #[public]
     unconstrained fn _register(player: AztecAddress) {
@@ -129,10 +126,7 @@ contract FroglinGateway {
             _check_availability(player);
         }
 
-        assert(
-            player != storage.game_master.read_private(),
-            "game master cannot register as player",
-        );
+        assert(player != storage.game_master.read(), "game master cannot register as player");
 
         let keys = get_public_keys(player);
 
@@ -179,11 +173,7 @@ contract FroglinGateway {
     #[public]
     fn start_event(froglin_count: u8, epoch_count: u8, epoch_duration: u64, epoch_start_time: u64) {
         let game_master = context.msg_sender();
-        assert_eq(
-            game_master,
-            storage.game_master.read_public(),
-            "only game master can call this method",
-        );
+        assert_eq(game_master, storage.game_master.read(), "only game master can call this method");
 
         let stored_epoch_count = storage.epoch_count.read();
         assert((stored_epoch_count == 1) | (stored_epoch_count == 0), "event already started");
@@ -210,11 +200,7 @@ contract FroglinGateway {
     #[public]
     fn advance_epoch() {
         let game_master = context.msg_sender();
-        assert_eq(
-            game_master,
-            storage.game_master.read_public(),
-            "only game master can call this method",
-        );
+        assert_eq(game_master, storage.game_master.read(), "only game master can call this method");
 
         let epoch_count = storage.epoch_count.read();
         assert(epoch_count > 1, "event expired");
@@ -540,7 +526,7 @@ contract FroglinGateway {
             player,
         ));
 
-        let game_master = storage.game_master.read_private();
+        let game_master = storage.game_master.read();
         let game_master_keys = get_public_keys(game_master);
 
         // create 1st note for game_master
@@ -592,7 +578,7 @@ contract FroglinGateway {
         ));
 
         // create 2nd note for game_master
-        let game_master = storage.game_master.read_private();
+        let game_master = storage.game_master.read();
         let game_master_keys = get_public_keys(game_master);
 
         let mut note = BattleNote::new(game_master, choices as Field, proposal_id as Field, player);
@@ -621,10 +607,7 @@ contract FroglinGateway {
     #[private]
     fn make_battle(proposal_id: u32) {
         let game_master = context.msg_sender();
-        assert(
-            game_master == storage.game_master.read_private(),
-            "only game master can call this method",
-        );
+        assert(game_master == storage.game_master.read(), "only game master can call this method");
 
         // get notes from both players
         let player1_note = storage.battle_notes_1.at(proposal_id).get_note().note;
@@ -738,7 +721,7 @@ contract FroglinGateway {
             player,
         ));
 
-        let game_master = storage.game_master.read_private();
+        let game_master = storage.game_master.read();
         let game_master_keys = get_public_keys(game_master);
 
         // create 1st note for game_master
@@ -818,7 +801,7 @@ contract FroglinGateway {
         ));
 
         // create 2nd note the game_master
-        let game_master = storage.game_master.read_private();
+        let game_master = storage.game_master.read();
         let game_master_keys = get_public_keys(game_master);
 
         let mut note = DateNote::new(
@@ -879,10 +862,7 @@ contract FroglinGateway {
     #[private]
     fn make_date(proposal_id: u32) {
         let game_master = context.msg_sender();
-        assert(
-            game_master == storage.game_master.read_private(),
-            "only game master can call this method",
-        );
+        assert(game_master == storage.game_master.read(), "only game master can call this method");
 
         // ensure proposal is `accepted`
         let proposal = view_date_proposal(proposal_id);
