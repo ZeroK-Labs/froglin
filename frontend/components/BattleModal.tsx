@@ -1,17 +1,17 @@
+import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
 
 import { BattleOptionBox, Modal } from "frontend/components";
 import { FroglinMenuButton } from "./FroglinMenuButton";
 import { MODALS } from "frontend/enums";
 import { names } from "frontend/components/FroglinModal";
-import { useGameEvent, useModalState } from "frontend/stores";
-
-export type OptionsEnum = "🗡️" | "🏹" | "🛡️" | "";
-const options: OptionsEnum[] = ["🗡️", "🏹", "🛡️"];
+import { useGameEvent, useModalState, usePlayer } from "frontend/stores";
 
 export default function BattleModal() {
+  const { aztec } = usePlayer();
+
   const [enemyFroglin, setEnemyFroglin] = useState<number | null>(null);
-  const [choices, setChoices] = useState<Record<number, OptionsEnum>>({});
+  const [choices, setChoices] = useState<number[]>([0, 0, 0]);
   const { selectedFroglin } = useGameEvent();
   const { modal, setModal } = useModalState();
   console.log("choices", choices);
@@ -34,6 +34,37 @@ export default function BattleModal() {
   function handleBackButtonClick(ev: React.MouseEvent) {
     setModal(MODALS.FROGLIN);
     ev.stopPropagation();
+  }
+
+  async function createBattle() {
+    if (!aztec) return;
+    if (selectedFroglin === null || enemyFroglin === null) {
+      toast.error("Select both your froglin and the opponent.");
+      return;
+    }
+
+    // validate choices
+    if (choices.includes(0)) {
+      toast.error("Select all 3 moves.");
+      return;
+    }
+
+    // Transform choices to a single number
+    const battleNumber = choices.reduce((acc, choice) => acc * 10 + choice, 0);
+    setModal(MODALS.NONE);
+
+    const toastId = toast.loading("Creating swap offer...");
+    try {
+      await aztec.contracts.gateway.methods
+        .create_battle_proposal(selectedFroglin, enemyFroglin, battleNumber)
+        .send()
+        .wait();
+    } catch (error) {
+      console.error("Error creating swap:", error);
+      toast.error("Failed to create swap offer!", { id: toastId });
+    }
+
+    toast.success("Swap offer created!", { id: toastId });
   }
 
   useEffect(
@@ -112,8 +143,8 @@ export default function BattleModal() {
             <BattleOptionBox
               box={1}
               setChoices={setChoices}
-              options={options}
-              currentOption={choices[1] ?? ""}
+              choices={choices}
+              currentOption={choices[0] ?? ""}
             />
           </div>
           <div>
@@ -121,8 +152,8 @@ export default function BattleModal() {
             <BattleOptionBox
               box={2}
               setChoices={setChoices}
-              options={options}
-              currentOption={choices[2] ?? ""}
+              choices={choices}
+              currentOption={choices[1] ?? ""}
             />
           </div>
           <div>
@@ -130,8 +161,8 @@ export default function BattleModal() {
             <BattleOptionBox
               box={3}
               setChoices={setChoices}
-              options={options}
-              currentOption={choices[3] ?? ""}
+              choices={choices}
+              currentOption={choices[2] ?? ""}
             />
           </div>
         </div>
@@ -140,7 +171,7 @@ export default function BattleModal() {
           className="bg-gray-900"
           icon="🗡️"
           text="Send to Battle"
-          onClick={() => {}}
+          onClick={createBattle}
         />
 
         <FroglinMenuButton

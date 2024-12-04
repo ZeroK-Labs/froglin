@@ -1,22 +1,28 @@
 import { useState } from "react";
-import { OptionsEnum } from "./BattleModal";
 
 const bgcolors = ["bg-blue-400", "bg-green-400", "bg-red-400"];
+
+const iconMapping: { [key: number]: string } = {
+  1: "🗡️", // Sword
+  2: "🏹", // Bow
+  3: "🛡️", // Shield
+};
 
 export default function BattleOptionBox({
   box,
   setChoices,
-  options,
+  choices,
   currentOption,
 }: {
   box: number;
-  setChoices: React.Dispatch<React.SetStateAction<Record<number, OptionsEnum>>>;
-  options: OptionsEnum[];
-  currentOption: OptionsEnum;
+  setChoices: React.Dispatch<React.SetStateAction<number[]>>;
+  choices: number[];
+  currentOption: number;
 }) {
-  // const [currentOption, setCurrentOption] = useState<OptionsEnum>("");
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [changing, setChanging] = useState(false);
+
+  const options = [1, 2, 3];
 
   const cycleOption = (direction: "up" | "down") => {
     setChanging(true);
@@ -32,10 +38,9 @@ export default function BattleOptionBox({
             : (currentIndex - 1 + options.length) % options.length;
 
         const newOption = options[nextIndex];
-        setChoices((prev) => ({
-          ...prev,
-          [box]: newOption,
-        }));
+        const updatedChoices = [...choices];
+        updatedChoices[box - 1] = newOption;
+        setChoices(updatedChoices);
       }, //
       150,
     );
@@ -81,7 +86,7 @@ export default function BattleOptionBox({
         ${changing ? "opacity-0" : "opacity-100"}
       `}
       >
-        {currentOption ?? ""}
+        {iconMapping[currentOption] ?? ""}
       </span>
     </div>
   );
