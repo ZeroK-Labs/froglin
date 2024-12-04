@@ -14,7 +14,7 @@ export default function BattleModal() {
   const [choices, setChoices] = useState<number[]>([0, 0, 0]);
   const { selectedFroglin } = useGameEvent();
   const { modal, setModal } = useModalState();
-  console.log("choices", choices);
+
   const visible = modal === MODALS.BATTLE;
 
   function changeFroglin(ev: React.MouseEvent) {
@@ -53,18 +53,18 @@ export default function BattleModal() {
     const battleNumber = choices.reduce((acc, choice) => acc * 10 + choice, 0);
     setModal(MODALS.NONE);
 
-    const toastId = toast.loading("Creating swap offer...");
+    const toastId = toast.loading("Creating batlle...");
     try {
       await aztec.contracts.gateway.methods
         .create_battle_proposal(selectedFroglin, enemyFroglin, battleNumber)
         .send()
         .wait();
     } catch (error) {
-      console.error("Error creating swap:", error);
-      toast.error("Failed to create swap offer!", { id: toastId });
+      console.error("Error creating batlle:", error);
+      toast.error("Failed to create battle!", { id: toastId });
     }
 
-    toast.success("Swap offer created!", { id: toastId });
+    toast.success("Battle created!", { id: toastId });
   }
 
   useEffect(
