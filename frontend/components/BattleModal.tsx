@@ -8,7 +8,6 @@ import { useGameEvent, useModalState } from "frontend/stores";
 
 export default function BattleModal() {
   const [enemyFroglin, setEnemyFroglin] = useState<number | null>(null);
-  const [changing, setChanging] = useState(false);
 
   const { selectedFroglin } = useGameEvent();
   const { modal, setModal } = useModalState();
@@ -16,24 +15,15 @@ export default function BattleModal() {
   const visible = modal === MODALS.BATTLE;
 
   function changeFroglin(ev: React.MouseEvent) {
-    setChanging(true);
-
-    setTimeout(
-      () => {
-        setChanging(false);
-
-        setEnemyFroglin((prev) => {
-          if (prev === null) {
-            return selectedFroglin === 0 ? (selectedFroglin + 1) % names.length : 0;
-          }
-          if (prev + 1 === selectedFroglin) {
-            return (prev + 2) % names.length;
-          }
-          return (prev + 1) % names.length;
-        });
-      }, //
-      300,
-    );
+    setEnemyFroglin((prev) => {
+      if (prev === null) {
+        return selectedFroglin === 0 ? (selectedFroglin + 1) % names.length : 0;
+      }
+      if (prev + 1 === selectedFroglin) {
+        return (prev + 2) % names.length;
+      }
+      return (prev + 1) % names.length;
+    });
 
     ev.stopPropagation();
   }
@@ -80,7 +70,7 @@ export default function BattleModal() {
             {enemyFroglin !== null ? (
               <>
                 <img
-                  className={`mb-2 transition-opacity duration-500 ${changing ? "opacity-0" : "opacity-100"}`}
+                  className={`mb-2`}
                   src={`/images/froglin${enemyFroglin}-large.webp`}
                   width="150px"
                   height="150px"
@@ -91,7 +81,7 @@ export default function BattleModal() {
             ) : (
               <>
                 <div
-                  className={`w-[150px] h-[150px] mb-2 border-2 border-white flex items-center justify-center transition-opacity duration-500 ${changing ? "opacity-0" : "opacity-100"}`}
+                  className={`w-[150px] h-[150px] mb-2 border-2 border-white flex items-center justify-center`}
                 >
                   Select Oponent
                 </div>
