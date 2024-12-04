@@ -1,5 +1,5 @@
 import { ServerOptions, WebSocketServer } from "ws";
-import { createPXEClient } from "@aztec/aztec.js";
+import { createPXEClient, Fr } from "@aztec/aztec.js";
 import { parse } from "url";
 import { type ChildProcess } from "child_process";
 
@@ -80,6 +80,10 @@ export function createSocketServer(options?: ServerOptions) {
             instance: BACKEND_WALLET.contracts.gateway.instance,
             artifact: BACKEND_WALLET.contracts.gateway.artifact,
           });
+          pxeClient.registerAccount(
+            new Fr(BigInt(BACKEND_WALLET.secret)),
+            BACKEND_WALLET.wallet.getCompleteAddress().partialAddress,
+          );
 
           socket.send(`pxe ${url}`);
           broadcastMessage(`newPlayer ${url}`);
