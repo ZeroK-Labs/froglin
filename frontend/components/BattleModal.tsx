@@ -6,12 +6,15 @@ import { MODALS } from "frontend/enums";
 import { names } from "frontend/components/FroglinModal";
 import { useGameEvent, useModalState } from "frontend/stores";
 
+export type OptionsEnum = "🗡️" | "🏹" | "🛡️" | "";
+const options: OptionsEnum[] = ["🗡️", "🏹", "🛡️"];
+
 export default function BattleModal() {
   const [enemyFroglin, setEnemyFroglin] = useState<number | null>(null);
-
+  const [choices, setChoices] = useState<Record<number, OptionsEnum>>({});
   const { selectedFroglin } = useGameEvent();
   const { modal, setModal } = useModalState();
-
+  console.log("choices", choices);
   const visible = modal === MODALS.BATTLE;
 
   function changeFroglin(ev: React.MouseEvent) {
@@ -106,15 +109,30 @@ export default function BattleModal() {
         <div className="flex flex-row justify-between items-center gap-4 pb-8">
           <div>
             <span className="text-center">Round 1</span>
-            <BattleOptionBox />
+            <BattleOptionBox
+              box={1}
+              setChoices={setChoices}
+              options={options}
+              currentOption={choices[1] ?? ""}
+            />
           </div>
           <div>
             <span className="text-center">Round 2</span>
-            <BattleOptionBox />
+            <BattleOptionBox
+              box={2}
+              setChoices={setChoices}
+              options={options}
+              currentOption={choices[2] ?? ""}
+            />
           </div>
           <div>
             <span className="text-center">Round 3</span>
-            <BattleOptionBox />
+            <BattleOptionBox
+              box={3}
+              setChoices={setChoices}
+              options={options}
+              currentOption={choices[3] ?? ""}
+            />
           </div>
         </div>
 

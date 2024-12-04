@@ -1,12 +1,20 @@
 import { useState } from "react";
-
-type OptionsEnum = "🗡️" | "🏹" | "🛡️" | "";
-const options: OptionsEnum[] = ["🗡️", "🏹", "🛡️"];
+import { OptionsEnum } from "./BattleModal";
 
 const bgcolors = ["bg-blue-400", "bg-green-400", "bg-red-400"];
 
-export default function BattleOptionBox() {
-  const [currentOption, setCurrentOption] = useState<OptionsEnum>("");
+export default function BattleOptionBox({
+  box,
+  setChoices,
+  options,
+  currentOption,
+}: {
+  box: number;
+  setChoices: React.Dispatch<React.SetStateAction<Record<number, OptionsEnum>>>;
+  options: OptionsEnum[];
+  currentOption: OptionsEnum;
+}) {
+  // const [currentOption, setCurrentOption] = useState<OptionsEnum>("");
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [changing, setChanging] = useState(false);
 
@@ -17,15 +25,17 @@ export default function BattleOptionBox() {
       () => {
         setChanging(false);
 
-        setCurrentOption((prev) => {
-          if (prev === null) return options[0];
-          const currentIndex = options.indexOf(prev);
-          if (direction === "up") {
-            return options[(currentIndex + 1) % options.length];
-          } else {
-            return options[(currentIndex - 1 + options.length) % options.length];
-          }
-        });
+        const currentIndex = options.indexOf(currentOption);
+        const nextIndex =
+          direction === "up"
+            ? (currentIndex + 1) % options.length
+            : (currentIndex - 1 + options.length) % options.length;
+
+        const newOption = options[nextIndex];
+        setChoices((prev) => ({
+          ...prev,
+          [box]: newOption,
+        }));
       }, //
       150,
     );
