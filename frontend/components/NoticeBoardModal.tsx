@@ -64,13 +64,34 @@ export default function NoticeBoardModal() {
 
         const offersResponse: SwapOfferResponse[] =
           await aztec.contracts.gateway.methods.view_active_swap_proposals().simulate();
+        const battlesResponse = await aztec.contracts.gateway.methods
+          .view_active_battle_proposals()
+          .simulate();
 
-        if (!offersResponse || offersResponse.length === 0) return;
+        if (
+          !offersResponse ||
+          offersResponse.length === 0 ||
+          !battlesResponse ||
+          battlesResponse.length === 0
+        )
+          return;
 
         const numberList: SwapOffer[] = [];
 
         for (let i = 0; i !== offersResponse.length; ++i) {
           const offer = offersResponse[i];
+          if (offer.id === 101n) continue;
+
+          numberList.push({
+            trader_id: offer.trader_id,
+            offered_froglin_type: Number(offer.offered_froglin_type),
+            wanted_froglin_type: Number(offer.wanted_froglin_type),
+            status: Number(offer.status),
+            id: Number(offer.id),
+          });
+        }
+        for (let i = 0; i !== battlesResponse.length; ++i) {
+          const offer = battlesResponse[i];
           if (offer.id === 101n) continue;
 
           numberList.push({
