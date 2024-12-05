@@ -433,6 +433,42 @@ contract FroglinGateway {
     }
 
     #[private]
+    fn cancel_battle_proposal(proposal_id: u32) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        let proposal = unsafe { view_battle_proposal(proposal_id) };
+        assert(proposal.status == 1, "proposal is not active");
+
+        let trader_id = unsafe { _view_trader_id(player) };
+        assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
+
+        // select stash
+        let stash = storage.stashes.at(player);
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
+
+        new_stash_note.increment_slot(proposal.offered_froglin_type);
+
+        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        // mark the proposal as completed
+        FroglinGateway::at(context.this_address())
+            ._change_battle_proposal_status(proposal_id, 4)
+            .enqueue(&mut context);
+    }
+
+    #[private]
     fn cancel_swap_proposal(proposal_id: u8) {
         // get player address and keys
         let player = context.msg_sender();
@@ -470,11 +506,20 @@ contract FroglinGateway {
 
     #[internal]
     #[public]
-    fn _create_battle_proposal(offered_froglin_type: u8, wanted_froglin_type: u8, battle_id: u32) {
+    fn _create_battle_proposal(
+        trader_id: Field,
+        offered_froglin_type: u8,
+        wanted_froglin_type: u8,
+        battle_id: u32,
+    ) {
         debug_log("here in _create_battle_proposal");
 
-        let new_proposal =
-            BattleProposal::new(offered_froglin_type, wanted_froglin_type, battle_id);
+        let new_proposal = BattleProposal::new(
+            trader_id,
+            offered_froglin_type,
+            wanted_froglin_type,
+            battle_id,
+        );
 
         storage.battle_proposals.at(battle_id).write(new_proposal);
         storage.battle_proposal_count.write(battle_id + 1);
@@ -535,11 +580,12 @@ contract FroglinGateway {
             game_master,
             game_master,
         ));
-
+        let trader_id = unsafe { _view_trader_id(player) };
         // modify public data
         FroglinGateway::at(context.this_address())
-            ._create_battle_proposal(offered_froglin_type, wanted_froglin_type, battle_id)
-            .enqueue(&mut context);
+            ._create_battle_proposal(trader_id, offered_froglin_type, wanted_froglin_type, battle_id
+                )
+                .enqueue(&mut context);
     }
 
     #[private]

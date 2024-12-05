@@ -16,40 +16,58 @@ export default function NoticeBoardModal() {
 
   const visible = modal === MODALS.NOTICEBOARD;
 
-  async function handleCancel(proposalId: number) {
+  async function handleCancel(proposalId: number, type: string) {
     if (!aztec || !registered) return;
 
-    const toastId = toast.loading("Canceling swap offer...");
+    const toastId = toast.loading(`Canceling ${type} offer...`);
 
     try {
-      await aztec.contracts.gateway.methods
-        .cancel_swap_proposal(proposalId)
-        .send()
-        .wait();
+      if (type === "battle") {
+        await aztec.contracts.gateway.methods
+          .cancel_battle_proposal(proposalId)
+          .send()
+          .wait();
+      }
+      if (type === "swap") {
+        await aztec.contracts.gateway.methods
+          .cancel_swap_proposal(proposalId)
+          .send()
+          .wait();
+      }
+
       setRefetch(true);
     } catch (error) {
-      console.error("Error canceling swap offer:", error);
-      toast.error("Failed to cancel swap offer!", { id: toastId });
+      console.error(`Error canceling ${type} offer:`, error);
+      toast.error(`Failed to cancel ${type} offer!`, { id: toastId });
     }
 
     toast.dismiss(toastId);
   }
 
-  async function handleAccept(proposalId: number) {
+  async function handleAccept(proposalId: number, type: string) {
     if (!aztec || !registered) return;
 
-    const toastId = toast.loading("Accepting swap offer...");
+    const toastId = toast.loading(`Accepting ${type} offer...`);
 
     try {
-      await aztec.contracts.gateway.methods
-        .accept_swap_proposal(proposalId)
-        .send()
-        .wait();
+      if (type === "battle") {
+        // open battle modal
+        // await aztec.contracts.gateway.methods
+        //   .accept_battle_proposal(proposalId)
+        //   .send()
+        //   .wait();
+      }
+      if (type === "swap") {
+        await aztec.contracts.gateway.methods
+          .accept_swap_proposal(proposalId)
+          .send()
+          .wait();
+      }
 
       setRefetch(true);
     } catch (error) {
-      console.error("Error accepting swap offer:", error);
-      toast.error("Failed to accept swap offer!", { id: toastId });
+      console.error(`Error accepting ${type} offer:`, error);
+      toast.error(`Failed to accept ${type} offer!`, { id: toastId });
     }
 
     toast.dismiss(toastId);
@@ -165,7 +183,7 @@ export default function NoticeBoardModal() {
                     <button
                       type="button"
                       className="rounded-lg px-2 py-1 ml-2 my-2 text-xs font-semibold shadow-sm text-white bg-red-800"
-                      onClick={() => handleCancel(offer.id)}
+                      onClick={() => handleCancel(offer.id, offer.type)}
                     >
                       Cancel
                     </button>
