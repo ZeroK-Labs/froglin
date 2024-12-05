@@ -1,14 +1,14 @@
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 
-import type { SwapOfferResponse, SwapOffer } from "frontend/types";
+import type { SwapOfferResponse, Proposal } from "frontend/types";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { names } from "frontend/components/FroglinModal";
 import { useModalState, usePlayer } from "frontend/stores";
 
 export default function NoticeBoardModal() {
-  const [offers, setOffers] = useState<SwapOffer[]>([]);
+  const [offers, setOffers] = useState<Proposal[]>([]);
   const [refetch, setRefetch] = useState<boolean>(true);
 
   const { modal } = useModalState();
@@ -76,7 +76,7 @@ export default function NoticeBoardModal() {
         )
           return;
 
-        const numberList: SwapOffer[] = [];
+        const numberList: Proposal[] = [];
 
         for (let i = 0; i !== offersResponse.length; ++i) {
           const offer = offersResponse[i];
@@ -88,6 +88,7 @@ export default function NoticeBoardModal() {
             wanted_froglin_type: Number(offer.wanted_froglin_type),
             status: Number(offer.status),
             id: Number(offer.id),
+            type: "swap",
           });
         }
         for (let i = 0; i !== battlesResponse.length; ++i) {
@@ -100,6 +101,7 @@ export default function NoticeBoardModal() {
             wanted_froglin_type: Number(offer.wanted_froglin_type),
             status: Number(offer.status),
             id: Number(offer.id),
+            type: "battle",
           });
         }
 
@@ -111,6 +113,10 @@ export default function NoticeBoardModal() {
     }, //
     [aztec, registered, visible, refetch],
   );
+
+  function offerType(type: string) {
+    return type === "swap" ? "🔄" : type === "battle" ? "🗡️" : "❤️";
+  }
 
   return (
     <Modal
@@ -141,7 +147,7 @@ export default function NoticeBoardModal() {
                     <span className="w-24 text-md no-text-shadow">
                       {names[offer.offered_froglin_type][0]}
                     </span>
-                    <span className="text-xl">🔄</span>
+                    <span className="text-xl">{offerType(offer.type)}</span>
                     <span className="w-24 text-md no-text-shadow">
                       {names[offer.wanted_froglin_type][0]}
                     </span>
