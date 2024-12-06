@@ -7,3 +7,4 @@ mod battle_proposal;
 mod win_note;
 mod date_proposal;
 mod date_note;
+mod battle_response;

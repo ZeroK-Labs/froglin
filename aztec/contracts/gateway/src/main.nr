@@ -21,6 +21,7 @@ contract FroglinGateway {
     use crate::settings;
     use crate::types::battle_note::BattleNote;
     use crate::types::battle_proposal::BattleProposal;
+    use crate::types::battle_response::BattleResponse;
     use crate::types::date_note::DateNote;
     use crate::types::date_proposal::DateProposal;
     use crate::types::leaderboard_entry::LeaderBoardEntry;
@@ -1094,15 +1095,19 @@ contract FroglinGateway {
     }
 
     #[view]
-    unconstrained fn view_won_in_battle(player: AztecAddress) -> pub [u8; 5] {
+    unconstrained fn view_won_in_battle(player: AztecAddress) -> pub [BattleResponse; 5] {
         let mut options = NoteViewerOptions::new();
         options = options.set_limit(5);
         let set = storage.battle_winners.at(player);
         let notes = set.view_notes(options);
 
-        let mut won_notes: [u8; 5] = [0; 5];
+        let mut won_notes: [BattleResponse; 5] = [BattleResponse::empty(); 5];
         for i in 0..notes.len() {
-            won_notes[i] = notes.get_unchecked(i).froglin_won as u8;
+            let note = notes.get_unchecked(i);
+            let froglin_won = note.froglin_won as u8;
+            let froglin_to_recover = note.froglin_to_recover as u8;
+            won_notes[i].froglin_won = froglin_won;
+            won_notes[i].froglin_to_recover = froglin_to_recover;
         }
 
         won_notes
