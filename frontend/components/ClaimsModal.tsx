@@ -84,6 +84,22 @@ export default function ClaimsModal() {
 
     toast.success("Claimed!", { id: toastId });
   }
+  async function handleClaimWin(win: number) {
+    if (!aztec || !registered) return;
+
+    const toastId = toast.loading("Claiming win...");
+
+    try {
+      await aztec.contracts.gateway.methods.claim_winnings(win).send().wait();
+
+      setRefetch(!refetch);
+    } catch (error) {
+      console.error("Error claiming win:", error);
+      toast.error("Failed to claim win!", { id: toastId });
+    }
+
+    toast.success("Claimed!", { id: toastId });
+  }
 
   return (
     <Modal
@@ -118,6 +134,7 @@ export default function ClaimsModal() {
           <div
             key={index}
             className="w-[299px] h-[40px] flex items-center justify-between bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
+            onClick={() => handleClaimWin(win)}
           >
             <div className="flex flex-row items-center gap-2">
               <img
