@@ -1,14 +1,19 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import type { SwapOfferResponse, Proposal } from "frontend/types";
+// import type { SwapOfferResponse, Proposal } from "frontend/types";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { names } from "frontend/components/FroglinModal";
 import { useModalState, usePlayer } from "frontend/stores";
 
+type BattleResponse = {
+  froglin_won: bigint;
+  froglin_to_recover: bigint;
+};
+
 export default function ClaimsModal() {
-  const [claims, setClaims] = useState<Proposal[]>([]);
-  const [wins, setWins] = useState<number[]>([]);
+  // const [claims, setClaims] = useState<Proposal[]>([]);
+  const [wins, setWins] = useState<Record<string, number>[]>([]);
   const [refetch, setRefetch] = useState<boolean>(false);
   const { modal } = useModalState();
   const { aztec, registered, traderId } = usePlayer();
@@ -17,73 +22,75 @@ export default function ClaimsModal() {
 
   useEffect(
     () => {
-      async function fetchClaims() {
-        if (!aztec || !registered || !visible || !traderId) return;
+      // async function fetchClaims() {
+      //   if (!aztec || !registered || !visible || !traderId) return;
 
-        const claimsResponse: SwapOfferResponse[] = [];
-        // await aztec.contracts.gateway.methods
-        //   .view_claimable_swaps(traderId)
-        //   .simulate();
-        const won = await aztec.contracts.gateway.methods
-          .view_won_in_battle(aztec.wallet.getAddress())
-          .simulate();
-        console.log("WON", won);
+      //   const claimsResponse: SwapOfferResponse[] =
+      //     await aztec.contracts.gateway.methods
+      //       .view_claimable_swaps(traderId)
+      //       .simulate();
 
-        if (!claimsResponse || claimsResponse.length === 0) return;
+      //   if (!claimsResponse || claimsResponse.length === 0) return;
 
-        const numberList: Proposal[] = [];
+      //   const numberList: Proposal[] = [];
 
-        for (let i = 0; i !== claimsResponse.length; ++i) {
-          const claim = claimsResponse[i];
-          if (claim.id === 101n) continue;
+      //   for (let i = 0; i !== claimsResponse.length; ++i) {
+      //     const claim = claimsResponse[i];
+      //     if (claim.id === 101n) continue;
 
-          numberList.push({
-            trader_id: claim.trader_id,
-            offered_froglin_type: Number(claim.offered_froglin_type),
-            wanted_froglin_type: Number(claim.wanted_froglin_type),
-            status: Number(claim.status),
-            id: Number(claim.id),
-            type: "swap",
-          });
-        }
+      //     numberList.push({
+      //       trader_id: claim.trader_id,
+      //       offered_froglin_type: Number(claim.offered_froglin_type),
+      //       wanted_froglin_type: Number(claim.wanted_froglin_type),
+      //       status: Number(claim.status),
+      //       id: Number(claim.id),
+      //       type: "swap",
+      //     });
+      //   }
 
-        setClaims(numberList);
-      }
+      //   setClaims(numberList);
+      // }
 
       async function fetchWinnings() {
         if (!aztec || !registered || !visible || !traderId) return;
-        const winsInBattle = await aztec.contracts.gateway.methods
+        const winsInBattle: BattleResponse[] = await aztec.contracts.gateway.methods
           .view_won_in_battle(aztec.wallet.getAddress())
           .simulate();
         if (!winsInBattle || winsInBattle.length === 0) return;
-        setWins(winsInBattle.map((win: bigint) => Number(win)));
+        setWins(
+          winsInBattle.map((win) => ({
+            froglin_won: Number(win.froglin_won),
+            froglin_to_recover: Number(win.froglin_to_recover),
+          })),
+        );
       }
 
-      fetchClaims();
+      // fetchClaims();
       fetchWinnings();
     }, //
     [aztec, registered, visible, refetch],
   );
 
-  async function handleClaim(proposalId: number) {
-    if (!aztec || !registered) return;
+  // async function handleClaim(proposalId: number) {
+  //   if (!aztec || !registered) return;
 
-    const toastId = toast.loading("Claiming swap offer...");
+  //   const toastId = toast.loading("Claiming swap offer...");
 
-    try {
-      await aztec.contracts.gateway.methods
-        .claim_swap_proposal(proposalId)
-        .send()
-        .wait();
+  //   try {
+  //     await aztec.contracts.gateway.methods
+  //       .claim_swap_proposal(proposalId)
+  //       .send()
+  //       .wait();
 
-      setRefetch(!refetch);
-    } catch (error) {
-      console.error("Error claiming swap:", error);
-      toast.error("Failed to claim swap!", { id: toastId });
-    }
+  //     setRefetch(!refetch);
+  //   } catch (error) {
+  //     console.error("Error claiming swap:", error);
+  //     toast.error("Failed to claim swap!", { id: toastId });
+  //   }
 
-    toast.success("Claimed!", { id: toastId });
-  }
+  //   toast.success("Claimed!", { id: toastId });
+  // }
+
   async function handleClaimWin(win: number) {
     if (!aztec || !registered) return;
 
@@ -108,7 +115,7 @@ export default function ClaimsModal() {
       visible={visible}
     >
       <div className="flex flex-col">
-        {claims.map((claim) => (
+        {/* {claims.map((claim) => (
           <div
             key={claim.id}
             className="w-[299px] h-[40px] flex items-center justify-between bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
@@ -129,12 +136,12 @@ export default function ClaimsModal() {
 
             <span className="text-sm font-semibold no-text-shadow mr-4">Swaped</span>
           </div>
-        ))}
+        ))} */}
         {wins.map((win, index) => (
           <div
             key={index}
             className="w-[299px] h-[40px] flex items-center justify-between bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
-            onClick={() => handleClaimWin(win)}
+            onClick={() => handleClaimWin(win.froglin_won)}
           >
             <div className="flex flex-row items-center gap-2">
               <img
@@ -144,7 +151,9 @@ export default function ClaimsModal() {
                 height="40px"
                 className="rounded-md"
               />
-              <span className="text-sm no-text-shadow">{names[win][0]}</span>
+              <span className="text-sm no-text-shadow">
+                {names[win.froglin_won][0]}
+              </span>
             </div>
 
             <span className="text-sm font-semibold no-text-shadow mr-4">
