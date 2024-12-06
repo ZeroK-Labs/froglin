@@ -7,6 +7,7 @@ import { BattleOptionBox, Modal } from "frontend/components";
 import { names } from "frontend/components/FroglinModal";
 import { useModalState, usePlayer } from "frontend/stores";
 import { FroglinMenuButton } from "./FroglinMenuButton";
+import { CLIENT_SOCKET } from "frontend/utils/sockets";
 
 export default function NoticeBoardModal() {
   const [offers, setOffers] = useState<Proposal[]>([]);
@@ -58,16 +59,19 @@ export default function NoticeBoardModal() {
         .send()
         .wait();
 
+      CLIENT_SOCKET.send(JSON.stringify({ message: "battle", proposalId }));
+
       setRefetch(true);
-      setMakeChoices(false);
     } catch (error) {
       console.error("Error accepting battle offer:", error);
       toast.error("Failed to accept battle offer!", { id: toastId });
     }
+    setMakeChoices(false);
 
     toast.dismiss(toastId);
   }
-  async function handleAccept(proposalId: number, type: string) {
+
+  async function handleAcceptProposal(proposalId: number, type: string) {
     if (!aztec || !registered) return;
 
     const toastId = toast.loading(`Accepting ${type} offer...`);
@@ -213,7 +217,7 @@ export default function NoticeBoardModal() {
                         disabled={stash[offer.wanted_froglin_type] === 0}
                         type="button"
                         className={`rounded-lg px-2 py-1 ml-2 my-2 text-xs font-semibold shadow-sm text-white bg-green-600 ${stash[offer.wanted_froglin_type] === 0 ? "grayscale" : ""}`}
-                        onClick={() => handleAccept(offer.id, offer.type)}
+                        onClick={() => handleAcceptProposal(offer.id, offer.type)}
                       >
                         Accept
                       </button>
@@ -254,7 +258,7 @@ export default function NoticeBoardModal() {
                         className="bg-gray-900"
                         icon="🗡️"
                         text="Send to Battle"
-                        onClick={acceptBattle(offer.id)}
+                        onClick={() => acceptBattle(offer.id)}
                       />
                     </div>
                   ) : null}

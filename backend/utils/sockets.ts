@@ -21,6 +21,24 @@ let ws_server: WebSocketServer;
 let _terminating = false;
 const terminating = () => _terminating;
 
+async function makeBattle(
+  socketMessage: { message: string; proposalId: number },
+  socket: WebSocket,
+) {
+  const { proposalId } = socketMessage;
+  socket.send("making battle");
+  try {
+    await BACKEND_WALLET.contracts.gateway.methods
+      .make_battle(proposalId)
+      .send()
+      .wait();
+    socket.send("battle made");
+  } catch (error) {
+    console.error("Error resolving battle:", error);
+    socket.send("battle failed");
+  }
+}
+
 export function createSocketServer(options?: ServerOptions) {
   ws_server = new WebSocketServer(options);
 
@@ -98,6 +116,8 @@ export function createSocketServer(options?: ServerOptions) {
       console.log(`Received message: ${message}`);
 
       if (message.toString().includes("which pxe")) socket.send(`pxe ${url}`);
+      if (message.toString().includes("battle"))
+        makeBattle(JSON.parse(message.toString()), socket);
     });
 
     socket.on("close", () => {
