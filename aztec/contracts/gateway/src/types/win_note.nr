@@ -11,18 +11,16 @@ use dep::aztec::{
     protocol_types::{constants::GENERATOR_INDEX__NOTE_NULLIFIER, traits::Serialize},
 };
 
-use aztec::oracle::random::random;
-
 global PLAYER_NOTE_LEN: u32 = 3;
 
 #[note]
-struct PlayerNote {
+struct WinNote {
     owner: AztecAddress,
-    name: Field,
-    trader_id: Field,
+    froglin_won: Field,
+    froglin_to_recover: Field,
 }
 
-impl NullifiableNote for PlayerNote {
+impl NullifiableNote for WinNote {
     fn compute_nullifier(
         self,
         context: &mut PrivateContext,
@@ -47,22 +45,22 @@ impl NullifiableNote for PlayerNote {
     }
 }
 
-impl PlayerNote {
-    pub fn new(name: Field, owner: AztecAddress) -> Self {
-        PlayerNote { header: NoteHeader::empty(), owner, name, trader_id: random() }
+impl WinNote {
+    pub fn new(owner: AztecAddress, froglin_won: Field, froglin_to_recover: Field) -> Self {
+        WinNote { header: NoteHeader::empty(), owner, froglin_won, froglin_to_recover }
     }
 }
 
-impl Serialize<PLAYER_NOTE_LEN> for PlayerNote {
+impl Serialize<PLAYER_NOTE_LEN> for WinNote {
     fn serialize(self) -> [Field; PLAYER_NOTE_LEN] {
-        [self.owner.to_field(), self.name, self.trader_id]
+        [self.owner.to_field(), self.froglin_won, self.froglin_to_recover]
     }
 }
 
-impl Eq for PlayerNote {
+impl Eq for WinNote {
     fn eq(self, other: Self) -> bool {
         (self.owner == other.owner)
-            & (self.name == other.name)
-            & (self.trader_id == other.trader_id)
+            & (self.froglin_won == other.froglin_won)
+            & (self.froglin_to_recover == other.froglin_to_recover)
     }
 }

@@ -11,18 +11,19 @@ use dep::aztec::{
     protocol_types::{constants::GENERATOR_INDEX__NOTE_NULLIFIER, traits::Serialize},
 };
 
-use aztec::oracle::random::random;
-
-global PLAYER_NOTE_LEN: u32 = 3;
+global PLAYER_NOTE_LEN: u32 = 4;
+// PLAYER_NOTE_LEN * 32 + 32(storage_slot as bytes) + 32(note_type_id as bytes)
+// global PLAYER_NOTE_BYTES_LEN: u32 = PLAYER_NOTE_LEN * 32 + 64;
 
 #[note]
-struct PlayerNote {
+struct BattleNote {
     owner: AztecAddress,
-    name: Field,
-    trader_id: Field,
+    choices: Field,
+    proposal_id: Field,
+    player_address: AztecAddress,
 }
 
-impl NullifiableNote for PlayerNote {
+impl NullifiableNote for BattleNote {
     fn compute_nullifier(
         self,
         context: &mut PrivateContext,
@@ -47,22 +48,28 @@ impl NullifiableNote for PlayerNote {
     }
 }
 
-impl PlayerNote {
-    pub fn new(name: Field, owner: AztecAddress) -> Self {
-        PlayerNote { header: NoteHeader::empty(), owner, name, trader_id: random() }
+impl BattleNote {
+    pub fn new(
+        owner: AztecAddress,
+        choices: Field,
+        proposal_id: Field,
+        player_address: AztecAddress,
+    ) -> Self {
+        BattleNote { header: NoteHeader::empty(), owner, choices, proposal_id, player_address }
     }
 }
 
-impl Serialize<PLAYER_NOTE_LEN> for PlayerNote {
+impl Serialize<PLAYER_NOTE_LEN> for BattleNote {
     fn serialize(self) -> [Field; PLAYER_NOTE_LEN] {
-        [self.owner.to_field(), self.name, self.trader_id]
+        [self.owner.to_field(), self.choices, self.proposal_id, self.player_address.to_field()]
     }
 }
 
-impl Eq for PlayerNote {
+impl Eq for BattleNote {
     fn eq(self, other: Self) -> bool {
         (self.owner == other.owner)
-            & (self.name == other.name)
-            & (self.trader_id == other.trader_id)
+            & (self.choices == other.choices)
+            & (self.proposal_id == other.proposal_id)
+            & (self.player_address == other.player_address)
     }
 }

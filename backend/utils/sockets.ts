@@ -1,5 +1,5 @@
 import { ServerOptions, WebSocketServer } from "ws";
-import { createPXEClient } from "@aztec/aztec.js";
+import { createPXEClient, Fr } from "@aztec/aztec.js";
 import { parse } from "url";
 import { type ChildProcess } from "child_process";
 
@@ -20,6 +20,24 @@ let ws_server: WebSocketServer;
 // used on shutdown
 let _terminating = false;
 const terminating = () => _terminating;
+
+async function makeBattle(
+  socketMessage: { message: string; proposalId: number },
+  socket: WebSocket,
+) {
+  const { proposalId } = socketMessage;
+  socket.send("making battle");
+  try {
+    await BACKEND_WALLET.contracts.gateway.methods
+      .make_battle(proposalId)
+      .send()
+      .wait();
+    socket.send("battle made");
+  } catch (error) {
+    console.error("Error resolving battle:", error);
+    socket.send("battle failed");
+  }
+}
 
 export function createSocketServer(options?: ServerOptions) {
   ws_server = new WebSocketServer(options);
@@ -80,6 +98,10 @@ export function createSocketServer(options?: ServerOptions) {
             instance: BACKEND_WALLET.contracts.gateway.instance,
             artifact: BACKEND_WALLET.contracts.gateway.artifact,
           });
+          pxeClient.registerAccount(
+            new Fr(BigInt(BACKEND_WALLET.secret)),
+            BACKEND_WALLET.wallet.getCompleteAddress().partialAddress,
+          );
 
           socket.send(`pxe ${url}`);
           broadcastMessage(`newPlayer ${url}`);
@@ -94,6 +116,8 @@ export function createSocketServer(options?: ServerOptions) {
       console.log(`Received message: ${message}`);
 
       if (message.toString().includes("which pxe")) socket.send(`pxe ${url}`);
+      if (message.toString().includes("battle"))
+        makeBattle(JSON.parse(message.toString()), socket);
     });
 
     socket.on("close", () => {

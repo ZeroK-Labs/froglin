@@ -11,18 +11,18 @@ use dep::aztec::{
     protocol_types::{constants::GENERATOR_INDEX__NOTE_NULLIFIER, traits::Serialize},
 };
 
-use aztec::oracle::random::random;
-
-global PLAYER_NOTE_LEN: u32 = 3;
+global PLAYER_NOTE_LEN: u32 = 5;
 
 #[note]
-struct PlayerNote {
+struct DateNote {
     owner: AztecAddress,
-    name: Field,
-    trader_id: Field,
+    choices: Field,
+    proposal_id: Field,
+    dating_froglin: Field,
+    player_address: AztecAddress,
 }
 
-impl NullifiableNote for PlayerNote {
+impl NullifiableNote for DateNote {
     fn compute_nullifier(
         self,
         context: &mut PrivateContext,
@@ -47,22 +47,43 @@ impl NullifiableNote for PlayerNote {
     }
 }
 
-impl PlayerNote {
-    pub fn new(name: Field, owner: AztecAddress) -> Self {
-        PlayerNote { header: NoteHeader::empty(), owner, name, trader_id: random() }
+impl DateNote {
+    pub fn new(
+        owner: AztecAddress,
+        choices: Field,
+        proposal_id: Field,
+        dating_froglin: Field,
+        player_address: AztecAddress,
+    ) -> Self {
+        DateNote {
+            header: NoteHeader::empty(),
+            owner,
+            choices,
+            proposal_id,
+            dating_froglin,
+            player_address,
+        }
     }
 }
 
-impl Serialize<PLAYER_NOTE_LEN> for PlayerNote {
+impl Serialize<PLAYER_NOTE_LEN> for DateNote {
     fn serialize(self) -> [Field; PLAYER_NOTE_LEN] {
-        [self.owner.to_field(), self.name, self.trader_id]
+        [
+            self.owner.to_field(),
+            self.choices,
+            self.proposal_id,
+            self.dating_froglin,
+            self.player_address.to_field(),
+        ]
     }
 }
 
-impl Eq for PlayerNote {
+impl Eq for DateNote {
     fn eq(self, other: Self) -> bool {
         (self.owner == other.owner)
-            & (self.name == other.name)
-            & (self.trader_id == other.trader_id)
+            & (self.choices == other.choices)
+            & (self.proposal_id == other.proposal_id)
+            & (self.dating_froglin == other.dating_froglin)
+            & (self.player_address == other.player_address)
     }
 }

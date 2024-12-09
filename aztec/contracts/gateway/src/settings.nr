@@ -1,3 +1,5 @@
-global FROGLIN_TYPE_COUNT = 12 as u8;
-global PLAYER_COUNT = 32 as u32;
-global CAPTURE_COUNT = 10 as u8;
+pub global PLAYER_COUNT = 32 as u8;
+pub global PLAYER_COUNT_U32 = PLAYER_COUNT as u32;
+
+pub global FROGLIN_TYPE_COUNT = 12 as u8;
+pub global FROGLIN_TYPE_COUNT_U32 = FROGLIN_TYPE_COUNT as u32;

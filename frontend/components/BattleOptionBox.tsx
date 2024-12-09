@@ -1,14 +1,28 @@
 import { useState } from "react";
 
-type OptionsEnum = "🗡️" | "🏹" | "🛡️" | "";
-const options: OptionsEnum[] = ["🗡️", "🏹", "🛡️"];
-
 const bgcolors = ["bg-blue-400", "bg-green-400", "bg-red-400"];
 
-export default function BattleOptionBox() {
-  const [currentOption, setCurrentOption] = useState<OptionsEnum>("");
+const iconMapping: { [key: number]: string } = {
+  1: "🗡️", // Sword
+  2: "🏹", // Bow
+  3: "🛡️", // Shield
+};
+
+export default function BattleOptionBox({
+  box,
+  setChoices,
+  choices,
+  currentOption,
+}: {
+  box: number;
+  setChoices: React.Dispatch<React.SetStateAction<number[]>>;
+  choices: number[];
+  currentOption: number;
+}) {
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [changing, setChanging] = useState(false);
+
+  const options = [1, 2, 3];
 
   const cycleOption = (direction: "up" | "down") => {
     setChanging(true);
@@ -17,15 +31,16 @@ export default function BattleOptionBox() {
       () => {
         setChanging(false);
 
-        setCurrentOption((prev) => {
-          if (prev === null) return options[0];
-          const currentIndex = options.indexOf(prev);
-          if (direction === "up") {
-            return options[(currentIndex + 1) % options.length];
-          } else {
-            return options[(currentIndex - 1 + options.length) % options.length];
-          }
-        });
+        const currentIndex = options.indexOf(currentOption);
+        const nextIndex =
+          direction === "up"
+            ? (currentIndex + 1) % options.length
+            : (currentIndex - 1 + options.length) % options.length;
+
+        const newOption = options[nextIndex];
+        const updatedChoices = [...choices];
+        updatedChoices[box - 1] = newOption;
+        setChoices(updatedChoices);
       }, //
       150,
     );
@@ -71,7 +86,7 @@ export default function BattleOptionBox() {
         ${changing ? "opacity-0" : "opacity-100"}
       `}
       >
-        {currentOption ?? ""}
+        {iconMapping[currentOption] ?? ""}
       </span>
     </div>
   );

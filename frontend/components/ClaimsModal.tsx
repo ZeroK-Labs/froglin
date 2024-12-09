@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import type { SwapOfferResponse, SwapOffer } from "frontend/types";
+import type { SwapOfferResponse, Proposal } from "frontend/types";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { names } from "frontend/components/FroglinModal";
 import { useModalState, usePlayer } from "frontend/stores";
 
+type BattleResponse = {
+  froglin_won: bigint;
+  froglin_to_recover: bigint;
+};
+
 export default function ClaimsModal() {
-  const [claims, setClaims] = useState<SwapOffer[]>([]);
+  const [claims, setClaims] = useState<Proposal[]>([]);
+  const [wins, setWins] = useState<Record<string, number>[]>([]);
   const [refetch, setRefetch] = useState<boolean>(false);
   const { modal } = useModalState();
   const { aztec, registered, traderId } = usePlayer();
@@ -18,15 +24,17 @@ export default function ClaimsModal() {
     () => {
       async function fetchClaims() {
         if (!aztec || !registered || !visible || !traderId) return;
-
-        const claimsResponse: SwapOfferResponse[] =
-          await aztec.contracts.gateway.methods
+        let claimsResponse: SwapOfferResponse[] = [];
+        try {
+          claimsResponse = await aztec.contracts.gateway.methods
             .view_claimable_swaps(traderId)
             .simulate();
+        } catch (error) {
+          console.error("Error fetching claims:", error);
+        }
 
         if (!claimsResponse || claimsResponse.length === 0) return;
-
-        const numberList: SwapOffer[] = [];
+        const numberList: Proposal[] = [];
 
         for (let i = 0; i !== claimsResponse.length; ++i) {
           const claim = claimsResponse[i];
@@ -38,13 +46,41 @@ export default function ClaimsModal() {
             wanted_froglin_type: Number(claim.wanted_froglin_type),
             status: Number(claim.status),
             id: Number(claim.id),
+            type: "swap",
           });
         }
 
         setClaims(numberList);
       }
 
+      async function fetchWinnings() {
+        if (!aztec || !registered || !visible || !traderId) return;
+        let winsInBattleResponse: BattleResponse[] = [];
+        try {
+          winsInBattleResponse = await aztec.contracts.gateway.methods
+            .view_won_in_battle(aztec.wallet.getAddress())
+            .simulate();
+        } catch (error) {
+          console.error("Error fetching winnings:", error);
+        }
+
+        if (!winsInBattleResponse || winsInBattleResponse.length === 0) return;
+
+        const winsInBattle: Record<string, number>[] = [];
+        for (let i = 0; i !== winsInBattleResponse.length; ++i) {
+          const win = winsInBattleResponse[i];
+          if (win.froglin_won === 101n) continue;
+
+          winsInBattle.push({
+            froglin_won: Number(win.froglin_won),
+            froglin_to_recover: Number(win.froglin_to_recover),
+          });
+        }
+        setWins(winsInBattle);
+      }
+
       fetchClaims();
+      fetchWinnings();
     }, //
     [aztec, registered, visible, refetch],
   );
@@ -69,6 +105,23 @@ export default function ClaimsModal() {
     toast.success("Claimed!", { id: toastId });
   }
 
+  async function handleClaimWin(win: number) {
+    if (!aztec || !registered) return;
+
+    const toastId = toast.loading("Claiming win...");
+
+    try {
+      await aztec.contracts.gateway.methods.claim_winnings(win).send().wait();
+
+      setRefetch(!refetch);
+    } catch (error) {
+      console.error("Error claiming win:", error);
+      toast.error("Failed to claim win!", { id: toastId });
+    }
+
+    toast.success("Claimed!", { id: toastId });
+  }
+
   return (
     <Modal
       className="top-4"
@@ -76,30 +129,58 @@ export default function ClaimsModal() {
       visible={visible}
     >
       <div className="flex flex-col">
-        {claims.map((claim) => (
-          <div
-            key={claim.id}
-            className="w-[299px] h-[40px] flex items-center justify-between bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
-            onClick={() => handleClaim(claim.id)}
-          >
-            <div className="flex flex-row items-center gap-2">
-              <img
-                src={`/images/froglin${claim.wanted_froglin_type}.webp`}
-                alt="Left Image"
-                width="40px"
-                height="40px"
-                className="rounded-md"
-              />
-              <span className="text-sm no-text-shadow">
-                {names[claim.wanted_froglin_type][0]}
-              </span>
-            </div>
+        {claims.length > 0
+          ? claims.map((claim) => (
+              <div
+                key={claim.id}
+                className="w-[299px] h-[40px] flex items-center justify-between bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
+                onClick={() => handleClaim(claim.id)}
+              >
+                <div className="flex flex-row items-center gap-2">
+                  <img
+                    src={`/images/froglin${claim.wanted_froglin_type}.webp`}
+                    alt="Left Image"
+                    width="40px"
+                    height="40px"
+                    className="rounded-md"
+                  />
+                  <span className="text-sm no-text-shadow">
+                    {names[claim.wanted_froglin_type][0]}
+                  </span>
+                </div>
 
-            <span className="text-sm font-semibold no-text-shadow mr-4">
-              Won in battle
-            </span>
-          </div>
-        ))}
+                <span className="text-sm font-semibold no-text-shadow mr-4">
+                  Swaped
+                </span>
+              </div>
+            ))
+          : null}
+        {wins.length > 0
+          ? wins.map((win, index) => (
+              <div
+                key={index}
+                className="w-[299px] h-[40px] flex items-center justify-between bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
+                onClick={() => handleClaimWin(win.froglin_won)}
+              >
+                <div className="flex flex-row items-center gap-2">
+                  <img
+                    src={`/images/froglin${win.froglin_won}.webp`}
+                    alt="Left Image"
+                    width="40px"
+                    height="40px"
+                    className="rounded-md"
+                  />
+                  <span className="text-sm no-text-shadow">
+                    {names[win.froglin_won][0]}
+                  </span>
+                </div>
+
+                <span className="text-sm font-semibold no-text-shadow mr-4">
+                  Won in battle
+                </span>
+              </div>
+            ))
+          : null}
       </div>
     </Modal>
   );

@@ -3,8 +3,8 @@ use dep::aztec::{prelude::AztecAddress, protocol_types::{traits::{Deserialize, S
 global FIELD_COUNT = 2;
 
 struct LeaderBoardEntry {
-    player: AztecAddress,
-    score: u32,
+    pub player: AztecAddress,
+    pub score: u32,
 }
 
 impl LeaderBoardEntry {

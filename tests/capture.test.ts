@@ -7,7 +7,7 @@ import { assert } from "console";
 
 describe("Capture Froglin", () => {
   const timeout = 40_000;
-  const FROGLIN_COUNT = 5;
+  const FROGLIN_COUNT = 7;
   const EPOCH_COUNT = 3;
   const EPOCH_DURATION = 20_000;
 
@@ -104,10 +104,10 @@ describe("Capture Froglin", () => {
       expect(stash[5]).toEqual(0n);
       expect(stash[6]).toEqual(0n);
       expect(stash[7]).toEqual(0n);
-      // expect(stash[8]).toEqual(0n);
-      // expect(stash[9]).toEqual(0n);
-      // expect(stash[10]).toEqual(0n);
-      // expect(stash[11]).toEqual(0n);
+      expect(stash[8]).toEqual(0n);
+      expect(stash[9]).toEqual(0n);
+      expect(stash[10]).toEqual(0n);
+      expect(stash[11]).toEqual(0n);
     },
     timeout,
   );
@@ -129,10 +129,10 @@ describe("Capture Froglin", () => {
       expect(stash[5]).toEqual(0n);
       expect(stash[6]).toEqual(0n);
       expect(stash[7]).toEqual(0n);
-      // expect(stash[8]).toEqual(0n);
-      // expect(stash[9]).toEqual(0n);
-      // expect(stash[10]).toEqual(0n);
-      // expect(stash[11]).toEqual(0n);
+      expect(stash[8]).toEqual(0n);
+      expect(stash[9]).toEqual(0n);
+      expect(stash[10]).toEqual(0n);
+      expect(stash[11]).toEqual(0n);
     },
     timeout,
   );
@@ -154,10 +154,60 @@ describe("Capture Froglin", () => {
       expect(stash[5]).toEqual(0n);
       expect(stash[6]).toEqual(0n);
       expect(stash[7]).toEqual(0n);
-      // expect(stash[8]).toEqual(0n);
-      // expect(stash[9]).toEqual(0n);
-      // expect(stash[10]).toEqual(0n);
-      // expect(stash[11]).toEqual(0n);
+      expect(stash[8]).toEqual(0n);
+      expect(stash[9]).toEqual(0n);
+      expect(stash[10]).toEqual(0n);
+      expect(stash[11]).toEqual(0n);
+    },
+    timeout,
+  );
+
+  test(
+    "registered account can capture different Froglin types (2nd stash begining)",
+    async () => {
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(8).send().wait();
+
+      const stash = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_stash(ACCOUNTS.alice.wallet.getAddress())
+        .simulate();
+
+      expect(stash[0]).toEqual(2n);
+      expect(stash[1]).toEqual(1n);
+      expect(stash[2]).toEqual(0n);
+      expect(stash[3]).toEqual(0n);
+      expect(stash[4]).toEqual(0n);
+      expect(stash[5]).toEqual(0n);
+      expect(stash[6]).toEqual(0n);
+      expect(stash[7]).toEqual(0n);
+      expect(stash[8]).toEqual(1n);
+      expect(stash[9]).toEqual(0n);
+      expect(stash[10]).toEqual(0n);
+      expect(stash[11]).toEqual(0n);
+    },
+    timeout,
+  );
+
+  test(
+    "registered account can capture different Froglin types (2nd stash end)",
+    async () => {
+      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(11).send().wait();
+
+      const stash = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_stash(ACCOUNTS.alice.wallet.getAddress())
+        .simulate();
+
+      expect(stash[0]).toEqual(2n);
+      expect(stash[1]).toEqual(1n);
+      expect(stash[2]).toEqual(0n);
+      expect(stash[3]).toEqual(0n);
+      expect(stash[4]).toEqual(0n);
+      expect(stash[5]).toEqual(0n);
+      expect(stash[6]).toEqual(0n);
+      expect(stash[7]).toEqual(0n);
+      expect(stash[8]).toEqual(1n);
+      expect(stash[9]).toEqual(0n);
+      expect(stash[10]).toEqual(0n);
+      expect(stash[11]).toEqual(1n);
     },
     timeout,
   );
@@ -179,10 +229,10 @@ describe("Capture Froglin", () => {
       expect(stash[5]).toEqual(0n);
       expect(stash[6]).toEqual(0n);
       expect(stash[7]).toEqual(0n);
-      // expect(stash[8]).toEqual(0n);
-      // expect(stash[9]).toEqual(0n);
-      // expect(stash[10]).toEqual(0n);
-      // expect(stash[11]).toEqual(0n);
+      expect(stash[8]).toEqual(0n);
+      expect(stash[9]).toEqual(0n);
+      expect(stash[10]).toEqual(0n);
+      expect(stash[11]).toEqual(0n);
     },
     timeout,
   );

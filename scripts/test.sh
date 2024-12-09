@@ -1,7 +1,9 @@
 #!/bin/bash
 
 list=(
-  "./tests/swap.test.ts"
+  # "./tests/swap.test.ts"
+  # "./tests/battle.test.ts"
+  "./tests/date.test.ts"
   # "./tests/register.test.ts"
   # "./tests/eventData.test.ts"
   # "./tests/capture.test.ts"
