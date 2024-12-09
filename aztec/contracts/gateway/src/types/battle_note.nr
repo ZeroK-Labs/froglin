@@ -10,8 +10,6 @@ use dep::aztec::{
     prelude::AztecAddress,
     protocol_types::{constants::GENERATOR_INDEX__NOTE_NULLIFIER, traits::Serialize},
 };
-use dep::std::mem::zeroed;
-use aztec::oracle::random::random;
 
 global PLAYER_NOTE_LEN: u32 = 4;
 // PLAYER_NOTE_LEN * 32 + 32(storage_slot as bytes) + 32(note_type_id as bytes)
