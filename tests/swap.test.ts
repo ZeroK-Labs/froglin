@@ -148,6 +148,20 @@ describe("Swap Froglin", () => {
   );
 
   test(
+    "player can view active swap proposals",
+    async () => {
+      const activeProposals = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_active_swap_proposals()
+        .simulate();
+
+      expect(activeProposals[0].offered_froglin_type).toBe(1n);
+      expect(activeProposals[0].wanted_froglin_type).toBe(2n);
+      expect(activeProposals[0].status).toBe(1n);
+    },
+    timeout,
+  );
+
+  test(
     "player can cancel swap offer before it's accepted by counterparty",
     async () => {
       await ACCOUNTS.alice.contracts.gateway.methods
@@ -205,6 +219,15 @@ describe("Swap Froglin", () => {
   test(
     "player can claim swap offer",
     async () => {
+      const aliceProfile = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_profile(ACCOUNTS.alice.wallet.getAddress())
+        .simulate();
+      const traderId = aliceProfile.trader_id;
+
+      const claims = await ACCOUNTS.alice.contracts.gateway.methods
+        .view_claimable_swaps(traderId)
+        .simulate();
+      expect(claims[1].status).toBe(2n);
       await ACCOUNTS.alice.contracts.gateway.methods
         .claim_swap_proposal(1)
         .send()

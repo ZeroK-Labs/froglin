@@ -1065,13 +1065,13 @@ contract FroglinGateway {
     }
 
     #[view]
-    unconstrained fn view_claimable_swaps(trader_id: Field) -> pub [SwapProposal; 10] {
+    unconstrained fn view_claimable_swaps(trader_id: u32) -> pub [SwapProposal; 10] {
         let proposal_count = storage.swap_proposal_count.read();
         let mut claimable_proposals: [SwapProposal; 10] = [SwapProposal::empty(); 10];
         for i in 0..proposal_count {
             let proposal = storage.swap_proposals.at(i).read();
             if (proposal.status == 2) & (i < 10) {
-                if (proposal.trader_id == trader_id) {
+                if (proposal.trader_id as u32 == trader_id) {
                     claimable_proposals[i] = proposal;
                 }
             }
