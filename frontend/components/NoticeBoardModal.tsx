@@ -45,7 +45,7 @@ export default function NoticeBoardModal() {
       toast.error(`Failed to cancel ${type} offer!`, { id: toastId });
     }
 
-    toast.dismiss(toastId);
+    toast.success(`Canceled`, { id: toastId });
   }
 
   async function acceptBattle(proposalId: number) {
@@ -94,7 +94,7 @@ export default function NoticeBoardModal() {
       toast.error(`Failed to accept ${type} offer!`, { id: toastId });
     }
 
-    toast.dismiss(toastId);
+    toast.success(`Accepted`, { id: toastId });
   }
 
   useEffect(
@@ -173,11 +173,8 @@ export default function NoticeBoardModal() {
           : offers.map((offer) => {
               // console.log(offer, traderId, offer.trader_id === traderId);
               return (
-                <div>
-                  <div
-                    key={offer.id}
-                    className="mb-2 flex flex-row"
-                  >
+                <div key={offer.id}>
+                  <div className="mb-2 flex flex-row">
                     <div className="h-[32px] rounded-md font-extrabold flex align-middle self-center items-center justify-between bg-gray-300 text-gray-900">
                       <img
                         src={`/images/froglin${offer.offered_froglin_type}.webp`}
