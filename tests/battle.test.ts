@@ -4,7 +4,7 @@ import { Fr } from "@aztec/aztec.js";
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { GAME_MASTER, ACCOUNTS } from "./accounts";
 import { stringToBigInt } from "common/utils/bigint";
-// import { assert } from "console";
+import { assert } from "console";
 
 describe("Battle Froglins", () => {
   const timeout = 60_000;
@@ -85,61 +85,30 @@ describe("Battle Froglins", () => {
     ];
     await Promise.all(promises);
 
-    // // register player accounts in deployment account PXE for note emission
-    // promises = [
-    //   GAME_MASTER.pxe.registerAccount(
-    //     new Fr(BigInt(ACCOUNTS.alice.secret)),
-    //     ACCOUNTS.alice.wallet.getCompleteAddress().partialAddress,
-    //   ),
-    //   GAME_MASTER.pxe.registerAccount(
-    //     new Fr(BigInt(ACCOUNTS.bob.secret)),
-    //     ACCOUNTS.bob.wallet.getCompleteAddress().partialAddress,
-    //   ),
-    //   ACCOUNTS.alice.pxe.registerAccount(
-    //     new Fr(BigInt(ACCOUNTS.bob.secret)),
-    //     ACCOUNTS.bob.wallet.getCompleteAddress().partialAddress,
-    //   ),
-    //   ACCOUNTS.bob.pxe.registerAccount(
-    //     new Fr(BigInt(ACCOUNTS.alice.secret)),
-    //     ACCOUNTS.alice.wallet.getCompleteAddress().partialAddress,
-    //   ),
-    //   // ACCOUNTS.bob.pxe.registerRecipient(ACCOUNTS.alice.wallet.getCompleteAddress()),
-    //   // ACCOUNTS.alice.pxe.registerRecipient(ACCOUNTS.bob.wallet.getCompleteAddress()),
-    // ];
-    // await Promise.all(promises);
+    console.log("Starting event...");
+    await GAME_MASTER.contracts.gateway.methods
+      .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
+      .send()
+      .wait();
+
+    console.log("Capturing Froglins...");
+
+    promises = [
+      ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait(),
+      ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(2).send().wait(),
+    ];
+    await Promise.all(promises);
+
+    const stashAlice = await ACCOUNTS.alice.contracts.gateway.methods
+      .view_stash(ACCOUNTS.alice.wallet.getAddress())
+      .simulate();
+    assert(stashAlice[1] == 1n);
+
+    const stashBob = await ACCOUNTS.bob.contracts.gateway.methods
+      .view_stash(ACCOUNTS.bob.wallet.getAddress())
+      .simulate();
+    assert(stashBob[2] == 1n);
   });
-  test(
-    "start event",
-    async () => {
-      await GAME_MASTER.contracts.gateway.methods
-        .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
-        .send()
-        .wait();
-      console.log("Event started");
-    },
-    timeout,
-  );
-  test(
-    "alice and bob capture a froglin",
-    async () => {
-      await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(1).send().wait();
-
-      const stashAlice = await ACCOUNTS.alice.contracts.gateway.methods
-        .view_stash(ACCOUNTS.alice.wallet.getAddress())
-        .simulate();
-      expect(stashAlice[1]).toEqual(1n);
-
-      await ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(2).send().wait();
-
-      const stashBob = await ACCOUNTS.bob.contracts.gateway.methods
-        .view_stash(ACCOUNTS.bob.wallet.getAddress())
-        .simulate();
-      expect(stashBob[2]).toEqual(1n);
-
-      console.log("Froglins captured");
-    },
-    timeout,
-  );
 
   test(
     "alice creates battle proposal",
