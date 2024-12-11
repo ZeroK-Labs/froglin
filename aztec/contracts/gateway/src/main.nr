@@ -29,7 +29,6 @@ contract FroglinGateway {
     use crate::types::stash_note::StashNote;
     use crate::types::swap_proposal::SwapProposal;
     use crate::types::win_note::WinNote;
-    use std::array;
 
     global stash_midpoint_index = settings::FROGLIN_TYPE_COUNT / 2;
 
@@ -52,6 +51,7 @@ contract FroglinGateway {
         battle_notes_1: Map<u32, PrivateMutable<BattleNote, Context>, Context>,
         battle_notes_2: Map<u32, PrivateMutable<BattleNote, Context>, Context>,
         battle_winners: Map<AztecAddress, PrivateSet<WinNote, Context>, Context>,
+        recovery_notes: Map<AztecAddress, PrivateSet<WinNote, Context>, Context>,
         date_proposals: Map<u32, PublicMutable<DateProposal, Context>, Context>,
         date_proposal_count: PublicMutable<u32, Context>,
         date_notes_1: Map<u32, PrivateMutable<DateNote, Context>, Context>,
@@ -531,7 +531,7 @@ contract FroglinGateway {
     }
 
     #[private]
-    fn create_battle_proposal(offered_froglin_type: u8, wanted_froglin_type: u8, choices: u8) {
+    fn create_battle_proposal(offered_froglin_type: u8, wanted_froglin_type: u8, choices: u16) {
         // ensure parameters are correct
         assert(offered_froglin_type < settings::FROGLIN_TYPE_COUNT, "Invalid offered Froglin type");
         assert(wanted_froglin_type < settings::FROGLIN_TYPE_COUNT, "Invalid wanted Froglin type");
@@ -590,7 +590,7 @@ contract FroglinGateway {
     }
 
     #[private]
-    fn accept_battle_proposal(proposal_id: u32, choices: u8) {
+    fn accept_battle_proposal(proposal_id: u32, choices: u16) {
         // get player address and keys
         let player = context.msg_sender();
         unsafe {
@@ -647,31 +647,32 @@ contract FroglinGateway {
         storage.battle_proposals.at(proposal_id).write(proposal);
     }
 
-    fn compare_battle_choices(choice1: u8, choice2: u8) -> pub u8 {
-        let mut digits1 = [0 as u8, 0 as u8, 0 as u8];
-        let mut digits2 = [0 as u8, 0 as u8, 0 as u8];
+    #[view]
+    unconstrained fn compare_battle_choices(choice1: u16, choice2: u16) -> pub u8 {
+        let mut digits1 = [0 as u16, 0 as u16, 0 as u16];
+        let mut digits2 = [0 as u16, 0 as u16, 0 as u16];
         for i in 0..3 {
             if (i == 0) {
                 digits1[i] = choice1 / 100;
                 digits2[i] = choice2 / 100;
             } else if (i == 1) {
-                digits1[i] = (choice1 / 10) % 10;
-                digits2[i] = (choice2 / 10) % 10;
+                digits1[i] = (choice1 / 10) - ((choice1 / 100) * 10);
+                digits2[i] = (choice2 / 10) - ((choice2 / 100) * 10);
             } else {
-                digits1[i] = choice1 % 10;
-                digits2[i] = choice2 % 10;
+                digits1[i] = choice1 - ((choice1 / 10) * 10);
+                digits2[i] = choice2 - ((choice2 / 10) * 10);
             }
         }
 
-        let mut score1 = 0;
-        let mut score2 = 0;
-
+        let mut score1: u8 = 0;
+        let mut score2: u8 = 0;
+        // 1 beats 3, 2 beats 1, 3 beats 2
         for i in 0..3 {
             if (digits1[i] == 1) & (digits2[i] == 3) {
                 score1 += 1;
             }
             if (digits1[i] == 2) & (digits2[i] == 1) {
-                score2 += 1;
+                score1 += 1;
             }
             if (digits1[i] == 3) & (digits2[i] == 2) {
                 score1 += 1;
@@ -707,67 +708,57 @@ contract FroglinGateway {
         let proposal = unsafe { view_battle_proposal(proposal_id) };
 
         // compare the choices
-        let player1_choice = player1_note.choices as u8;
-        let player2_choice = player2_note.choices as u8;
-        let mut winner_address = AztecAddress::zero();
-        let mut froglin_type = 101;
+        let player1_choice = player1_note.choices as u16;
+        let player2_choice = player2_note.choices as u16;
+        let mut froglin_won = 101;
         let mut froglin_to_recover = 101;
-        let battle_result = compare_battle_choices(player1_choice, player2_choice);
+        let battle_result = unsafe { compare_battle_choices(player1_choice, player2_choice) };
+        let mut winner_address = AztecAddress::zero();
+        let mut loser_address = AztecAddress::zero();
 
-        if (battle_result == 3) {
-            // draw
-            let mut note1 = WinNote::new(
-                player1_note.player_address,
-                101,
-                proposal.offered_froglin_type as Field,
-            );
-            let mut note2 = WinNote::new(
-                player2_note.player_address,
-                101,
-                proposal.wanted_froglin_type as Field,
-            );
-            storage.battle_winners.at(player1_note.player_address).insert(&mut note1).emit(
-                encode_and_encrypt_note(
-                    &mut context,
-                    get_public_keys(player1_note.player_address).ovpk_m,
-                    player1_note.player_address,
-                    player1_note.player_address,
-                ),
-            );
-            storage.battle_winners.at(player2_note.player_address).insert(&mut note2).emit(
-                encode_and_encrypt_note(
-                    &mut context,
-                    get_public_keys(player2_note.player_address).ovpk_m,
-                    player2_note.player_address,
-                    player2_note.player_address,
-                ),
-            );
-        }
-
+        // player 1 wins
         if (battle_result == 1) {
             winner_address = player1_note.player_address;
-            froglin_type = proposal.wanted_froglin_type;
+            loser_address = player2_note.player_address;
+            froglin_won = proposal.wanted_froglin_type;
             froglin_to_recover = proposal.offered_froglin_type;
         }
+        // player 2 wins
         if (battle_result == 2) {
             winner_address = player2_note.player_address;
-            froglin_type = proposal.offered_froglin_type;
+            loser_address = player1_note.player_address;
+            froglin_won = proposal.offered_froglin_type;
             froglin_to_recover = proposal.wanted_froglin_type;
         }
 
-        // create a note for the winner
+        if (battle_result == 3) {
+            // draw
+            winner_address = player1_note.player_address;
+            loser_address = player2_note.player_address;
+            froglin_to_recover = proposal.offered_froglin_type;
+        }
         let mut note = WinNote::new(
             winner_address,
-            froglin_type as Field,
+            froglin_won as Field,
             froglin_to_recover as Field,
         );
-
         storage.battle_winners.at(winner_address).insert(&mut note).emit(encode_and_encrypt_note(
             &mut context,
             get_public_keys(winner_address).ovpk_m,
             winner_address,
             winner_address,
         ));
+        let mut recovery_note =
+            WinNote::new(loser_address, 101, proposal.wanted_froglin_type as Field);
+
+        storage.recovery_notes.at(loser_address).insert(&mut recovery_note).emit(
+            encode_and_encrypt_note(
+                &mut context,
+                get_public_keys(loser_address).ovpk_m,
+                loser_address,
+                loser_address,
+            ),
+        );
 
         // change status of proposal to 'completed'
         FroglinGateway::at(context.this_address())
@@ -814,7 +805,7 @@ contract FroglinGateway {
     }
 
     #[private]
-    fn create_date_proposal(dating_froglin_type: u8, choices: u8) {
+    fn create_date_proposal(dating_froglin_type: u8, choices: u16) {
         // ensure parameters are correct
         assert(dating_froglin_type < settings::FROGLIN_TYPE_COUNT, "Invalid offered Froglin type");
 
@@ -879,7 +870,7 @@ contract FroglinGateway {
     }
 
     #[private]
-    fn accept_date_proposal(proposal_id: u32, dating_froglin_type: u8, choices: u8) {
+    fn accept_date_proposal(proposal_id: u32, dating_froglin_type: u8, choices: u16) {
         // get player address and keys
         let player = context.msg_sender();
         unsafe {
@@ -994,8 +985,8 @@ contract FroglinGateway {
         let player2_note = storage.date_notes_2.at(proposal_id).get_note().note;
 
         // compare the choices
-        let player1_choice = player1_note.choices as u8;
-        let player2_choice = player2_note.choices as u8;
+        let player1_choice = player1_note.choices as u16;
+        let player2_choice = player2_note.choices as u16;
 
         // if (choices1 > choices2) {
         // random Froglin to player1
