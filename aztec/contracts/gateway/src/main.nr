@@ -51,7 +51,6 @@ contract FroglinGateway {
         battle_notes_1: Map<u32, PrivateMutable<BattleNote, Context>, Context>,
         battle_notes_2: Map<u32, PrivateMutable<BattleNote, Context>, Context>,
         battle_winners: Map<AztecAddress, PrivateSet<WinNote, Context>, Context>,
-        recovery_notes: Map<AztecAddress, PrivateSet<WinNote, Context>, Context>,
         date_proposals: Map<u32, PublicMutable<DateProposal, Context>, Context>,
         date_proposal_count: PublicMutable<u32, Context>,
         date_notes_1: Map<u32, PrivateMutable<DateNote, Context>, Context>,
@@ -751,7 +750,7 @@ contract FroglinGateway {
         let mut recovery_note =
             WinNote::new(loser_address, 101, proposal.wanted_froglin_type as Field);
 
-        storage.recovery_notes.at(loser_address).insert(&mut recovery_note).emit(
+        storage.battle_winners.at(loser_address).insert(&mut recovery_note).emit(
             encode_and_encrypt_note(
                 &mut context,
                 get_public_keys(loser_address).ovpk_m,
