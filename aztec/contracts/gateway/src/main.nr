@@ -1064,28 +1064,59 @@ contract FroglinGateway {
         // compare the choices
         let player1_choice = player1_note.choices as u16;
         let player2_choice = player2_note.choices as u16;
-        let mut froglin_won = 101;
-        let mut froglin_to_recover = 101;
+        let mut player1_froglin_won = 101;
+        let mut player1_froglin_to_recover = 101;
+        let mut player2_froglin_won = 101;
+        let mut player2_froglin_to_recover = 101;
         let date_result = unsafe { compare_date_choices(player1_choice, player2_choice) };
         let mut player1 = AztecAddress::zero();
         let mut player2 = AztecAddress::zero();
         // 1, 2, none, gone
 
-        // player 1 wins
+        if (date_result == 0) {
+            player1 = player1_note.player_address;
+            player2 = player2_note.player_address;
+            player1_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
+            player2_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
+            player1_froglin_to_recover = player1_note.dating_froglin as u8;
+            player2_froglin_to_recover = player2_note.dating_froglin as u8;
+        }
+
+        // player 1 gets the Froglin
         if (date_result == 1) {
             player1 = player1_note.player_address;
             player2 = player2_note.player_address;
-            froglin_won = 101;
-            froglin_to_recover = 101;
+            player1_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
+            player1_froglin_to_recover = proposal.offered_froglin_type;
+            player2_froglin_to_recover = player2_note.dating_froglin as u8;
         }
-        let mut note = WinNote::new(player1, froglin_won as Field, froglin_to_recover as Field);
+        // player 2 gets the Froglin
+        if (date_result == 2) {
+            player1 = player1_note.player_address;
+            player2 = player2_note.player_address;
+            player1_froglin_to_recover = player1_note.dating_froglin as u8;
+            player2_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
+            player2_froglin_to_recover = player2_note.dating_froglin as u8;
+        }
+
+        // if result is 3, nobody gets anything and they lose their Froglins
+
+        let mut note = WinNote::new(
+            player1,
+            player1_froglin_won as Field,
+            player1_froglin_to_recover as Field,
+        );
         storage.battle_winners.at(player1).insert(&mut note).emit(encode_and_encrypt_note(
             &mut context,
             get_public_keys(player1).ovpk_m,
             player1,
             player1,
         ));
-        let mut recovery_note = WinNote::new(player2, 101, froglin_to_recover as Field);
+        let mut recovery_note = WinNote::new(
+            player2,
+            player2_froglin_won as Field,
+            player2_froglin_to_recover as Field,
+        );
 
         storage.battle_winners.at(player2).insert(&mut recovery_note).emit(encode_and_encrypt_note(
             &mut context,
@@ -1095,7 +1126,7 @@ contract FroglinGateway {
         ));
         // change status of the proposal to 'completed'
         FroglinGateway::at(context.this_address())
-            ._change_date_proposal_status(proposal_id, 3)
+            ._change_date_proposal_status(proposal_id, 4)
             .enqueue(&mut context);
     }
 
