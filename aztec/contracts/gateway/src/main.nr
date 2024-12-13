@@ -1077,7 +1077,7 @@ contract FroglinGateway {
             player1 = player1_note.player_address;
             player2 = player2_note.player_address;
             player1_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
-            player2_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
+            player2_froglin_won = unsafe { create_random_froglin(player2_choice, player1_choice) };
             player1_froglin_to_recover = player1_note.dating_froglin as u8;
             player2_froglin_to_recover = player2_note.dating_froglin as u8;
         }
