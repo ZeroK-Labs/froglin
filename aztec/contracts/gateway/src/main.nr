@@ -970,6 +970,84 @@ contract FroglinGateway {
     // when a date is created we will make a date proposal, identical with the battle
     // proposal
     // based on the status
+    #[view]
+    unconstrained fn compare_date_choices(choice1: u16, choice2: u16) -> pub u8 {
+        let mut digits1 = [0 as u16, 0 as u16, 0 as u16];
+        let mut digits2 = [0 as u16, 0 as u16, 0 as u16];
+        for i in 0..3 {
+            if (i == 0) {
+                digits1[i] = choice1 / 100;
+                digits2[i] = choice2 / 100;
+            } else if (i == 1) {
+                digits1[i] = (choice1 / 10) - ((choice1 / 100) * 10);
+                digits2[i] = (choice2 / 10) - ((choice2 / 100) * 10);
+            } else {
+                digits1[i] = choice1 - ((choice1 / 10) * 10);
+                digits2[i] = choice2 - ((choice2 / 10) * 10);
+            }
+        }
+        let mut score1: u8 = 0;
+        let mut score2: u8 = 0;
+        let mut special_case: u8 = 0;
+        if (choice1 == 123) & (choice2 == 321) {
+            special_case = 1;
+        }
+        if (choice1 == 321) & (choice2 == 123) {
+            special_case = 1;
+        }
+        // 1 beats 3, 2 beats 1, 3 beats 2
+        for i in 0..3 {
+            if (digits1[i] == 1) & (digits2[i] == 3) {
+                score1 += 1;
+            }
+            if (digits1[i] == 2) & (digits2[i] == 1) {
+                score1 += 1;
+            }
+            if (digits1[i] == 3) & (digits2[i] == 2) {
+                score1 += 1;
+            }
+            if (digits1[i] == 1) & (digits2[i] == 2) {
+                score2 += 1;
+            }
+            if (digits1[i] == 2) & (digits2[i] == 3) {
+                score2 += 1;
+            }
+            if (digits1[i] == 3) & (digits2[i] == 1) {
+                score2 += 1;
+            }
+        }
+        if special_case == 1 {
+            0
+        } else if score1 > score2 {
+            1
+        } else if score2 > score1 {
+            2
+        } else {
+            3
+        }
+    }
+
+    #[view]
+    unconstrained fn create_random_froglin(choice1: u16, choice2: u16) -> pub u16 {
+        let c1_hundreds = choice1 / 100;
+        let c1_tens = (choice1 % 100) / 10;
+        let c1_ones = choice1 % 10;
+        let c2_hundreds = choice2 / 100;
+        let c2_tens = (choice2 % 100) / 10;
+        let c2_ones = choice2 % 10;
+
+        let sum = (
+            3 * c1_hundreds
+                + 2 * c1_tens
+                + 4 * c1_ones
+                + 4 * c2_hundreds
+                + 2 * c2_tens
+                + 3 * c2_ones
+        )
+            % 12;
+        sum
+    }
+
     #[private]
     fn make_date(proposal_id: u32) {
         let game_master = context.msg_sender();
@@ -986,25 +1064,35 @@ contract FroglinGateway {
         // compare the choices
         let player1_choice = player1_note.choices as u16;
         let player2_choice = player2_note.choices as u16;
+        let mut froglin_won = 101;
+        let mut froglin_to_recover = 101;
+        let date_result = unsafe { compare_date_choices(player1_choice, player2_choice) };
+        let mut player1 = AztecAddress::zero();
+        let mut player2 = AztecAddress::zero();
+        // 1, 2, none, gone
 
-        // if (choices1 > choices2) {
-        // random Froglin to player1
-        // }
-        // if (choices1 < choices2) {
-        // random Froglin to player2
-        // }
-        // // create a note for the winner
-        // let mut note = WinNote::new(
-        //     winner_address,
-        //     froglin_type as Field,
-        //     froglin_to_recover as Field,
-        // );
-        // storage.battle_winners.at(winner_address).insert(&mut note).emit(encode_and_encrypt_note(
-        //     &mut context,
-        //     get_public_keys(winner_address).ovpk_m,sa
-        //     winner_address,
-        //     winner_address,
-        // ));
+        // player 1 wins
+        if (date_result == 1) {
+            player1 = player1_note.player_address;
+            player2 = player2_note.player_address;
+            froglin_won = 101;
+            froglin_to_recover = 101;
+        }
+        let mut note = WinNote::new(player1, froglin_won as Field, froglin_to_recover as Field);
+        storage.battle_winners.at(player1).insert(&mut note).emit(encode_and_encrypt_note(
+            &mut context,
+            get_public_keys(player1).ovpk_m,
+            player1,
+            player1,
+        ));
+        let mut recovery_note = WinNote::new(player2, 101, froglin_to_recover as Field);
+
+        storage.battle_winners.at(player2).insert(&mut recovery_note).emit(encode_and_encrypt_note(
+            &mut context,
+            get_public_keys(player2).ovpk_m,
+            player2,
+            player2,
+        ));
         // change status of the proposal to 'completed'
         FroglinGateway::at(context.this_address())
             ._change_date_proposal_status(proposal_id, 3)
