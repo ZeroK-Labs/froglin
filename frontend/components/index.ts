@@ -28,3 +28,5 @@ export { default as ToastView } from "./ToastView";
 export { default as TrapMarker } from "./TrapMarker";
 export { default as TrapMarkerList } from "./TrapMarkerList";
 export { default as TutorialModal } from "./TutorialModal";
+export { default as DateModal } from "./DateModal";
+export { default as SpinOptionBox } from "./SpinOptionBox";

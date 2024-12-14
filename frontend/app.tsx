@@ -14,6 +14,7 @@ import {
   CapturedFroglinList,
   ClaimsModal,
   CreateAccountButton,
+  DateModal,
   FroglinModal,
   InfoBarsContainer,
   LeaderBoardModal,
@@ -48,6 +49,7 @@ function AppComponent() {
             <SwapModal />
             <NoticeBoardModal />
             <ClaimsModal />
+            <DateModal />
           </>
         ) : (
           <>
