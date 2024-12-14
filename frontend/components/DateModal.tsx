@@ -24,7 +24,7 @@ export default function DateModal() {
     setIsSpinning(true);
     setTimeout(() => {
       setIsSpinning(false);
-    }, 1000);
+    }, 3000);
   }
 
   function changeFroglin(ev: React.MouseEvent) {
