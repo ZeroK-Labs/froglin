@@ -5,7 +5,7 @@ export function FroglinMenuButton({
   onClick,
 }: {
   className: string;
-  icon: string;
+  icon?: string;
   text: string;
   onClick: React.MouseEventHandler;
 }) {

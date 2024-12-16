@@ -11,7 +11,7 @@ export default function DateModal() {
   const { aztec } = usePlayer();
 
   const [choices, setChoices] = useState<number[]>([0, 0, 0]);
-  const [isSpinning, setIsSpinning] = useState(false);
+  const [isSpinning, setIsSpinning] = useState<boolean>(false);
 
   const { selectedFroglin } = useGameEvent();
   const { modal, setModal } = useModalState();
@@ -125,12 +125,11 @@ export default function DateModal() {
           </div>
         </div>
 
-        <button
+        <FroglinMenuButton
+          text="Spin"
           onClick={handleSpin}
           className="mt-4 p-2 bg-blue-500 text-white rounded"
-        >
-          Spin
-        </button>
+        />
 
         <FroglinMenuButton
           className="bg-gradient-to-r from-rose-400 via-purple-500 to-pink-500"
