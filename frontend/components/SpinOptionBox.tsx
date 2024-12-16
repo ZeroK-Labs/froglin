@@ -13,13 +13,11 @@ const options = [1, 2, 3];
 export default function BattleOptionBox({
   box,
   setChoices,
-  choices,
   currentOption,
   isSpinning,
 }: {
   box: number;
   setChoices: React.Dispatch<React.SetStateAction<number[]>>;
-  choices: number[];
   currentOption: number;
   isSpinning: boolean;
 }) {
@@ -34,9 +32,11 @@ export default function BattleOptionBox({
         setDisplayOption(options[randomIdx]);
       }, 150);
     } else {
-      const updatedChoices = [...choices];
-      updatedChoices[box - 1] = displayOption;
-      setChoices(updatedChoices);
+      setChoices((prevChoices) => {
+        const updated = [...prevChoices];
+        updated[box - 1] = displayOption;
+        return updated;
+      });
     }
 
     return () => {

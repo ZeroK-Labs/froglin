@@ -45,6 +45,10 @@ export default function FroglinModal() {
     handleModalChange(MODALS.SWAP, ev);
   }
 
+  function handleDateButtonClick(ev: React.MouseEvent) {
+    handleModalChange(MODALS.DATE, ev);
+  }
+
   return (
     <Modal
       className="top-4"
@@ -82,7 +86,7 @@ export default function FroglinModal() {
               className="bg-red-500"
               icon="❤️"
               text="Send on a Date"
-              onClick={() => {}}
+              onClick={handleDateButtonClick}
             />
           </>
         )}

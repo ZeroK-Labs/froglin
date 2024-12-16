@@ -101,7 +101,6 @@ export default function DateModal() {
             <SpinOptionBox
               box={1}
               setChoices={setChoices}
-              choices={choices}
               currentOption={choices[0] ?? ""}
               isSpinning={isSpinning}
             />
@@ -111,7 +110,6 @@ export default function DateModal() {
             <SpinOptionBox
               box={2}
               setChoices={setChoices}
-              choices={choices}
               currentOption={choices[1] ?? ""}
               isSpinning={isSpinning}
             />
@@ -121,7 +119,6 @@ export default function DateModal() {
             <SpinOptionBox
               box={3}
               setChoices={setChoices}
-              choices={choices}
               currentOption={choices[2] ?? ""}
               isSpinning={isSpinning}
             />
