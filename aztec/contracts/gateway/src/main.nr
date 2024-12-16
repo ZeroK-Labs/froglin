@@ -854,16 +854,18 @@ contract FroglinGateway {
             game_master,
         ));
 
+        let trader_id = unsafe { _view_trader_id(player) };
+
         // modify public data - create public proposal
         FroglinGateway::at(context.this_address())
-            ._create_date_proposal(dating_froglin_type, proposal_id)
+            ._create_date_proposal(trader_id, dating_froglin_type, proposal_id)
             .enqueue(&mut context);
     }
 
     #[internal]
     #[public]
-    fn _create_date_proposal(dating_froglin_type: u8, proposal_id: u32) {
-        let new_proposal = DateProposal::new(dating_froglin_type, proposal_id);
+    fn _create_date_proposal(trader_id: Field, dating_froglin_type: u8, proposal_id: u32) {
+        let new_proposal = DateProposal::new(trader_id, dating_froglin_type, proposal_id);
         storage.date_proposals.at(proposal_id).write(new_proposal);
         storage.date_proposal_count.write(proposal_id + 1);
     }
@@ -1275,6 +1277,20 @@ contract FroglinGateway {
         let mut active_proposals: [BattleProposal; 10] = [BattleProposal::empty(); 10];
         for i in 0..proposal_count {
             let proposal = storage.battle_proposals.at(i).read();
+            if (proposal.status == 1) & (i < 10) {
+                active_proposals[i] = proposal;
+            }
+        }
+
+        active_proposals
+    }
+
+    #[view]
+    unconstrained fn view_active_date_proposals() -> pub [DateProposal; 10] {
+        let proposal_count = storage.date_proposal_count.read();
+        let mut active_proposals: [DateProposal; 10] = [DateProposal::empty(); 10];
+        for i in 0..proposal_count {
+            let proposal = storage.date_proposals.at(i).read();
             if (proposal.status == 1) & (i < 10) {
                 active_proposals[i] = proposal;
             }
