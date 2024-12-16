@@ -469,6 +469,42 @@ contract FroglinGateway {
     }
 
     #[private]
+    fn cancel_date_proposal(proposal_id: u32) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        let proposal = unsafe { view_date_proposal(proposal_id) };
+        assert(proposal.status == 1, "proposal is not active");
+
+        let trader_id = unsafe { _view_trader_id(player) };
+        assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
+
+        // select stash
+        let stash = storage.stashes.at(player);
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
+
+        new_stash_note.increment_slot(proposal.offered_froglin_type);
+
+        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        // mark the proposal as completed
+        FroglinGateway::at(context.this_address())
+            ._change_date_proposal_status(proposal_id, 4)
+            .enqueue(&mut context);
+    }
+
+    #[private]
     fn cancel_swap_proposal(proposal_id: u8) {
         // get player address and keys
         let player = context.msg_sender();
