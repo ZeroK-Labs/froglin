@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 const bgcolors = ["bg-blue-400", "bg-green-400", "bg-red-400"];
 
 const iconMapping: { [key: number]: string } = {
-  1: "🗡️", // Sword
-  2: "🏹", // Bow
-  3: "🛡️", // Shield
+  1: "🍆", // Sword
+  2: "❤️", // Bow
+  3: "💍", // Shield
 };
 const options = [1, 2, 3];
 

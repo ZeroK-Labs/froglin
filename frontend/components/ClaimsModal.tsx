@@ -69,7 +69,7 @@ export default function ClaimsModal() {
         const winsInBattle: Record<string, number>[] = [];
         for (let i = 0; i !== winsInBattleResponse.length; ++i) {
           const win = winsInBattleResponse[i];
-          if (win.froglin_won === 101n) continue;
+          if (win.froglin_won === 101n && win.froglin_to_recover === 101n) continue;
 
           winsInBattle.push({
             froglin_won: Number(win.froglin_won),
@@ -163,6 +163,15 @@ export default function ClaimsModal() {
                 onClick={() => handleClaimWin(win.froglin_won)}
               >
                 <div className="flex flex-row items-center gap-2">
+                  {win.froglin_to_recover !== 101 ? (
+                    <img
+                      src={`/images/froglin${win.froglin_to_recover}.webp`}
+                      alt="Left Image"
+                      width="35px"
+                      height="35px"
+                      className="rounded-md"
+                    />
+                  ) : null}
                   <img
                     src={`/images/froglin${win.froglin_won}.webp`}
                     alt="Left Image"
