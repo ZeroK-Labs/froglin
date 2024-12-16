@@ -20,6 +20,7 @@ export default function NoticeBoardModal() {
     type: "battle" | "date" | null;
   }>({ id: null, type: null });
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
+  const [datingFroglin, setDatingFroglin] = useState<number | null>(null);
 
   const { modal } = useModalState();
   const { aztec, registered, traderId, stash, fetchStash } = usePlayer();
@@ -32,6 +33,33 @@ export default function NoticeBoardModal() {
       setIsSpinning(false);
       acceptDate(dateId);
     }, 3000);
+  }
+
+  function changeFroglin(e: React.MouseEvent, offered_froglin_type: number) {
+    const offset = names.length / 2;
+
+    setDatingFroglin((prev) => {
+      let rangeStart: number;
+      let rangeEnd: number;
+
+      if (offered_froglin_type < offset) {
+        rangeStart = offset;
+        rangeEnd = names.length - 1;
+      } else {
+        rangeStart = 0;
+        rangeEnd = offset - 1;
+      }
+
+      let next =
+        prev === null || prev < rangeStart || prev > rangeEnd ? rangeStart : prev + 1;
+
+      if (next > rangeEnd) {
+        next = rangeStart;
+      }
+
+      return next;
+    });
+    e.stopPropagation();
   }
 
   async function handleCancel(proposalId: number, type: string) {
@@ -134,6 +162,7 @@ export default function NoticeBoardModal() {
           .accept_swap_proposal(proposalId)
           .send()
           .wait();
+        toast.success(`Accepted`, { id: toastId });
       }
 
       setRefetch(true);
@@ -141,8 +170,6 @@ export default function NoticeBoardModal() {
       console.error(`Error accepting ${type} offer:`, error);
       toast.error(`Failed to accept ${type} offer!`, { id: toastId });
     }
-
-    toast.success(`Accepted`, { id: toastId });
   }
 
   useEffect(
@@ -375,8 +402,31 @@ export default function NoticeBoardModal() {
                   </div>
                   {selectedProposal.id === date.id &&
                   selectedProposal.type === "date" ? (
-                    <div>
-                      <div className="flex flex-row justify-between items-center gap-4 pb-8">
+                    <div className="flex flex-col items-center">
+                      <div onClick={(e) => changeFroglin(e, date.offered_froglin_type)}>
+                        {datingFroglin !== null ? (
+                          <>
+                            <img
+                              className={`mb-2`}
+                              src={`/images/froglin${datingFroglin}-large.webp`}
+                              width="150px"
+                              height="150px"
+                              alt="froglin"
+                            />
+                            <span>{names[datingFroglin][0]}</span>
+                          </>
+                        ) : (
+                          <>
+                            <div
+                              className={`w-[150px] h-[150px] mb-2 border-2 border-white flex items-center justify-center`}
+                            >
+                              Select Froglin
+                            </div>
+                            <span>???</span>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex flex-row justify-between items-center gap-4 pb-4">
                         <div>
                           <span className="text-center">Round 1</span>
                           <SpinOptionBox
@@ -408,7 +458,7 @@ export default function NoticeBoardModal() {
                       <FroglinMenuButton
                         text="Spin and go"
                         onClick={() => handleSpinAndGo(date.id)}
-                        className="mt-4 p-2 bg-blue-500 text-white rounded"
+                        className="p-2 bg-blue-500 text-white rounded"
                       />
                       {/* <FroglinMenuButton
                         className="bg-gray-900"
