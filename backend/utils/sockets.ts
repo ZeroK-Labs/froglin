@@ -39,6 +39,21 @@ async function makeBattle(
   }
 }
 
+async function makeDate(
+  socketMessage: { message: string; proposalId: number },
+  socket: WebSocket,
+) {
+  const { proposalId } = socketMessage;
+  socket.send("making date");
+  try {
+    await BACKEND_WALLET.contracts.gateway.methods.make_date(proposalId).send().wait();
+    socket.send("date made");
+  } catch (error) {
+    console.error("Error resolving date:", error);
+    socket.send("date failed");
+  }
+}
+
 export function createSocketServer(options?: ServerOptions) {
   ws_server = new WebSocketServer(options);
 
@@ -116,8 +131,12 @@ export function createSocketServer(options?: ServerOptions) {
       console.log(`Received message: ${message}`);
 
       if (message.toString().includes("which pxe")) socket.send(`pxe ${url}`);
-      if (message.toString().includes("battle"))
+      if (message.toString().includes("battle")) {
         makeBattle(JSON.parse(message.toString()), socket);
+      }
+      if (message.toString().includes("date")) {
+        makeDate(JSON.parse(message.toString()), socket);
+      }
     });
 
     socket.on("close", () => {

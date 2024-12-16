@@ -74,12 +74,12 @@ export default function NoticeBoardModal() {
           .send()
           .wait();
       }
-      // if (type === "date") {
-      //   await aztec.contracts.gateway.methods
-      //     .cancel_date_proposal(proposalId)
-      //     .send()
-      //     .wait();
-      // }
+      if (type === "date") {
+        await aztec.contracts.gateway.methods
+          .cancel_date_proposal(proposalId)
+          .send()
+          .wait();
+      }
       if (type === "swap") {
         await aztec.contracts.gateway.methods
           .cancel_swap_proposal(proposalId)
@@ -124,14 +124,16 @@ export default function NoticeBoardModal() {
   }
 
   async function acceptDate(proposalId: number) {
-    if (!aztec || !registered) return;
+    if (!aztec || !registered || !datingFroglin) return;
     const toastId = toast.loading("Accepting date offer...");
     const dateNumber = choices.reduce((acc, choice) => acc * 10 + choice, 0);
     try {
       await aztec.contracts.gateway.methods
-        .accept_date_proposal(proposalId, 2, dateNumber)
+        .accept_date_proposal(proposalId, datingFroglin, dateNumber)
         .send()
         .wait();
+
+      CLIENT_SOCKET.send(JSON.stringify({ message: "date", proposalId }));
 
       setRefetch(true);
     } catch (error) {
@@ -311,7 +313,7 @@ export default function NoticeBoardModal() {
                       selectedProposal.type === "battle" ? (
                       <button
                         type="button"
-                        className={`rounded-lg px-2 py-1 ml-2 my-2 text-xs font-semibold shadow-sm text-white bg-red-400`}
+                        className={`rounded-lg px-2 py-1 ml-2 my-2 text-xs font-semibold shadow-sm text-white bg-red-800`}
                         onClick={() => {
                           setSelectedProposal({ id: null, type: null });
                           setChoices([0, 0, 0]);
@@ -326,7 +328,7 @@ export default function NoticeBoardModal() {
                         className={`rounded-lg px-2 py-1 ml-2 my-2 text-xs font-semibold shadow-sm text-white bg-green-600 ${stash[offer.wanted_froglin_type] === 0 ? "grayscale" : ""}`}
                         onClick={() => handleAcceptProposal(offer.id, offer.type)}
                       >
-                        Accept
+                        {offer.type === "swap" ? "Swap!" : "Battle!"}
                       </button>
                     )}
                   </div>
@@ -392,6 +394,14 @@ export default function NoticeBoardModal() {
                         {names[date.offered_froglin_type][0]}
                       </span>
                       <span className="text-xl">{offerType(date.type)}</span>
+                      <span className="w-24 text-md no-text-shadow" />
+                      {/* <img
+                        src={`/images/froglin0.webp`}
+                        alt="Invisible Right Image"
+                        width="40px"
+                        height="40px"
+                        className="rounded-md invisible"
+                      /> */}
                     </div>
 
                     {date.trader_id === traderId ? (
@@ -406,7 +416,7 @@ export default function NoticeBoardModal() {
                       selectedProposal.type === "date" ? (
                       <button
                         type="button"
-                        className={`rounded-lg px-2 py-1 ml-2 my-2 text-xs font-semibold shadow-sm text-white bg-red-400`}
+                        className={`rounded-lg px-2 py-1 ml-2 my-2 text-xs font-semibold shadow-sm text-white bg-red-800`}
                         onClick={() => {
                           setSelectedProposal({ id: null, type: null });
                           setChoices([0, 0, 0]);
@@ -420,7 +430,7 @@ export default function NoticeBoardModal() {
                         className={`rounded-lg px-2 py-1 ml-2 my-2 text-xs font-semibold shadow-sm text-white bg-green-600`}
                         onClick={() => handleAcceptProposal(date.id, date.type)}
                       >
-                        Go on a Date
+                        Date!
                       </button>
                     )}
                   </div>

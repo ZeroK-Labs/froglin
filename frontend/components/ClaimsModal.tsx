@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import type { SwapOfferResponse, Proposal } from "frontend/types";
+import type { SwapOfferResponse } from "frontend/types";
+import type { Proposal } from "frontend/types/Proposals";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { names } from "frontend/components/FroglinModal";
@@ -63,7 +64,7 @@ export default function ClaimsModal() {
         } catch (error) {
           console.error("Error fetching winnings:", error);
         }
-
+        console.log(winsInBattleResponse);
         if (!winsInBattleResponse || winsInBattleResponse.length === 0) return;
 
         const winsInBattle: Record<string, number>[] = [];
