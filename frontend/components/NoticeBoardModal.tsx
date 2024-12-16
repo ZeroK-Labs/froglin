@@ -15,7 +15,10 @@ export default function NoticeBoardModal() {
   const [dates, setDates] = useState<DateProposal[]>([]);
   const [refetch, setRefetch] = useState<boolean>(true);
   const [choices, setChoices] = useState<number[]>([0, 0, 0]);
-  const [makeChoices, setMakeChoices] = useState<boolean>(false);
+  const [selectedProposal, setSelectedProposal] = useState<{
+    id: number | null;
+    type: "battle" | "date" | null;
+  }>({ id: null, type: null });
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
 
   const { modal } = useModalState();
@@ -23,10 +26,11 @@ export default function NoticeBoardModal() {
 
   const visible = modal === MODALS.NOTICEBOARD;
 
-  function handleSpin() {
+  function handleSpinAndGo(dateId: number) {
     setIsSpinning(true);
     setTimeout(() => {
       setIsSpinning(false);
+      acceptDate(dateId);
     }, 3000);
   }
 
@@ -42,6 +46,12 @@ export default function NoticeBoardModal() {
           .send()
           .wait();
       }
+      // if (type === "date") {
+      //   await aztec.contracts.gateway.methods
+      //     .cancel_date_proposal(proposalId)
+      //     .send()
+      //     .wait();
+      // }
       if (type === "swap") {
         await aztec.contracts.gateway.methods
           .cancel_swap_proposal(proposalId)
@@ -74,11 +84,15 @@ export default function NoticeBoardModal() {
       setRefetch(true);
     } catch (error) {
       console.error("Error accepting battle offer:", error);
-      toast.error("Failed to accept battle offer!", { id: toastId });
+      if (error instanceof Error) {
+        toast.error(`Failed to accept battle offer! ${error.message}`, { id: toastId });
+      } else {
+        toast.error(`Failed to accept battle offer!`, { id: toastId });
+      }
+    } finally {
+      toast.dismiss(toastId);
+      setSelectedProposal({ id: null, type: null });
     }
-    setMakeChoices(false);
-
-    toast.dismiss(toastId);
   }
 
   async function acceptDate(proposalId: number) {
@@ -94,21 +108,28 @@ export default function NoticeBoardModal() {
       setRefetch(true);
     } catch (error) {
       console.error("Error accepting date offer:", error);
-      toast.error("Failed to accept date offer!", { id: toastId });
+      if (error instanceof Error) {
+        toast.error(`Failed to accept date offer! ${error.message}`, { id: toastId });
+      } else {
+        toast.error(`Failed to accept date offer!`, { id: toastId });
+      }
+    } finally {
+      toast.dismiss(toastId);
+      setChoices([0, 0, 0]);
+      setSelectedProposal({ id: null, type: null });
     }
   }
 
   async function handleAcceptProposal(proposalId: number, type: string) {
     if (!aztec || !registered) return;
-
-    const toastId = toast.loading(`Accepting ${type} offer...`);
-
+    let toastId = "";
     try {
       if (["battle", "date"].includes(type)) {
         // render choices
-        setMakeChoices(true);
+        setSelectedProposal({ id: proposalId, type: type as "battle" | "date" });
       }
       if (type === "swap") {
+        toastId = toast.loading(`Accepting ${type} offer...`);
         await aztec.contracts.gateway.methods
           .accept_swap_proposal(proposalId)
           .send()
@@ -270,7 +291,8 @@ export default function NoticeBoardModal() {
                       </button>
                     )}
                   </div>
-                  {makeChoices ? (
+                  {selectedProposal.id === offer.id &&
+                  selectedProposal.type === "battle" ? (
                     <div>
                       <div className="flex flex-row justify-between items-center gap-4 pb-8">
                         <div>
@@ -351,7 +373,8 @@ export default function NoticeBoardModal() {
                       </button>
                     )}
                   </div>
-                  {makeChoices ? (
+                  {selectedProposal.id === date.id &&
+                  selectedProposal.type === "date" ? (
                     <div>
                       <div className="flex flex-row justify-between items-center gap-4 pb-8">
                         <div>
@@ -383,16 +406,16 @@ export default function NoticeBoardModal() {
                         </div>
                       </div>
                       <FroglinMenuButton
-                        text="Spin"
-                        onClick={handleSpin}
+                        text="Spin and go"
+                        onClick={() => handleSpinAndGo(date.id)}
                         className="mt-4 p-2 bg-blue-500 text-white rounded"
                       />
-                      <FroglinMenuButton
+                      {/* <FroglinMenuButton
                         className="bg-gray-900"
                         icon="🗡️"
-                        text="Send to Battle"
+                        text="Send to D"
                         onClick={() => acceptDate(date.id)}
-                      />
+                      /> */}
                     </div>
                   ) : null}
                 </div>
