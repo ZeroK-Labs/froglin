@@ -307,6 +307,18 @@ export default function NoticeBoardModal() {
                       >
                         Cancel
                       </button>
+                    ) : selectedProposal.id === offer.id &&
+                      selectedProposal.type === "battle" ? (
+                      <button
+                        type="button"
+                        className={`rounded-lg px-2 py-1 ml-2 my-2 text-xs font-semibold shadow-sm text-white bg-red-400`}
+                        onClick={() => {
+                          setSelectedProposal({ id: null, type: null });
+                          setChoices([0, 0, 0]);
+                        }}
+                      >
+                        Close
+                      </button>
                     ) : (
                       <button
                         disabled={stash[offer.wanted_froglin_type] === 0}
@@ -390,6 +402,18 @@ export default function NoticeBoardModal() {
                       >
                         Cancel
                       </button>
+                    ) : selectedProposal.id === date.id &&
+                      selectedProposal.type === "date" ? (
+                      <button
+                        type="button"
+                        className={`rounded-lg px-2 py-1 ml-2 my-2 text-xs font-semibold shadow-sm text-white bg-red-400`}
+                        onClick={() => {
+                          setSelectedProposal({ id: null, type: null });
+                          setChoices([0, 0, 0]);
+                        }}
+                      >
+                        Close
+                      </button>
                     ) : (
                       <button
                         type="button"
@@ -460,12 +484,6 @@ export default function NoticeBoardModal() {
                         onClick={() => handleSpinAndGo(date.id)}
                         className="p-2 bg-blue-500 text-white rounded"
                       />
-                      {/* <FroglinMenuButton
-                        className="bg-gray-900"
-                        icon="🗡️"
-                        text="Send to D"
-                        onClick={() => acceptDate(date.id)}
-                      /> */}
                     </div>
                   ) : null}
                 </div>
