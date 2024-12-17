@@ -21,19 +21,30 @@ export default function NoticeBoardModal() {
   }>({ id: null, type: null });
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const [datingFroglin, setDatingFroglin] = useState<number | null>(null);
-
   const { modal } = useModalState();
   const { aztec, registered, traderId, stash, fetchStash } = usePlayer();
 
   const visible = modal === MODALS.NOTICEBOARD;
 
-  function handleSpinAndGo(dateId: number) {
+  function handleSpinAndGo() {
     setIsSpinning(true);
     setTimeout(() => {
       setIsSpinning(false);
-      acceptDate(dateId);
     }, 3000);
   }
+
+  useEffect(() => {
+    // validate choices
+    if (
+      !choices.includes(0) &&
+      !isSpinning &&
+      selectedProposal.type === "date" &&
+      selectedProposal.id &&
+      datingFroglin !== null
+    ) {
+      acceptDate(selectedProposal.id);
+    }
+  }, [choices, isSpinning]);
 
   function changeFroglin(e: React.MouseEvent, offered_froglin_type: number) {
     const offset = names.length / 2;
@@ -124,7 +135,7 @@ export default function NoticeBoardModal() {
   }
 
   async function acceptDate(proposalId: number) {
-    if (!aztec || !registered || !datingFroglin) return;
+    if (!aztec || !registered || datingFroglin === null) return;
     const toastId = toast.loading("Accepting date offer...");
     const dateNumber = choices.reduce((acc, choice) => acc * 10 + choice, 0);
     try {
@@ -490,8 +501,9 @@ export default function NoticeBoardModal() {
                         </div>
                       </div>
                       <FroglinMenuButton
+                        disabled={datingFroglin === null}
                         text="Spin and go"
-                        onClick={() => handleSpinAndGo(date.id)}
+                        onClick={handleSpinAndGo}
                         className="p-2 bg-blue-500 text-white rounded"
                       />
                     </div>

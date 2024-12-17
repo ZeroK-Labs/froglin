@@ -39,7 +39,7 @@ export default function ClaimsModal() {
 
         for (let i = 0; i !== claimsResponse.length; ++i) {
           const claim = claimsResponse[i];
-          if (claim.id === 101n) continue;
+          if ([101n, 102n].includes(claim.id)) continue;
 
           numberList.push({
             trader_id: claim.trader_id,
