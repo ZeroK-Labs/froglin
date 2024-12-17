@@ -809,13 +809,20 @@ contract FroglinGateway {
             _check_registration(player);
         }
         let keys = get_public_keys(player);
+        // first clean of dummy notes
 
+        let owner_notes = storage.battle_winners.at(player);
         let mut options = NoteGetterOptions::new();
+        options =
+            options.select(WinNote::properties().froglin_won, Comparator.EQ, 102).set_limit(5);
+        // destroy dummy notes
+        owner_notes.pop_notes(options);
+
         options = options
             .select(WinNote::properties().froglin_won, Comparator.EQ, froglin_type.to_field())
             .set_limit(1);
         // maybe add another check here for Froglin to recover?
-        let notes = storage.battle_winners.at(player).pop_notes(options);
+        let notes = owner_notes.pop_notes(options);
         assert(notes.len() == 1, "note not popped");
         let note = notes.get(0);
         let won_froglin_type = note.froglin_won as u8;
@@ -879,7 +886,7 @@ contract FroglinGateway {
             game_master,
             choices as Field,
             proposal_id as Field,
-            101,
+            dating_froglin_type as Field,
             player,
         );
 
@@ -1107,13 +1114,11 @@ contract FroglinGateway {
         let mut player2_froglin_won = 101;
         let mut player2_froglin_to_recover = 101;
         let date_result = unsafe { compare_date_choices(player1_choice, player2_choice) };
-        let mut player1 = AztecAddress::zero();
-        let mut player2 = AztecAddress::zero();
+        let player1 = player1_note.player_address;
+        let player2 = player2_note.player_address;
         // 1, 2, none, gone
 
         if (date_result == 0) {
-            player1 = player1_note.player_address;
-            player2 = player2_note.player_address;
             player1_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
             player2_froglin_won = unsafe { create_random_froglin(player2_choice, player1_choice) };
             player1_froglin_to_recover = player1_note.dating_froglin as u8;
@@ -1122,22 +1127,24 @@ contract FroglinGateway {
 
         // player 1 gets the Froglin
         if (date_result == 1) {
-            player1 = player1_note.player_address;
-            player2 = player2_note.player_address;
             player1_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
             player1_froglin_to_recover = proposal.offered_froglin_type;
             player2_froglin_to_recover = player2_note.dating_froglin as u8;
         }
         // player 2 gets the Froglin
         if (date_result == 2) {
-            player1 = player1_note.player_address;
-            player2 = player2_note.player_address;
             player1_froglin_to_recover = player1_note.dating_froglin as u8;
             player2_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
             player2_froglin_to_recover = player2_note.dating_froglin as u8;
         }
 
         // if result is 3, nobody gets anything and they lose their Froglins
+        if (date_result == 3) {
+            player1_froglin_won = 102;
+            player2_froglin_won = 102;
+            player1_froglin_to_recover = 102;
+            player2_froglin_to_recover = 102;
+        }
 
         let mut note = WinNote::new(
             player1,
