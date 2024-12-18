@@ -39,7 +39,7 @@ export default function NoticeBoardModal() {
       !choices.includes(0) &&
       !isSpinning &&
       selectedProposal.type === "date" &&
-      selectedProposal.id &&
+      selectedProposal.id !== null &&
       datingFroglin !== null
     ) {
       acceptDate(selectedProposal.id);
@@ -136,8 +136,10 @@ export default function NoticeBoardModal() {
 
   async function acceptDate(proposalId: number) {
     if (!aztec || !registered || datingFroglin === null) return;
+
     const toastId = toast.loading("Accepting date offer...");
     const dateNumber = choices.reduce((acc, choice) => acc * 10 + choice, 0);
+
     try {
       await aztec.contracts.gateway.methods
         .accept_date_proposal(proposalId, datingFroglin, dateNumber)
