@@ -814,7 +814,7 @@ contract FroglinGateway {
         let owner_notes = storage.battle_winners.at(player);
         let mut options = NoteGetterOptions::new();
         options =
-            options.select(WinNote::properties().froglin_won, Comparator.EQ, 102).set_limit(5);
+            options.select(WinNote::properties().froglin_won, Comparator.EQ, 101).set_limit(5);
         // destroy dummy notes
         owner_notes.pop_notes(options);
 
@@ -989,32 +989,6 @@ contract FroglinGateway {
         storage.date_proposals.at(proposal_id).write(proposal);
     }
 
-    // when u go on a date u do not select a wanted Froglin
-    // you escrow your Froglin
-    // read the value of the public dates count
-    // you create a date note for the game_master with your choices, the dating Froglin, and the proposal_id
-    // create a public date with the offered Froglin
-    //
-    // accept (proposal_id, choices, dating Froglin)
-    // decrement Froglin in private
-    // create date note for game_master with proposal_id, choices and dating Froglin)
-    // change public note status
-    // make sure you check the gender when the other player accepts
-    //
-    // make date
-    // compare the choices
-    // if function returns 0 nobody we emit a private note for the players to claim back their
-    // Froglins
-    // if check function returns 1 we randomly select a player to win and randomly select a froglin_type
-    // we issue again notes for both players but only one of them has something to claim and
-    // both of them recover their Froglins
-    // we can use by convention a number in the win slot so the players
-    // can still query the notes but they can only claim their recover Froglin
-    // if it returns 2 both players get a note issued
-    // so notes need to be issued in all cases for players to get back their escrows
-    // when a date is created we will make a date proposal, identical with the battle
-    // proposal
-    // based on the status
     #[view]
     unconstrained fn compare_date_choices(choice1: u16, choice2: u16) -> pub u8 {
         let mut digits1 = [0 as u16, 0 as u16, 0 as u16];
@@ -1139,12 +1113,6 @@ contract FroglinGateway {
         }
 
         // if result is 3, nobody gets anything and they lose their Froglins
-        if (date_result == 3) {
-            player1_froglin_won = 102;
-            player2_froglin_won = 102;
-            player1_froglin_to_recover = 102;
-            player2_froglin_to_recover = 102;
-        }
 
         let mut note = WinNote::new(
             player1,
