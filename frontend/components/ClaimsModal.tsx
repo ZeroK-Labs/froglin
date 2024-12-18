@@ -123,6 +123,26 @@ export default function ClaimsModal() {
     toast.success("Claimed!", { id: toastId });
   }
 
+  async function handleRecover(froglin_to_recover: number) {
+    if (!aztec || !registered) return;
+
+    const toastId = toast.loading("Recovering froglin...");
+
+    try {
+      await aztec.contracts.gateway.methods
+        .recover_froglin(froglin_to_recover)
+        .send()
+        .wait();
+
+      setRefetch(!refetch);
+    } catch (error) {
+      console.error("Error claiming win:", error);
+      toast.error("Failed to claim win!", { id: toastId });
+    }
+
+    toast.success("Claimed!", { id: toastId });
+  }
+
   return (
     <Modal
       className="top-4"
@@ -157,39 +177,51 @@ export default function ClaimsModal() {
             ))
           : null}
         {wins.length > 0
-          ? wins.map((win, index) => (
-              <div
-                key={index}
-                className="w-[299px] h-[40px] flex items-center justify-between bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
-                onClick={() => handleClaimWin(win.froglin_won)}
-              >
-                <div className="flex flex-row items-center gap-2">
-                  {win.froglin_to_recover !== 101 ? (
-                    <img
-                      src={`/images/froglin${win.froglin_to_recover}.webp`}
-                      alt="Left Image"
-                      width="35px"
-                      height="35px"
-                      className="rounded-md"
-                    />
-                  ) : null}
-                  <img
-                    src={`/images/froglin${win.froglin_won}.webp`}
-                    alt="Left Image"
-                    width="40px"
-                    height="40px"
-                    className="rounded-md"
-                  />
-                  <span className="text-sm no-text-shadow">
-                    {names[win.froglin_won][0]}
+          ? wins.map((win, index) => {
+              return (
+                <div
+                  key={index}
+                  className="w-[299px] h-[40px] flex items-center justify-between bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
+                  onClick={
+                    win.froglin_to_recover !== 101 && win.froglin_won === 101
+                      ? () => handleRecover(win.froglin_to_recover)
+                      : () => handleClaimWin(win.froglin_won)
+                  }
+                >
+                  <div className="flex flex-row items-center gap-2">
+                    {win.froglin_to_recover !== 101 ? (
+                      <img
+                        src={`/images/froglin${win.froglin_to_recover}.webp`}
+                        alt="Left Image"
+                        width="35px"
+                        height="35px"
+                        className="rounded-md"
+                      />
+                    ) : null}
+                    {win.froglin_won !== 101 ? (
+                      <>
+                        <img
+                          src={`/images/froglin${win.froglin_won}.webp`}
+                          alt="Left Image"
+                          width="40px"
+                          height="40px"
+                          className="rounded-md"
+                        />
+                        <span className="text-sm no-text-shadow">
+                          {names[win.froglin_won][0]}
+                        </span>
+                      </>
+                    ) : null}
+                  </div>
+
+                  <span className="text-sm font-semibold no-text-shadow mr-4">
+                    {win.froglin_to_recover !== 101 && win.froglin_won === 101
+                      ? "Recover"
+                      : "Won in battle"}
                   </span>
                 </div>
-
-                <span className="text-sm font-semibold no-text-shadow mr-4">
-                  Won in battle
-                </span>
-              </div>
-            ))
+              );
+            })
           : null}
       </div>
     </Modal>

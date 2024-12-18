@@ -809,14 +809,9 @@ contract FroglinGateway {
             _check_registration(player);
         }
         let keys = get_public_keys(player);
-        // first clean of dummy notes
 
         let owner_notes = storage.battle_winners.at(player);
         let mut options = NoteGetterOptions::new();
-        options =
-            options.select(WinNote::properties().froglin_won, Comparator.EQ, 101).set_limit(5);
-        // destroy dummy notes
-        owner_notes.pop_notes(options);
 
         options = options
             .select(WinNote::properties().froglin_won, Comparator.EQ, froglin_type.to_field())
@@ -835,6 +830,44 @@ contract FroglinGateway {
         let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
 
         new_stash_note.increment_slot(won_froglin_type);
+        new_stash_note.increment_slot(froglin_to_recover);
+
+        // increment the battled Froglin
+        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+    }
+    #[private]
+    fn recover_froglin(froglin_type: u8) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        let owner_notes = storage.battle_winners.at(player);
+        let mut options = NoteGetterOptions::new();
+
+        options = options
+            .select(WinNote::properties().froglin_to_recover, Comparator.EQ, froglin_type.to_field()
+                )
+                .select(WinNote::properties().froglin_won, Comparator.EQ, 101.to_field())
+                .set_limit(1);
+        let notes = owner_notes.pop_notes(options);
+        assert(notes.len() == 1, "note not popped");
+        let note = notes.get(0);
+        let froglin_to_recover = note.froglin_to_recover as u8;
+
+        // select stash
+        let stash = storage.stashes.at(player);
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
+
         new_stash_note.increment_slot(froglin_to_recover);
 
         // increment the battled Froglin
@@ -1088,8 +1121,8 @@ contract FroglinGateway {
         let mut player2_froglin_won = 101;
         let mut player2_froglin_to_recover = 101;
         let date_result = unsafe { compare_date_choices(player1_choice, player2_choice) };
-        let player1 = player1_note.player_address;
-        let player2 = player2_note.player_address;
+        let mut player1 = player1_note.player_address;
+        let mut player2 = player2_note.player_address;
         // 1, 2, none, gone
 
         if (date_result == 0) {
@@ -1113,6 +1146,10 @@ contract FroglinGateway {
         }
 
         // if result is 3, nobody gets anything and they lose their Froglins
+        if (date_result == 3) {
+            player1 = game_master;
+            player2 = game_master;
+        }
 
         let mut note = WinNote::new(
             player1,
