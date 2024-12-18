@@ -53,14 +53,14 @@ export default function BattleModal() {
     const battleNumber = choices.reduce((acc, choice) => acc * 10 + choice, 0);
     setModal(MODALS.NONE);
 
-    const toastId = toast.loading("Creating batlle...");
+    const toastId = toast.loading("Creating battle...");
     try {
       await aztec.contracts.gateway.methods
         .create_battle_proposal(selectedFroglin, enemyFroglin, battleNumber)
         .send()
         .wait();
     } catch (error) {
-      console.error("Error creating batlle:", error);
+      console.error("Error creating battle:", error);
       toast.error("Failed to create battle!", { id: toastId });
     }
 

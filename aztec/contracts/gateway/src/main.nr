@@ -469,6 +469,42 @@ contract FroglinGateway {
     }
 
     #[private]
+    fn cancel_date_proposal(proposal_id: u32) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        let proposal = unsafe { view_date_proposal(proposal_id) };
+        assert(proposal.status == 1, "proposal is not active");
+
+        let trader_id = unsafe { _view_trader_id(player) };
+        assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
+
+        // select stash
+        let stash = storage.stashes.at(player);
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
+
+        new_stash_note.increment_slot(proposal.offered_froglin_type);
+
+        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        // mark the proposal as completed
+        FroglinGateway::at(context.this_address())
+            ._change_date_proposal_status(proposal_id, 4)
+            .enqueue(&mut context);
+    }
+
+    #[private]
     fn cancel_swap_proposal(proposal_id: u8) {
         // get player address and keys
         let player = context.msg_sender();
@@ -773,13 +809,20 @@ contract FroglinGateway {
             _check_registration(player);
         }
         let keys = get_public_keys(player);
+        // first clean of dummy notes
 
+        let owner_notes = storage.battle_winners.at(player);
         let mut options = NoteGetterOptions::new();
+        options =
+            options.select(WinNote::properties().froglin_won, Comparator.EQ, 102).set_limit(5);
+        // destroy dummy notes
+        owner_notes.pop_notes(options);
+
         options = options
             .select(WinNote::properties().froglin_won, Comparator.EQ, froglin_type.to_field())
             .set_limit(1);
         // maybe add another check here for Froglin to recover?
-        let notes = storage.battle_winners.at(player).pop_notes(options);
+        let notes = owner_notes.pop_notes(options);
         assert(notes.len() == 1, "note not popped");
         let note = notes.get(0);
         let won_froglin_type = note.froglin_won as u8;
@@ -843,7 +886,7 @@ contract FroglinGateway {
             game_master,
             choices as Field,
             proposal_id as Field,
-            101,
+            dating_froglin_type as Field,
             player,
         );
 
@@ -854,16 +897,18 @@ contract FroglinGateway {
             game_master,
         ));
 
+        let trader_id = unsafe { _view_trader_id(player) };
+
         // modify public data - create public proposal
         FroglinGateway::at(context.this_address())
-            ._create_date_proposal(dating_froglin_type, proposal_id)
+            ._create_date_proposal(trader_id, dating_froglin_type, proposal_id)
             .enqueue(&mut context);
     }
 
     #[internal]
     #[public]
-    fn _create_date_proposal(dating_froglin_type: u8, proposal_id: u32) {
-        let new_proposal = DateProposal::new(dating_froglin_type, proposal_id);
+    fn _create_date_proposal(trader_id: Field, dating_froglin_type: u8, proposal_id: u32) {
+        let new_proposal = DateProposal::new(trader_id, dating_froglin_type, proposal_id);
         storage.date_proposals.at(proposal_id).write(new_proposal);
         storage.date_proposal_count.write(proposal_id + 1);
     }
@@ -970,6 +1015,84 @@ contract FroglinGateway {
     // when a date is created we will make a date proposal, identical with the battle
     // proposal
     // based on the status
+    #[view]
+    unconstrained fn compare_date_choices(choice1: u16, choice2: u16) -> pub u8 {
+        let mut digits1 = [0 as u16, 0 as u16, 0 as u16];
+        let mut digits2 = [0 as u16, 0 as u16, 0 as u16];
+        for i in 0..3 {
+            if (i == 0) {
+                digits1[i] = choice1 / 100;
+                digits2[i] = choice2 / 100;
+            } else if (i == 1) {
+                digits1[i] = (choice1 / 10) - ((choice1 / 100) * 10);
+                digits2[i] = (choice2 / 10) - ((choice2 / 100) * 10);
+            } else {
+                digits1[i] = choice1 - ((choice1 / 10) * 10);
+                digits2[i] = choice2 - ((choice2 / 10) * 10);
+            }
+        }
+        let mut score1: u8 = 0;
+        let mut score2: u8 = 0;
+        let mut special_case: u8 = 0;
+        if (choice1 == 123) & (choice2 == 321) {
+            special_case = 1;
+        }
+        if (choice1 == 321) & (choice2 == 123) {
+            special_case = 1;
+        }
+        // 1 beats 3, 2 beats 1, 3 beats 2
+        for i in 0..3 {
+            if (digits1[i] == 1) & (digits2[i] == 3) {
+                score1 += 1;
+            }
+            if (digits1[i] == 2) & (digits2[i] == 1) {
+                score1 += 1;
+            }
+            if (digits1[i] == 3) & (digits2[i] == 2) {
+                score1 += 1;
+            }
+            if (digits1[i] == 1) & (digits2[i] == 2) {
+                score2 += 1;
+            }
+            if (digits1[i] == 2) & (digits2[i] == 3) {
+                score2 += 1;
+            }
+            if (digits1[i] == 3) & (digits2[i] == 1) {
+                score2 += 1;
+            }
+        }
+        if special_case == 1 {
+            0
+        } else if score1 > score2 {
+            1
+        } else if score2 > score1 {
+            2
+        } else {
+            3
+        }
+    }
+
+    #[view]
+    unconstrained fn create_random_froglin(choice1: u16, choice2: u16) -> pub u16 {
+        let c1_hundreds = choice1 / 100;
+        let c1_tens = (choice1 % 100) / 10;
+        let c1_ones = choice1 % 10;
+        let c2_hundreds = choice2 / 100;
+        let c2_tens = (choice2 % 100) / 10;
+        let c2_ones = choice2 % 10;
+
+        let sum = (
+            3 * c1_hundreds
+                + 2 * c1_tens
+                + 4 * c1_ones
+                + 4 * c2_hundreds
+                + 2 * c2_tens
+                + 3 * c2_ones
+        )
+            % 12;
+        sum
+    }
+
     #[private]
     fn make_date(proposal_id: u32) {
         let game_master = context.msg_sender();
@@ -986,28 +1109,69 @@ contract FroglinGateway {
         // compare the choices
         let player1_choice = player1_note.choices as u16;
         let player2_choice = player2_note.choices as u16;
+        let mut player1_froglin_won = 101;
+        let mut player1_froglin_to_recover = 101;
+        let mut player2_froglin_won = 101;
+        let mut player2_froglin_to_recover = 101;
+        let date_result = unsafe { compare_date_choices(player1_choice, player2_choice) };
+        let player1 = player1_note.player_address;
+        let player2 = player2_note.player_address;
+        // 1, 2, none, gone
 
-        // if (choices1 > choices2) {
-        // random Froglin to player1
-        // }
-        // if (choices1 < choices2) {
-        // random Froglin to player2
-        // }
-        // // create a note for the winner
-        // let mut note = WinNote::new(
-        //     winner_address,
-        //     froglin_type as Field,
-        //     froglin_to_recover as Field,
-        // );
-        // storage.battle_winners.at(winner_address).insert(&mut note).emit(encode_and_encrypt_note(
-        //     &mut context,
-        //     get_public_keys(winner_address).ovpk_m,sa
-        //     winner_address,
-        //     winner_address,
-        // ));
+        if (date_result == 0) {
+            player1_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
+            player2_froglin_won = unsafe { create_random_froglin(player2_choice, player1_choice) };
+            player1_froglin_to_recover = player1_note.dating_froglin as u8;
+            player2_froglin_to_recover = player2_note.dating_froglin as u8;
+        }
+
+        // player 1 gets the Froglin
+        if (date_result == 1) {
+            player1_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
+            player1_froglin_to_recover = proposal.offered_froglin_type;
+            player2_froglin_to_recover = player2_note.dating_froglin as u8;
+        }
+        // player 2 gets the Froglin
+        if (date_result == 2) {
+            player1_froglin_to_recover = player1_note.dating_froglin as u8;
+            player2_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
+            player2_froglin_to_recover = player2_note.dating_froglin as u8;
+        }
+
+        // if result is 3, nobody gets anything and they lose their Froglins
+        if (date_result == 3) {
+            player1_froglin_won = 102;
+            player2_froglin_won = 102;
+            player1_froglin_to_recover = 102;
+            player2_froglin_to_recover = 102;
+        }
+
+        let mut note = WinNote::new(
+            player1,
+            player1_froglin_won as Field,
+            player1_froglin_to_recover as Field,
+        );
+        storage.battle_winners.at(player1).insert(&mut note).emit(encode_and_encrypt_note(
+            &mut context,
+            get_public_keys(player1).ovpk_m,
+            player1,
+            player1,
+        ));
+        let mut recovery_note = WinNote::new(
+            player2,
+            player2_froglin_won as Field,
+            player2_froglin_to_recover as Field,
+        );
+
+        storage.battle_winners.at(player2).insert(&mut recovery_note).emit(encode_and_encrypt_note(
+            &mut context,
+            get_public_keys(player2).ovpk_m,
+            player2,
+            player2,
+        ));
         // change status of the proposal to 'completed'
         FroglinGateway::at(context.this_address())
-            ._change_date_proposal_status(proposal_id, 3)
+            ._change_date_proposal_status(proposal_id, 4)
             .enqueue(&mut context);
     }
 
@@ -1156,6 +1320,20 @@ contract FroglinGateway {
         let mut active_proposals: [BattleProposal; 10] = [BattleProposal::empty(); 10];
         for i in 0..proposal_count {
             let proposal = storage.battle_proposals.at(i).read();
+            if (proposal.status == 1) & (i < 10) {
+                active_proposals[i] = proposal;
+            }
+        }
+
+        active_proposals
+    }
+
+    #[view]
+    unconstrained fn view_active_date_proposals() -> pub [DateProposal; 10] {
+        let proposal_count = storage.date_proposal_count.read();
+        let mut active_proposals: [DateProposal; 10] = [DateProposal::empty(); 10];
+        for i in 0..proposal_count {
+            let proposal = storage.date_proposals.at(i).read();
             if (proposal.status == 1) & (i < 10) {
                 active_proposals[i] = proposal;
             }

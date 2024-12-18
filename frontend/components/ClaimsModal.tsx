@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import type { SwapOfferResponse, Proposal } from "frontend/types";
+import type { SwapOfferResponse } from "frontend/types";
+import type { Proposal } from "frontend/types/Proposals";
 import { MODALS } from "frontend/enums";
 import { Modal } from "frontend/components";
 import { names } from "frontend/components/FroglinModal";
@@ -38,7 +39,7 @@ export default function ClaimsModal() {
 
         for (let i = 0; i !== claimsResponse.length; ++i) {
           const claim = claimsResponse[i];
-          if (claim.id === 101n) continue;
+          if ([101n, 102n].includes(claim.id)) continue;
 
           numberList.push({
             trader_id: claim.trader_id,
@@ -63,13 +64,13 @@ export default function ClaimsModal() {
         } catch (error) {
           console.error("Error fetching winnings:", error);
         }
-
+        console.log(winsInBattleResponse);
         if (!winsInBattleResponse || winsInBattleResponse.length === 0) return;
 
         const winsInBattle: Record<string, number>[] = [];
         for (let i = 0; i !== winsInBattleResponse.length; ++i) {
           const win = winsInBattleResponse[i];
-          if (win.froglin_won === 101n) continue;
+          if (win.froglin_won === 101n && win.froglin_to_recover === 101n) continue;
 
           winsInBattle.push({
             froglin_won: Number(win.froglin_won),
@@ -163,6 +164,15 @@ export default function ClaimsModal() {
                 onClick={() => handleClaimWin(win.froglin_won)}
               >
                 <div className="flex flex-row items-center gap-2">
+                  {win.froglin_to_recover !== 101 ? (
+                    <img
+                      src={`/images/froglin${win.froglin_to_recover}.webp`}
+                      alt="Left Image"
+                      width="35px"
+                      height="35px"
+                      className="rounded-md"
+                    />
+                  ) : null}
                   <img
                     src={`/images/froglin${win.froglin_won}.webp`}
                     alt="Left Image"
