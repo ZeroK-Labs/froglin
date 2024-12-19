@@ -16,6 +16,7 @@ export default function ClaimsModal() {
   const [claims, setClaims] = useState<Proposal[]>([]);
   const [wins, setWins] = useState<Record<string, number>[]>([]);
   const [refetch, setRefetch] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const { modal } = useModalState();
   const { aztec, registered, traderId } = usePlayer();
 
@@ -64,7 +65,7 @@ export default function ClaimsModal() {
         } catch (error) {
           console.error("Error fetching winnings:", error);
         }
-        console.log(winsInBattleResponse);
+        console.log("wins", winsInBattleResponse);
         if (!winsInBattleResponse || winsInBattleResponse.length === 0) return;
 
         const winsInBattle: Record<string, number>[] = [];
@@ -88,7 +89,7 @@ export default function ClaimsModal() {
 
   async function handleClaim(proposalId: number) {
     if (!aztec || !registered) return;
-
+    setLoading(true);
     const toastId = toast.loading("Claiming swap offer...");
 
     try {
@@ -101,6 +102,8 @@ export default function ClaimsModal() {
     } catch (error) {
       console.error("Error claiming swap:", error);
       toast.error("Failed to claim swap!", { id: toastId });
+    } finally {
+      setLoading(false);
     }
 
     toast.success("Claimed!", { id: toastId });
@@ -108,7 +111,7 @@ export default function ClaimsModal() {
 
   async function handleClaimWin(win: number) {
     if (!aztec || !registered) return;
-
+    setLoading(true);
     const toastId = toast.loading("Claiming win...");
 
     try {
@@ -118,6 +121,8 @@ export default function ClaimsModal() {
     } catch (error) {
       console.error("Error claiming win:", error);
       toast.error("Failed to claim win!", { id: toastId });
+    } finally {
+      setLoading(false);
     }
 
     toast.success("Claimed!", { id: toastId });
@@ -125,7 +130,7 @@ export default function ClaimsModal() {
 
   async function handleRecover(froglin_to_recover: number) {
     if (!aztec || !registered) return;
-
+    setLoading(true);
     const toastId = toast.loading("Recovering froglin...");
 
     try {
@@ -138,6 +143,8 @@ export default function ClaimsModal() {
     } catch (error) {
       console.error("Error claiming win:", error);
       toast.error("Failed to claim win!", { id: toastId });
+    } finally {
+      setLoading(false);
     }
 
     toast.success("Claimed!", { id: toastId });
@@ -152,8 +159,9 @@ export default function ClaimsModal() {
       <div className="flex flex-col">
         {claims.length > 0
           ? claims.map((claim) => (
-              <div
+              <button
                 key={claim.id}
+                disabled={loading}
                 className="w-[299px] h-[40px] flex items-center justify-between bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
                 onClick={() => handleClaim(claim.id)}
               >
@@ -173,14 +181,15 @@ export default function ClaimsModal() {
                 <span className="text-sm font-semibold no-text-shadow mr-4">
                   Swaped
                 </span>
-              </div>
+              </button>
             ))
           : null}
         {wins.length > 0
           ? wins.map((win, index) => {
               return (
-                <div
+                <button
                   key={index}
+                  disabled={loading}
                   className="w-[299px] h-[40px] flex items-center justify-between bg-gray-300 font-extrabold text-gray-900 rounded-md mb-2"
                   onClick={
                     win.froglin_to_recover !== 101 && win.froglin_won === 101
@@ -219,7 +228,7 @@ export default function ClaimsModal() {
                       ? "Recover"
                       : "Won in battle"}
                   </span>
-                </div>
+                </button>
               );
             })
           : null}

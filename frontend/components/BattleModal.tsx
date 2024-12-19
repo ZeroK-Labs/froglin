@@ -16,6 +16,9 @@ export default function BattleModal() {
   const { modal, setModal } = useModalState();
 
   const visible = modal === MODALS.BATTLE;
+  useEffect(() => {
+    if (!visible) setChoices([0, 0, 0]);
+  }, [modal]);
 
   function changeFroglin(ev: React.MouseEvent) {
     setEnemyFroglin((prev) => {
