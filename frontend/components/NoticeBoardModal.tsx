@@ -23,7 +23,6 @@ export default function NoticeBoardModal() {
   const [datingFroglin, setDatingFroglin] = useState<number | null>(null);
   const { modal } = useModalState();
   const { aztec, registered, traderId, stash, fetchStash } = usePlayer();
-
   const visible = modal === MODALS.NOTICEBOARD;
 
   function handleSpinAndGo() {
@@ -52,7 +51,6 @@ export default function NoticeBoardModal() {
     setDatingFroglin((prev) => {
       let rangeStart: number;
       let rangeEnd: number;
-
       if (offered_froglin_type < offset) {
         rangeStart = offset;
         rangeEnd = names.length - 1;
@@ -64,11 +62,16 @@ export default function NoticeBoardModal() {
       let next =
         prev === null || prev < rangeStart || prev > rangeEnd ? rangeStart : prev + 1;
 
-      if (next > rangeEnd) {
-        next = rangeStart;
+      for (let i = 0; i <= rangeEnd - rangeStart; i++) {
+        if (next > rangeEnd) {
+          next = rangeStart;
+        }
+        if (stash[next] > 0) {
+          return next;
+        }
+        next++;
       }
-
-      return next;
+      return null;
     });
     e.stopPropagation();
   }
@@ -139,6 +142,7 @@ export default function NoticeBoardModal() {
 
     const toastId = toast.loading("Accepting date offer...");
     const dateNumber = choices.reduce((acc, choice) => acc * 10 + choice, 0);
+    console.log("Accepting battle offer", dateNumber);
 
     try {
       await aztec.contracts.gateway.methods
@@ -330,6 +334,7 @@ export default function NoticeBoardModal() {
                         onClick={() => {
                           setSelectedProposal({ id: null, type: null });
                           setChoices([0, 0, 0]);
+                          setDatingFroglin(null);
                         }}
                       >
                         Close
