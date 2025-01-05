@@ -1,6 +1,5 @@
 use dep::aztec::{
     context::PrivateContext,
-    hash::poseidon2_hash_with_separator,
     keys::getters::{get_nsk_app, get_public_keys},
     macros::notes::note,
     note::{
@@ -8,14 +7,18 @@ use dep::aztec::{
         utils::compute_note_hash_for_nullify,
     },
     prelude::AztecAddress,
-    protocol_types::{constants::GENERATOR_INDEX__NOTE_NULLIFIER, traits::{Deserialize, Serialize}},
+    protocol_types::{
+        constants::GENERATOR_INDEX__NOTE_NULLIFIER,
+        hash::poseidon2_hash_with_separator,
+        traits::{Deserialize, Serialize},
+    },
 };
 
-global STASH_NOTE_LEN = 3 as u32;
-global STASH_COUNT = 2 as u8;
+global STASH_NOTE_LEN: u32 = 3;
+global STASH_COUNT: u8 = 2;
 
 #[note]
-struct StashNote {
+pub struct StashNote {
     owner: AztecAddress,
     stash_1: u64,
     stash_2: u64,

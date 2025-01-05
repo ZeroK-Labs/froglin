@@ -1,8 +1,8 @@
-use dep::aztec::{prelude::AztecAddress, protocol_types::{traits::{Deserialize, Serialize}}};
+use dep::aztec::{prelude::AztecAddress, protocol_types::traits::{Deserialize, Serialize}};
 
-global FIELD_COUNT = 2;
+global FIELD_COUNT: u32 = 2;
 
-struct LeaderBoardEntry {
+pub struct LeaderBoardEntry {
     pub player: AztecAddress,
     pub score: u32,
 }
@@ -19,10 +19,7 @@ impl LeaderBoardEntry {
 
 impl Deserialize<FIELD_COUNT> for LeaderBoardEntry {
     fn deserialize(values: [Field; FIELD_COUNT]) -> Self {
-        Self {
-            player: AztecAddress::from_field(values[0]),
-            score: values[1] as u32,
-        }
+        Self { player: AztecAddress::from_field(values[0]), score: values[1] as u32 }
     }
 }
 

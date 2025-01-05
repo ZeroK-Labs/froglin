@@ -30,7 +30,7 @@ contract FroglinGateway {
     use crate::types::swap_proposal::SwapProposal;
     use crate::types::win_note::WinNote;
 
-    global stash_midpoint_index = settings::FROGLIN_TYPE_COUNT / 2;
+    global stash_midpoint_index: u8 = settings::FROGLIN_TYPE_COUNT / 2;
 
     #[storage]
     struct Storage<Context> {
@@ -1235,7 +1235,7 @@ contract FroglinGateway {
     }
 
     #[view]
-    unconstrained fn view_stash(player: AztecAddress) -> pub [u8; settings::FROGLIN_TYPE_COUNT] {
+    unconstrained fn view_stash(player: AztecAddress) -> pub [u8; settings::FROGLIN_TYPE_COUNT_U32] {
         _check_registration(player);
 
         let stash = storage.stashes.at(player).view_note();
@@ -1249,7 +1249,7 @@ contract FroglinGateway {
     }
 
     #[view]
-    unconstrained fn view_leaderboard() -> pub [LeaderBoardEntry; settings::PLAYER_COUNT] {
+    unconstrained fn view_leaderboard() -> pub [LeaderBoardEntry; settings::PLAYER_COUNT_U32] {
         let mut leaderboard = [LeaderBoardEntry::zero(); settings::PLAYER_COUNT_U32];
 
         let accounts_size = storage.accounts_size.read();

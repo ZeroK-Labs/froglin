@@ -2,12 +2,12 @@ use dep::aztec::protocol_types::traits::{Deserialize, Serialize};
 
 global SWAP_PROPOSAL_FIELD_COUNT: u32 = 5;
 
-struct SwapProposal {
+pub struct SwapProposal {
     pub trader_id: Field,
     pub offered_froglin_type: u8,
     pub wanted_froglin_type: u8,
     pub status: u8, // status: 1 - active, 2 - claimable, 3 - inactive, 4 - completed
-    pub id: u8,
+    id: u8,
 }
 
 impl SwapProposal {

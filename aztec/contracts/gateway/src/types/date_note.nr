@@ -1,6 +1,5 @@
 use dep::aztec::{
     context::PrivateContext,
-    hash::poseidon2_hash_with_separator,
     keys::getters::{get_nsk_app, get_public_keys},
     macros::notes::note,
     note::{
@@ -8,13 +7,16 @@ use dep::aztec::{
         utils::compute_note_hash_for_nullify,
     },
     prelude::AztecAddress,
-    protocol_types::{constants::GENERATOR_INDEX__NOTE_NULLIFIER, traits::Serialize},
+    protocol_types::{
+        constants::GENERATOR_INDEX__NOTE_NULLIFIER, hash::poseidon2_hash_with_separator,
+        traits::Serialize,
+    },
 };
 
 global PLAYER_NOTE_LEN: u32 = 5;
 
 #[note]
-struct DateNote {
+pub struct DateNote {
     owner: AztecAddress,
     choices: Field,
     proposal_id: Field,
