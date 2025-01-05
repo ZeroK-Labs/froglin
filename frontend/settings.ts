@@ -18,6 +18,11 @@ export const VIEW: ViewSettings = {
     BEARING: 30,
     ZOOM: 15.25,
   },
+  WORLD: {
+    PITCH: -180,
+    BEARING: 30,
+    ZOOM: 3,
+  },
   LOAD_FADE_DURATION: 1_000,
   FIRST_FLIGHT_DURATION: 7_000,
   TRANSITION_DURATION: 3_000,
@@ -25,6 +30,7 @@ export const VIEW: ViewSettings = {
   LINE_MENU_FADE_DURATION: 300,
   LOCATION_FOLLOW_DURATION: 1_000,
   LOCATION_FOLLOW_DELAY: 1_000,
+  WORLD_VIEW_PANNING_STEP_DURATION: 1_000,
 } as const;
 
 const CLOSE_RANGE: PointGenerationRange = {

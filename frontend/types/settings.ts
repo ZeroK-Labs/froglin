@@ -14,6 +14,10 @@ export type ViewSettings = {
    */
   readonly EVENT: CameraSettings;
   /**
+   * Camera view settings for the world view mode
+   */
+  readonly WORLD: CameraSettings;
+  /**
    * Application fade-in after load transition animation duration (miliseconds)
    */
   readonly LOAD_FADE_DURATION: number;
@@ -41,6 +45,10 @@ export type ViewSettings = {
    * Line menu popup list fade animation duration (miliseconds)
    */
   readonly LINE_MENU_FADE_DURATION: number;
+  /**
+   * Time between two longitudinal changes when in World View (miliseconds)
+   */
+  readonly WORLD_VIEW_PANNING_STEP_DURATION: number;
 };
 
 /**

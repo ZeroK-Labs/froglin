@@ -24,9 +24,12 @@ import {
 const _window = window as any;
 _window.__map_load_duration ??= VIEW.FIRST_FLIGHT_DURATION;
 
+const LONGITUDE_DELTA = 6;
+
 export default function MapScreen() {
   const viewLevelRef = useRef(MAP_VIEWS.WORLD);
   const lastViewChangeTimeRef = useRef(0);
+  const moveTimerRef = useRef<Timer>();
 
   const [map, setMap] = useState<mapboxgl.Map>();
 
@@ -52,12 +55,7 @@ export default function MapScreen() {
 
     map.disableActions();
 
-    // ensure only one handler is subscribed
-    map.off("idle", map.enablePlaygroundActions);
-    map.off("idle", map.enableEventActions);
-
     if (mapView === MAP_VIEWS.PLAYGROUND) {
-      map.once("idle", map.enablePlaygroundActions);
       map.flyTo({
         center: [location.coordinates.longitude, location.coordinates.latitude],
         zoom: VIEW.PLAYGROUND.ZOOM,
@@ -69,6 +67,7 @@ export default function MapScreen() {
         //   return -(Math.cos(Math.PI * x) - 1) / 2;
         // },
       });
+
       _window.__map_load_duration = VIEW.TRANSITION_DURATION;
     } //
     else if (mapView === MAP_VIEWS.EVENT) {
@@ -84,14 +83,60 @@ export default function MapScreen() {
         return;
       }
 
-      map.once("idle", map.enableEventActions);
       map.fitBounds(bounds, {
         zoom: VIEW.EVENT.ZOOM - 0.5,
         pitch: VIEW.EVENT.PITCH,
         bearing: VIEW.EVENT.BEARING,
         duration: VIEW.TRANSITION_DURATION,
       });
+    } //
+    else if (mapView === MAP_VIEWS.WORLD) {
+      function rotateGlobe() {
+        if (!map || viewLevelRef.current !== MAP_VIEWS.WORLD) {
+          clearInterval(moveTimerRef.current);
+          return;
+        }
+
+        const center = map.getCenter();
+        center.lng -= LONGITUDE_DELTA;
+        map.flyTo({
+          center,
+          duration: VIEW.WORLD_VIEW_PANNING_STEP_DURATION,
+          easing: (x: number) => x, // linear easing
+        });
+      }
+
+      // longitude animation
+      setTimeout(
+        () => {
+          if (viewLevelRef.current !== MAP_VIEWS.WORLD) return;
+
+          moveTimerRef.current = setInterval(
+            rotateGlobe,
+            VIEW.WORLD_VIEW_PANNING_STEP_DURATION,
+          );
+        }, //
+        VIEW.TRANSITION_DURATION - VIEW.WORLD_VIEW_PANNING_STEP_DURATION,
+      );
+
+      map.flyTo({
+        zoom: VIEW.WORLD.ZOOM,
+        pitch: VIEW.WORLD.PITCH,
+        duration: VIEW.TRANSITION_DURATION,
+      });
     }
+
+    // used to enable actions per specfied view
+    setTimeout(
+      () => {
+        if (!map || viewLevelRef.current !== mapView) return;
+
+        if (mapView === MAP_VIEWS.PLAYGROUND) map.enablePlaygroundActions();
+        else if (mapView === MAP_VIEWS.EVENT) map.enableEventActions();
+        else if (mapView === MAP_VIEWS.WORLD) map.enableWorldActions();
+      }, //
+      VIEW.TRANSITION_DURATION,
+    );
   }
 
   // stop fly-in on HMR updates
@@ -205,7 +250,9 @@ export default function MapScreen() {
         </Map>
       </div>
 
-      {!map || location.disabled ? null : <LocationRestoreButton map={map} />}
+      {!map || location.disabled || mapView !== MAP_VIEWS.PLAYGROUND ? null : (
+        <LocationRestoreButton map={map} />
+      )}
     </>
   );
 }

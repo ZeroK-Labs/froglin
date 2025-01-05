@@ -17,6 +17,7 @@ function createState(): MapViewState {
       function handleKeyPress(ev: KeyboardEvent) {
         if (ev.key === "1") setMapView(MAP_VIEWS.PLAYGROUND);
         else if (ev.key === "2") setMapView(MAP_VIEWS.EVENT);
+        else if (ev.key === "3") setMapView(MAP_VIEWS.WORLD);
       }
 
       addKeyboardShortcut(handleKeyPress);

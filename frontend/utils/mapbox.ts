@@ -11,6 +11,7 @@ declare module "mapbox-gl" {
     disableActions: () => void;
     enablePlaygroundActions: () => void;
     enableEventActions: () => void;
+    enableWorldActions: () => void;
   }
 }
 
@@ -20,6 +21,7 @@ mapboxgl.Map.prototype.enableZoom = enableZoom;
 mapboxgl.Map.prototype.disableActions = disableActions;
 mapboxgl.Map.prototype.enablePlaygroundActions = enablePlaygroundActions;
 mapboxgl.Map.prototype.enableEventActions = enableEventActions;
+mapboxgl.Map.prototype.enableWorldActions = enableWorldActions;
 
 function isBusy(this: mapboxgl.Map) {
   return (
@@ -75,6 +77,13 @@ function enableEventActions(this: mapboxgl.Map) {
   this.setMaxZoom(VIEW.EVENT.ZOOM);
   this.dragRotate.enable();
   this.enableZoom();
+}
+
+function enableWorldActions(this: mapboxgl.Map) {
+  this.setMinZoom(VIEW.WORLD.ZOOM - 0.5);
+  this.setMaxZoom(VIEW.WORLD.ZOOM);
+  this.enableZoom();
+  this.dragPan.enable();
 }
 
 // work-around to counteract the sky being black after loading
