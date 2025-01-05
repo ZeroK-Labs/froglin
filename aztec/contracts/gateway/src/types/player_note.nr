@@ -1,6 +1,5 @@
 use dep::aztec::{
     context::PrivateContext,
-    hash::poseidon2_hash_with_separator,
     keys::getters::{get_nsk_app, get_public_keys},
     macros::notes::note,
     note::{
@@ -8,7 +7,10 @@ use dep::aztec::{
         utils::compute_note_hash_for_nullify,
     },
     prelude::AztecAddress,
-    protocol_types::{constants::GENERATOR_INDEX__NOTE_NULLIFIER, traits::Serialize},
+    protocol_types::{
+        constants::GENERATOR_INDEX__NOTE_NULLIFIER, hash::poseidon2_hash_with_separator,
+        traits::Serialize,
+    },
 };
 
 use aztec::oracle::random::random;
@@ -16,7 +18,7 @@ use aztec::oracle::random::random;
 global PLAYER_NOTE_LEN: u32 = 3;
 
 #[note]
-struct PlayerNote {
+pub struct PlayerNote {
     owner: AztecAddress,
     name: Field,
     trader_id: Field,
@@ -49,7 +51,7 @@ impl NullifiableNote for PlayerNote {
 
 impl PlayerNote {
     pub fn new(name: Field, owner: AztecAddress) -> Self {
-        PlayerNote { header: NoteHeader::empty(), owner, name, trader_id: random() }
+        PlayerNote { header: NoteHeader::empty(), owner, name, trader_id: unsafe { random() } }
     }
 }
 

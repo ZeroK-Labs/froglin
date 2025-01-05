@@ -2,7 +2,7 @@ use dep::aztec::protocol_types::traits::{Deserialize, Serialize};
 
 global BATTLE_RESPONSE_FIELD_COUNT: u32 = 2;
 
-struct BattleResponse {
+pub struct BattleResponse {
     pub froglin_won: u8,
     pub froglin_to_recover: u8,
 }
