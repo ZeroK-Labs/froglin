@@ -30,3 +30,4 @@ export { default as TrapMarkerList } from "./TrapMarkerList";
 export { default as TutorialModal } from "./TutorialModal";
 export { default as DateModal } from "./DateModal";
 export { default as SpinOptionBox } from "./SpinOptionBox";
+export { default as WorldEventMarker } from "./WorldEventMarker";

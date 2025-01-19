@@ -4,5 +4,6 @@ export type { default as GameEventBase } from "./GameEventBase";
 export type { default as GameEventClient } from "./GameEventClient";
 export type { default as GameEventServer } from "./GameEventServer";
 export type { default as InterestPoint } from "./InterestPoint";
-export type { default as MapCoordinates } from "./MapCoordinates";
 export type { default as LeaderBoardEntry } from "./LeaderBoardEntry";
+export type { default as MapCoordinates } from "./MapCoordinates";
+export type { default as WorldEvent } from "./WorldEvent";

@@ -19,12 +19,13 @@ import {
   getEventBounds,
   getGatewayAddress,
   getInterestPoints,
+  getPlayerPXEs,
+  getWorldEvents,
   revealFroglins,
   setPlayerLocation,
 } from "./endpoints";
 import { errorHandler } from "./middlewares/error-handler";
 import { asyncHandler } from "./utils/async-wrapper";
-import { getPlayerPXEs } from "./endpoints/PlayerPXEs";
 
 export const CLIENT_SESSION_DATA: { [key: string]: ClientSessionData } = {};
 
@@ -57,6 +58,7 @@ app.use(express.json());
 // ENDPOINTS
 app.get("/gateway", getGatewayAddress);
 app.get("/interest-points", getInterestPoints);
+app.get("/world-events", getWorldEvents);
 app.get("/event-bounds", getEventBounds);
 app.get("/PXEs", getPlayerPXEs);
 
