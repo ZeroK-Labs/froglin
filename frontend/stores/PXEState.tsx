@@ -20,7 +20,6 @@ function createState(): PXEState {
   useEffect(
     () => {
       let toastId = "";
-      let timerId: Timer;
 
       function handleSocketOpen() {
         toastId = toast.loading("Waiting for PXE...");
@@ -48,8 +47,6 @@ function createState(): PXEState {
 
       async function handlePXEReady(ev: MessageEvent<string>) {
         if (!ev.data.includes("pxe ")) return;
-
-        clearTimeout(timerId);
 
         const url = ev.data.split(" ")[1];
         if (!url) {
