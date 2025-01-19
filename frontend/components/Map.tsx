@@ -2,6 +2,7 @@ import type { MapRef } from "react-map-gl";
 import { Map } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 
+import type { WorldEvent } from "common/types";
 import { MAP_VIEWS } from "frontend/enums";
 import { VIEW } from "frontend/settings";
 import { setMapFog } from "frontend/utils/mapbox";
@@ -18,6 +19,7 @@ import {
   InterestPointMarker,
   LocationRestoreButton,
   PlayerMarker,
+  WorldEventMarker,
 } from "frontend/components";
 
 // attach map to the window object to persist across module reloads
@@ -32,6 +34,7 @@ export default function MapScreen() {
   const moveTimerRef = useRef<Timer>();
 
   const [map, setMap] = useState<mapboxgl.Map>();
+  const [worldEvents, setWorldEvents] = useState<WorldEvent[]>([]);
 
   const location = useLocation();
   const { mapView, setMapView } = useMapViewState();
@@ -52,6 +55,7 @@ export default function MapScreen() {
 
     viewLevelRef.current = mapView;
     lastViewChangeTimeRef.current = Date.now();
+    clearInterval(moveTimerRef.current);
 
     map.disableActions();
 
@@ -91,25 +95,26 @@ export default function MapScreen() {
       });
     } //
     else if (mapView === MAP_VIEWS.WORLD) {
-      function rotateGlobe() {
-        if (!map || viewLevelRef.current !== MAP_VIEWS.WORLD) {
-          clearInterval(moveTimerRef.current);
-          return;
-        }
-
-        const center = map.getCenter();
-        center.lng -= LONGITUDE_DELTA;
-        map.flyTo({
-          center,
-          duration: VIEW.WORLD_VIEW_PANNING_STEP_DURATION,
-          easing: (x: number) => x, // linear easing
-        });
-      }
-
       // longitude animation
-      setTimeout(
+      moveTimerRef.current = setTimeout(
         () => {
           if (viewLevelRef.current !== MAP_VIEWS.WORLD) return;
+
+          function rotateGlobe() {
+            if (!map || viewLevelRef.current !== MAP_VIEWS.WORLD) {
+              clearInterval(moveTimerRef.current);
+
+              return;
+            }
+
+            const center = map.getCenter();
+            center.lng -= LONGITUDE_DELTA;
+            map.flyTo({
+              center,
+              duration: VIEW.WORLD_VIEW_PANNING_STEP_DURATION,
+              easing: (x: number) => x, // linear easing
+            });
+          }
 
           moveTimerRef.current = setInterval(
             rotateGlobe,
@@ -139,10 +144,18 @@ export default function MapScreen() {
     );
   }
 
-  // stop fly-in on HMR updates
   useEffect(
     () => {
+      async function fetchWorldEvents() {
+        const response = await fetch(`${process.env.BACKEND_URL}/world-events`);
+        const data = await response.json();
+        setWorldEvents(data);
+      }
+
+      fetchWorldEvents();
+
       return () => {
+        // stop fly-in on HMR updates
         _window.__map_load_duration = 0;
       };
     }, //
@@ -180,10 +193,13 @@ export default function MapScreen() {
           map.disableZoom();
           map.setMinZoom(1);
 
-          setTimeout(() => {
-            map.setMinZoom(minZoom);
-            map.enableZoom();
-          }, VIEW.LOCATION_FOLLOW_DURATION);
+          setTimeout(
+            () => {
+              map.setMinZoom(minZoom);
+              map.enableZoom();
+            }, //
+            VIEW.LOCATION_FOLLOW_DURATION,
+          );
 
           map.flyTo({
             center,
@@ -234,6 +250,14 @@ export default function MapScreen() {
             <FroglinMarker
               key={froglin.id}
               froglin={froglin}
+            />
+          ))}
+
+          {worldEvents.map((event) => (
+            <WorldEventMarker
+              visible={mapView === MAP_VIEWS.WORLD}
+              key={event.name}
+              event={event}
             />
           ))}
 
