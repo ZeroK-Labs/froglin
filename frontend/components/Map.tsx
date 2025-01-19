@@ -157,6 +157,7 @@ export default function MapScreen() {
       return () => {
         // stop fly-in on HMR updates
         _window.__map_load_duration = 0;
+        clearInterval(moveTimerRef.current);
       };
     }, //
     [],
