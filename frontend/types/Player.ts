@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 
-import type { AccountWithContracts } from "common/types";
+import type { AccountWithContracts, WorldEvent } from "common/types";
 
 type Player = {
   hasSecret: boolean;
@@ -13,6 +13,10 @@ type Player = {
 
   stash: number[];
   fetchStash: () => void;
+
+  events: WorldEvent[];
+  joinEvent: (ev: WorldEvent) => void;
+  leaveEvent: (ev: WorldEvent) => void;
 };
 
 export default Player;

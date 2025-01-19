@@ -3,6 +3,7 @@ import { AztecAddress, type AccountWallet, createPXEClient, Fr } from "@aztec/az
 import { SetStateAction, useEffect, useState } from "react";
 
 import type { Player } from "frontend/types";
+import type { WorldEvent } from "common/types";
 import { FROGLIN } from "frontend/settings";
 import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { StoreFactory, usePXEState } from "frontend/stores";
@@ -22,6 +23,7 @@ function createState(): Player {
   const [traderId, setTraderId] = useState<bigint | null>(null);
   const [registered, setRegistered] = useState<boolean>(false);
   const [stash, setStash] = useState<number[]>(() => Array(FROGLIN.TYPE_COUNT).fill(0));
+  const [events, setEvents] = useState<WorldEvent[]>([]);
 
   const { pxeClient, pxeURL } = usePXEState();
 
@@ -37,6 +39,28 @@ function createState(): Player {
     setStash(numberList);
   }
 
+  function joinEvent(event: WorldEvent) {
+    setEvents((events) => {
+      const newEvents = [...events, event];
+
+      // TODO: replace with contract storage
+      localStorage.setItem("events", JSON.stringify(newEvents));
+
+      return newEvents;
+    });
+  }
+
+  function leaveEvent(event: WorldEvent) {
+    setEvents((events) => {
+      const newEvents = events.filter((ev) => ev !== event);
+
+      // TODO: replace with contract storage
+      localStorage.setItem("events", JSON.stringify(newEvents));
+
+      return newEvents;
+    });
+  }
+
   useEffect(
     () => {
       if (!(pxeClient && secret)) {
@@ -44,6 +68,9 @@ function createState(): Player {
 
         return;
       }
+
+      // TODO: replace with contract call to retrieve data
+      setEvents(() => JSON.parse(localStorage.getItem("events") ?? "[]"));
 
       async function initializeWallet() {
         if (!pxeClient) {
@@ -191,8 +218,6 @@ function createState(): Player {
       localStorage.setItem("secret", newSecret);
       setSecret(newSecret);
     },
-    stash,
-    fetchStash,
     aztec:
       pxeClient && wallet && gateway
         ? {
@@ -205,6 +230,11 @@ function createState(): Player {
             },
           }
         : null,
+    stash,
+    fetchStash,
+    events,
+    joinEvent,
+    leaveEvent,
   };
 }
 
