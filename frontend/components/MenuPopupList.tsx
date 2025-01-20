@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import { MAP_VIEWS, MODALS } from "frontend/enums";
 import { MenuPopupListItem } from "./MenuPopupListItem";
@@ -11,25 +11,46 @@ type Props = {
 };
 
 export function MenuPopupList({ open, setOpen }: Props) {
+  const [viewMenuOpen, setViewMenuOpen] = useState(false);
+
   const { aztec } = usePlayer();
   const { setModal } = useModalState();
-  const { mapView, setMapView } = useMapViewState();
+  const { setMapView } = useMapViewState();
 
   function handleClose() {
     setOpen(false);
+    setViewMenuOpen(false);
   }
 
-  function toggleView() {
-    setTimeout(
-      setMapView,
-      VIEW.LINE_MENU_FADE_DURATION,
-      mapView === MAP_VIEWS.EVENT ? MAP_VIEWS.PLAYGROUND : MAP_VIEWS.EVENT,
-    );
+  function handleViewSelect(view: MAP_VIEWS, ev: React.MouseEvent) {
+    setMapView(view);
+    handleClose();
+
+    ev.stopPropagation();
+  }
+
+  function handleMapViewsClick(ev: React.MouseEvent) {
+    setViewMenuOpen((prev) => !prev);
+
+    ev.stopPropagation();
+  }
+
+  function handleStreetViewClick(ev: React.MouseEvent) {
+    handleViewSelect(MAP_VIEWS.PLAYGROUND, ev);
+  }
+
+  function handleEventViewClick(ev: React.MouseEvent) {
+    handleViewSelect(MAP_VIEWS.EVENT, ev);
+  }
+
+  function handleWorldViewClick(ev: React.MouseEvent) {
+    handleViewSelect(MAP_VIEWS.WORLD, ev);
   }
 
   function handleModalChange(modal: MODALS, ev: React.MouseEvent) {
-    setOpen(false);
     setModal(modal);
+    handleClose();
+
     ev.stopPropagation();
   }
 
@@ -55,7 +76,11 @@ export function MenuPopupList({ open, setOpen }: Props) {
 
   useEffect(
     () => {
-      if (!open) return;
+      if (!open) {
+        setViewMenuOpen(false);
+
+        return;
+      }
 
       document.addEventListener("keypress", handleClose);
 
@@ -68,7 +93,7 @@ export function MenuPopupList({ open, setOpen }: Props) {
 
   return (
     <div
-      className={`absolute bottom-14 -left-2 p-2 border rounded-md shadow-lg shadow-main-purple/80 bg-gray-800 transition-opacity
+      className={`z-[999999] absolute bottom-14 -left-2 p-2 border rounded-md shadow-lg shadow-main-purple/80 bg-gray-800 transition-opacity
         ${open ? "opacity-90" : "opacity-0 pointer-events-none"}
         ${aztec ? "min-w-max grid grid-cols-3 grid-rows-2 gap-1" : ""}`}
       style={{
@@ -84,10 +109,32 @@ export function MenuPopupList({ open, setOpen }: Props) {
       {aztec ? (
         <>
           <MenuPopupListItem
-            text={mapView === MAP_VIEWS.EVENT ? "Street View" : "Bird's Eye"}
-            icon={mapView === MAP_VIEWS.EVENT ? "🌇" : "🗺️"}
-            onClick={toggleView}
+            text="Map View"
+            icon="🗺️"
+            onClick={handleMapViewsClick}
           />
+          {viewMenuOpen && (
+            <div
+              className="absolute left-1/2 -translate-x-1/2 p-2 border border-purple-800 rounded-md shadow-lg shadow-main-purple/80 bg-gray-800 opacity-85 flex gap-4"
+              style={{ top: "-6.4rem" }}
+            >
+              <MenuPopupListItem
+                text="Street"
+                icon="🌇"
+                onClick={handleStreetViewClick}
+              />
+              <MenuPopupListItem
+                text="Bird's Eye"
+                icon="🦅"
+                onClick={handleEventViewClick}
+              />
+              <MenuPopupListItem
+                text="World"
+                icon="🌍"
+                onClick={handleWorldViewClick}
+              />
+            </div>
+          )}
           <MenuPopupListItem
             text="Leaderboard"
             icon="🏆"

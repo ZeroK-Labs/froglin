@@ -13,7 +13,7 @@ export function MenuPopupListItem({
         className="p-2.5 rounded-md hover:bg-main-purple-hover"
         onClick={onClick}
       >
-        <div className="text-md">{text}</div>
+        <div className="text-md whitespace-nowrap">{text}</div>
         <div className="text-4xl">{icon}</div>
       </button>
     </>
