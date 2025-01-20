@@ -88,7 +88,7 @@ export default function WorldEventMarker(props: Props) {
       >
         {message ? (
           <div
-            className="z-999999 p-0.5 rounded-md text-[12px] leading-3 tracking-wider whitespace-nowrap text-gray-800 shadow-lg"
+            className="z-[999999] p-0.5 rounded-md text-[12px] leading-3 tracking-wider whitespace-nowrap text-gray-800 shadow-lg"
             onMouseOver={keep}
             onMouseOut={hide}
             onPointerDown={keep}
