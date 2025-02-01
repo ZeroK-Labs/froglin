@@ -3,6 +3,7 @@ use dep::aztec::protocol_types::traits::{Deserialize, Serialize};
 global SWAP_PROPOSAL_FIELD_COUNT: u32 = 4;
 
 pub struct DateProposal {
+    pub trader_id: Field,
     pub offered_froglin_type: u8,
     pub status: u8, // status: 1 - active, 2 - claimable, 3 - inactive, 4 - completed
     id: u32,
