@@ -23,7 +23,7 @@ function createState(): Player {
   const [traderId, setTraderId] = useState<bigint | null>(null);
   const [registered, setRegistered] = useState<boolean>(false);
   const [stash, setStash] = useState<number[]>(() => Array(FROGLIN.TYPE_COUNT).fill(0));
-  const [events, setEvents] = useState<WorldEvent[]>([]);
+  const [events, setEvents] = useState<string[]>([]);
 
   const { pxeClient, pxeURL } = usePXEState();
 
@@ -39,26 +39,44 @@ function createState(): Player {
     setStash(numberList);
   }
 
-  function joinEvent(event: WorldEvent) {
-    setEvents((events) => {
-      const newEvents = [...events, event];
+  async function joinEvent(event: WorldEvent) {
+    if (!wallet || !gateway || !registered) return;
 
-      // TODO: replace with contract storage
-      localStorage.setItem("events", JSON.stringify(newEvents));
+    let toastId = toast.loading("Joining event...");
 
-      return newEvents;
-    });
+    try {
+      await gateway.methods.join_event(stringToBigInt(event.name)).send().wait();
+      //
+    } catch (err) {
+      console.error("Failed to join event", err);
+      toast.error("Event unavailable", { id: toastId });
+
+      return;
+    }
+
+    toast.success("Event joined!", { id: toastId });
+
+    setEvents((events) => [...events, event.name]);
   }
 
-  function leaveEvent(event: WorldEvent) {
-    setEvents((events) => {
-      const newEvents = events.filter((ev) => ev !== event);
+  async function leaveEvent(event: WorldEvent) {
+    if (!wallet || !gateway || !registered) return;
 
-      // TODO: replace with contract storage
-      localStorage.setItem("events", JSON.stringify(newEvents));
+    let toastId = toast.loading("Leaving event...");
 
-      return newEvents;
-    });
+    try {
+      await gateway.methods.leave_event(stringToBigInt(event.name)).send().wait();
+      //
+    } catch (err) {
+      console.error("Failed to leave event", err);
+      toast.error("Event unavailable", { id: toastId });
+
+      return;
+    }
+
+    toast.success("Event left!", { id: toastId });
+
+    setEvents((events) => events.filter((ev) => ev !== event.name));
   }
 
   useEffect(
@@ -68,9 +86,6 @@ function createState(): Player {
 
         return;
       }
-
-      // TODO: replace with contract call to retrieve data
-      setEvents(() => JSON.parse(localStorage.getItem("events") ?? "[]"));
 
       async function initializeWallet() {
         if (!pxeClient) {
@@ -176,6 +191,10 @@ function createState(): Player {
           setUsername(name);
           setRegistered(true);
           fetchStash();
+
+          const playerAddress = wallet.getAddress();
+          let events = await contract.methods.view_events(playerAddress).simulate();
+          setEvents(events.map((bi: bigint) => bigIntToString(bi)));
 
           toast(`Welcome ${name}!`);
 

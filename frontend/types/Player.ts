@@ -14,7 +14,7 @@ type Player = {
   stash: number[];
   fetchStash: () => void;
 
-  events: WorldEvent[];
+  events: string[];
   joinEvent: (ev: WorldEvent) => void;
   leaveEvent: (ev: WorldEvent) => void;
 };

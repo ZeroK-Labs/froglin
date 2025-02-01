@@ -19,7 +19,7 @@ export default function WorldEventMarker(props: Props) {
 
   const { events, joinEvent, leaveEvent } = usePlayer();
 
-  const joined = events.some((e) => e === props.event);
+  const joined = events.some((e) => e === props.event.name);
 
   function hide() {
     clearTimeout(showTimerRef.current);

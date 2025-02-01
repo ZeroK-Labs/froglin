@@ -24,6 +24,7 @@ contract FroglinGateway {
     use crate::types::battle_response::BattleResponse;
     use crate::types::date_note::DateNote;
     use crate::types::date_proposal::DateProposal;
+    use crate::types::events_note::EventsNote;
     use crate::types::leaderboard_entry::LeaderBoardEntry;
     use crate::types::player_note::PlayerNote;
     use crate::types::stash_note::StashNote;
@@ -55,6 +56,7 @@ contract FroglinGateway {
         date_proposal_count: PublicMutable<u32, Context>,
         date_notes_1: Map<u32, PrivateMutable<DateNote, Context>, Context>,
         date_notes_2: Map<u32, PrivateMutable<DateNote, Context>, Context>,
+        player_events: Map<AztecAddress, PrivateMutable<EventsNote, Context>, Context>,
     }
 
     #[public]
@@ -140,6 +142,15 @@ contract FroglinGateway {
         // initialize player stash
         let mut player_stash_note = StashNote::new(player);
         storage.stashes.at(player).initialize(&mut player_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        // initialize player events
+        let mut player_events_note = EventsNote::new(player);
+        storage.player_events.at(player).initialize(&mut player_events_note).emit(encode_and_encrypt_note(
             &mut context,
             keys.ovpk_m,
             player,
@@ -1180,6 +1191,95 @@ contract FroglinGateway {
             .enqueue(&mut context);
     }
 
+    #[private]
+    fn join_event(event_name: Field) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        let old_events_note = unsafe { view_events_note(player) };
+
+        // ensure slot available for joining
+        assert(
+            (old_events_note.event1_name == 0) |
+            (old_events_note.event2_name == 0) |
+            (old_events_note.event3_name == 0) |
+            (old_events_note.event4_name == 0),
+            // (old_events_note.event5_name == 0),
+            "Reached max events that can be joined"
+        );
+
+        // ensure event is new
+        assert(old_events_note.event1_name != event_name, "Already joined this event");
+        assert(old_events_note.event2_name != event_name, "Already joined this event");
+        assert(old_events_note.event3_name != event_name, "Already joined this event");
+        assert(old_events_note.event4_name != event_name, "Already joined this event");
+        // assert(old_events_note.event5_name != event_name, "Already joined this event");
+
+        // select events
+        let events = storage.player_events.at(player);
+
+        // update the note with new event
+        let mut new_events_note = EventsNote::copy(events.get_note().note, player);
+
+        /**/ if (new_events_note.event1_name == 0) { new_events_note.event1_name = event_name; }
+        else if (new_events_note.event2_name == 0) { new_events_note.event2_name = event_name; }
+        else if (new_events_note.event3_name == 0) { new_events_note.event3_name = event_name; }
+        else if (new_events_note.event4_name == 0) { new_events_note.event4_name = event_name; }
+        // else if (new_events_note.event5_name == 0) { new_events_note.event5_name = event_name; }
+
+        events.replace(&mut new_events_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+    }
+
+    #[private]
+    fn leave_event(event_name: Field) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        let old_events_note = unsafe { view_events_note(player) };
+
+        // ensure event is joined
+        assert(
+            (old_events_note.event1_name == event_name) |
+            (old_events_note.event2_name == event_name) |
+            (old_events_note.event3_name == event_name) |
+            (old_events_note.event4_name == event_name),
+            // (old_events_note.event5_name == event_name),
+            "Event not joined"
+        );
+
+        // select events
+        let events = storage.player_events.at(player);
+
+        // update the note with the event removed
+        let mut new_events_note = EventsNote::copy(events.get_note().note, player);
+
+        /**/ if (new_events_note.event1_name == event_name) { new_events_note.event1_name = 0; }
+        else if (new_events_note.event2_name == event_name) { new_events_note.event2_name = 0; }
+        else if (new_events_note.event3_name == event_name) { new_events_note.event3_name = 0; }
+        else if (new_events_note.event4_name == event_name) { new_events_note.event4_name = 0; }
+        // else if (new_events_note.event5_name == event_name) { new_events_note.event5_name = 0; }
+
+        events.replace(&mut new_events_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+    }
+
     #[view]
     unconstrained fn registered(player: AztecAddress) -> pub bool {
         storage.accounts.at(player).is_initialized()
@@ -1202,6 +1302,13 @@ contract FroglinGateway {
         _check_registration(player);
 
         storage.accounts.at(player).view_note()
+    }
+
+    #[view]
+    unconstrained fn view_events_note(player: AztecAddress) -> pub EventsNote {
+        _check_registration(player);
+
+        storage.player_events.at(player).view_note()
     }
 
     #[view]
@@ -1258,6 +1365,19 @@ contract FroglinGateway {
         }
 
         leaderboard
+    }
+
+    #[view]
+    unconstrained fn view_events(player: AztecAddress) -> pub [Field; 4] {
+        let mut old_events_note = unsafe { view_events_note(player) };
+
+        [
+            old_events_note.event1_name,
+            old_events_note.event2_name,
+            old_events_note.event3_name,
+            old_events_note.event4_name,
+            // old_events_note.event5_name
+        ]
     }
 
     #[view]

@@ -1,10 +1,11 @@
+pub mod battle_note;
+pub mod battle_proposal;
+pub mod battle_response;
+pub mod date_note;
+pub mod date_proposal;
+pub mod events_note;
 pub mod leaderboard_entry;
 pub mod player_note;
 pub mod stash_note;
-pub mod battle_note;
 pub mod swap_proposal;
-pub mod battle_proposal;
 pub mod win_note;
-pub mod date_proposal;
-pub mod date_note;
-pub mod battle_response;
