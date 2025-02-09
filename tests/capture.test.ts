@@ -1,9 +1,10 @@
+import { assert } from "console";
 import { beforeAll, describe, expect, test } from "bun:test";
 
-import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { GAME_MASTER, ACCOUNTS } from "./accounts";
+import { deploy_contract } from "./gateway_contract";
 import { stringToBigInt } from "common/utils/bigint";
-import { assert } from "console";
+import { test_error } from "./test_error";
 
 describe("Capture Froglin", () => {
   const timeout = 40_000;
@@ -12,65 +13,27 @@ describe("Capture Froglin", () => {
   const EPOCH_DURATION = 20_000;
 
   beforeAll(async () => {
-    console.log("Deploying contract...");
+    console.log("\nSetting up test suite...\n");
 
-    GAME_MASTER.contracts.gateway = await FroglinGatewayContract.deploy(
-      GAME_MASTER.wallet,
-    )
-      .send()
-      .deployed();
+    await deploy_contract([ACCOUNTS.alice, ACCOUNTS.bob, ACCOUNTS.charlie]);
 
-    expect(GAME_MASTER.contracts.gateway).not.toBeNull();
-
-    // register deployed contract in each PXE
-    let promises: Promise<any>[] = [
-      ACCOUNTS.alice.pxe.registerContract({
-        instance: GAME_MASTER.contracts.gateway.instance,
-        artifact: GAME_MASTER.contracts.gateway.artifact,
-      }),
-      ACCOUNTS.bob.pxe.registerContract({
-        instance: GAME_MASTER.contracts.gateway.instance,
-        artifact: GAME_MASTER.contracts.gateway.artifact,
-      }),
-      ACCOUNTS.charlie.pxe.registerContract({
-        instance: GAME_MASTER.contracts.gateway.instance,
-        artifact: GAME_MASTER.contracts.gateway.artifact,
-      }),
-    ];
-    await Promise.all(promises);
-
-    // create a contract instance per wallet
-    ACCOUNTS.alice.contracts.gateway = GAME_MASTER.contracts.gateway.withWallet(
-      ACCOUNTS.alice.wallet,
-    );
-    ACCOUNTS.bob.contracts.gateway = GAME_MASTER.contracts.gateway.withWallet(
-      ACCOUNTS.bob.wallet,
-    );
-    ACCOUNTS.charlie.contracts.gateway = GAME_MASTER.contracts.gateway.withWallet(
-      ACCOUNTS.charlie.wallet,
-    );
-
-    console.log("Registering accounts...");
+    console.log("Registering players...");
 
     const alice = stringToBigInt("alice");
     const charlie = stringToBigInt("charlie");
 
-    promises = [
+    await Promise.all([
       ACCOUNTS.alice.contracts.gateway.methods.register(alice).send().wait(),
       ACCOUNTS.charlie.contracts.gateway.methods.register(charlie).send().wait(),
-    ];
+    ]);
 
-    await Promise.all(promises);
+    console.log("\nRunning tests...\n");
   });
 
-  test(
-    "fails when the event is stopped and a registered account tries to capture a Froglin",
-    () => {
-      expect(
-        ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait(),
-      ).rejects.toThrow("Assertion failed: event is stopped");
-    },
-    timeout,
+  test_error(
+    "event is stopped and a registered account tries to capture a Froglin",
+    () => ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait(),
+    "event is stopped",
   );
 
   test(
@@ -237,44 +200,47 @@ describe("Capture Froglin", () => {
     timeout,
   );
 
-  test("fails when a registered account tries to capture a Froglin with of an unknown type", () => {
-    expect(
-      ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(99).send().wait(),
-    ).rejects.toThrow("Assertion failed: tried to capture an unknown Froglin type");
-  });
+  test_error(
+    "a registered account tries to capture a Froglin with of an unknown type",
+    () => ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(99).send().wait(),
+    "tried to capture an unknown Froglin type",
+  );
 
-  test("fails when an un-registered account tries to capture a Froglin", () => {
-    expect(
-      ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(0).send().wait(),
-    ).rejects.toThrow("Assertion failed: only registered players can call this method");
-  });
+  test_error(
+    "an un-registered account tries to capture a Froglin",
+    () => ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(0).send().wait(),
+    "only registered players can call this method",
+  );
 
-  test("fails when an un-registered account tries view its stash", () => {
-    expect(
+  test_error(
+    "an un-registered account tries view its stash",
+    () =>
       ACCOUNTS.bob.contracts.gateway.methods
         .view_stash(ACCOUNTS.bob.wallet.getAddress())
         .simulate(),
-    ).rejects.toThrow("Assertion failed: only registered players can call this method");
-  });
+    "only registered players can call this method",
+  );
 
-  test("fails when a registered account tries to view the stash of a different registered account", () => {
-    expect(
+  test_error(
+    "a registered account tries to view the stash of a different registered account",
+    () =>
       ACCOUNTS.charlie.contracts.gateway.methods
         .view_stash(ACCOUNTS.alice.wallet.getAddress())
         .simulate(),
-    ).rejects.toThrow("Assertion failed: Attempted to read past end of BoundedVec");
-  });
+    "Attempted to read past end of BoundedVec",
+  );
 
-  test("fails when a registered account tries to view the stash of an un-registered account", () => {
-    expect(
+  test_error(
+    "a registered account tries to view the stash of an un-registered account",
+    () =>
       ACCOUNTS.alice.contracts.gateway.methods
         .view_stash(ACCOUNTS.bob.wallet.getAddress())
         .simulate(),
-    ).rejects.toThrow("Assertion failed: only registered players can call this method");
-  });
+    "only registered players can call this method",
+  );
 
-  test(
-    "fails when all available Froglins are captured and registered account tries to capture a Froglin",
+  test_error(
+    "all available Froglins are captured and registered account tries to capture a Froglin",
     async () => {
       const froglin_count = Number(
         await GAME_MASTER.contracts.gateway.methods.view_froglin_count().simulate(),
@@ -283,13 +249,10 @@ describe("Capture Froglin", () => {
         froglin_count === 1,
         `expected froglin_count to be 1, found ${froglin_count}`,
       );
-
       await ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
 
-      expect(
-        ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait(),
-      ).rejects.toThrow("Assertion failed: all available Froglins have been captured");
+      return ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait();
     },
-    timeout,
+    "all available Froglins have been captured",
   );
 });

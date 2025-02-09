@@ -1,10 +1,8 @@
-import { beforeAll, describe, expect, test } from "bun:test";
-// import { type IntentAction } from "node_modules/@aztec/aztec.js/dest/utils/authwit";
-import { Fr } from "@aztec/aztec.js";
 import { assert } from "console";
+import { beforeAll, describe, expect, test } from "bun:test";
 
-import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
-import { GAME_MASTER, ACCOUNTS } from "./accounts";
+import { GAME_MASTER, ACCOUNTS, registerAccounts } from "./accounts";
+import { deploy_contract } from "./gateway_contract";
 import { stringToBigInt } from "common/utils/bigint";
 
 describe("Date Froglins", () => {
@@ -14,77 +12,21 @@ describe("Date Froglins", () => {
   const EPOCH_DURATION = 20_000;
 
   beforeAll(async () => {
-    console.log("Deploying contract...");
+    console.log("\nSetting up test suite...\n");
 
-    GAME_MASTER.contracts.gateway = await FroglinGatewayContract.deploy(
-      GAME_MASTER.wallet,
-    )
-      .send()
-      .deployed();
-    // 0x0f92414ca79636330ef64ccf906ba27a7e4b323cf984945695e3f189b662bfd0
-    expect(GAME_MASTER.contracts.gateway).not.toBeNull();
-    console.log("Contract deployed at", GAME_MASTER.contracts.gateway.address);
-    // register deployed contract in each PXE
-    let promises: Promise<any>[] = [
-      ACCOUNTS.alice.pxe.registerContract({
-        instance: GAME_MASTER.contracts.gateway.instance,
-        artifact: GAME_MASTER.contracts.gateway.artifact,
-      }),
-      ACCOUNTS.bob.pxe.registerContract({
-        instance: GAME_MASTER.contracts.gateway.instance,
-        artifact: GAME_MASTER.contracts.gateway.artifact,
-      }),
-    ];
-    await Promise.all(promises);
+    await deploy_contract([ACCOUNTS.alice, ACCOUNTS.bob]);
 
-    // create a contract instance per wallet
-    ACCOUNTS.alice.contracts.gateway = GAME_MASTER.contracts.gateway.withWallet(
-      ACCOUNTS.alice.wallet,
-    );
-    ACCOUNTS.bob.contracts.gateway = GAME_MASTER.contracts.gateway.withWallet(
-      ACCOUNTS.bob.wallet,
-    );
-
-    console.log("Registering accounts...");
+    console.log("Registering players...");
 
     const alice = stringToBigInt("alice");
     const bob = stringToBigInt("bob");
 
-    promises = [
+    await Promise.all([
       ACCOUNTS.alice.contracts.gateway.methods.register(alice).send().wait(),
       ACCOUNTS.bob.contracts.gateway.methods.register(bob).send().wait(),
-    ];
+    ]);
 
-    await Promise.all(promises);
-
-    console.log("Registering pxes...");
-    promises = [
-      ACCOUNTS.bob.pxe.registerAccount(
-        new Fr(BigInt(ACCOUNTS.alice.secret)),
-        ACCOUNTS.alice.wallet.getCompleteAddress().partialAddress,
-      ),
-      ACCOUNTS.alice.pxe.registerAccount(
-        new Fr(BigInt(ACCOUNTS.bob.secret)),
-        ACCOUNTS.bob.wallet.getCompleteAddress().partialAddress,
-      ),
-      ACCOUNTS.bob.pxe.registerAccount(
-        new Fr(BigInt(GAME_MASTER.secret)),
-        GAME_MASTER.wallet.getCompleteAddress().partialAddress,
-      ),
-      ACCOUNTS.alice.pxe.registerAccount(
-        new Fr(BigInt(GAME_MASTER.secret)),
-        GAME_MASTER.wallet.getCompleteAddress().partialAddress,
-      ),
-      GAME_MASTER.pxe.registerAccount(
-        new Fr(BigInt(ACCOUNTS.alice.secret)),
-        ACCOUNTS.alice.wallet.getCompleteAddress().partialAddress,
-      ),
-      GAME_MASTER.pxe.registerAccount(
-        new Fr(BigInt(ACCOUNTS.bob.secret)),
-        ACCOUNTS.bob.wallet.getCompleteAddress().partialAddress,
-      ),
-    ];
-    await Promise.all(promises);
+    await registerAccounts();
 
     console.log("Starting event...");
 
@@ -95,21 +37,24 @@ describe("Date Froglins", () => {
 
     console.log("Capturing Froglins...");
 
-    promises = [
+    await Promise.all([
       ACCOUNTS.alice.contracts.gateway.methods.capture_froglin(0).send().wait(),
       ACCOUNTS.bob.contracts.gateway.methods.capture_froglin(6).send().wait(),
-    ];
-    await Promise.all(promises);
+    ]);
 
-    const stashAlice = await ACCOUNTS.alice.contracts.gateway.methods
-      .view_stash(ACCOUNTS.alice.wallet.getAddress())
-      .simulate();
+    const [stashAlice, stashBob] = await Promise.all([
+      ACCOUNTS.alice.contracts.gateway.methods
+        .view_stash(ACCOUNTS.alice.wallet.getAddress())
+        .simulate(),
+      ACCOUNTS.bob.contracts.gateway.methods
+        .view_stash(ACCOUNTS.bob.wallet.getAddress())
+        .simulate(),
+    ]);
+
     assert(stashAlice[0] == 1n);
-
-    const stashBob = await ACCOUNTS.bob.contracts.gateway.methods
-      .view_stash(ACCOUNTS.bob.wallet.getAddress())
-      .simulate();
     assert(stashBob[6] == 1n);
+
+    console.log("\nRunning tests...\n");
   });
 
   test(
@@ -158,7 +103,7 @@ describe("Date Froglins", () => {
         .view_date_proposal(0)
         .simulate();
 
-      expect(proposal.status).toBe(3n);
+      expect(proposal.status).toBe(4n);
     },
     timeout,
   );

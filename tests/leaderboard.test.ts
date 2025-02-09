@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 
-import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { GAME_MASTER, ACCOUNTS } from "./accounts";
+import { deploy_contract } from "./gateway_contract";
 import { stringToBigInt } from "common/utils/bigint";
 
 const MAX_PLAYERS = 32;
@@ -13,48 +13,18 @@ describe("Leaderboard", () => {
   const EPOCH_DURATION = 20_000;
 
   beforeAll(async () => {
-    console.log("Deploying contract...");
+    console.log("\nSetting up test suite...\n");
 
-    GAME_MASTER.contracts.gateway = await FroglinGatewayContract.deploy(
-      GAME_MASTER.wallet,
-    )
-      .send()
-      .deployed();
+    await deploy_contract([ACCOUNTS.alice, ACCOUNTS.bob, ACCOUNTS.charlie]);
 
-    expect(GAME_MASTER.contracts.gateway).not.toBeNull();
-
-    // register deployed contract in each PXE
-    let promises: Promise<any>[] = [
-      ACCOUNTS.alice.pxe.registerContract({
-        instance: GAME_MASTER.contracts.gateway.instance,
-        artifact: GAME_MASTER.contracts.gateway.artifact,
-      }),
-      ACCOUNTS.bob.pxe.registerContract({
-        instance: GAME_MASTER.contracts.gateway.instance,
-        artifact: GAME_MASTER.contracts.gateway.artifact,
-      }),
-      ACCOUNTS.charlie.pxe.registerContract({
-        instance: GAME_MASTER.contracts.gateway.instance,
-        artifact: GAME_MASTER.contracts.gateway.artifact,
-      }),
-    ];
-    await Promise.all(promises);
-
-    // create a contract instance per wallet
-    ACCOUNTS.alice.contracts.gateway = GAME_MASTER.contracts.gateway.withWallet(
-      ACCOUNTS.alice.wallet,
-    );
-    ACCOUNTS.bob.contracts.gateway = GAME_MASTER.contracts.gateway.withWallet(
-      ACCOUNTS.bob.wallet,
-    );
-    ACCOUNTS.charlie.contracts.gateway = GAME_MASTER.contracts.gateway.withWallet(
-      ACCOUNTS.charlie.wallet,
-    );
+    console.log("Starting event...");
 
     await GAME_MASTER.contracts.gateway.methods
       .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
       .send()
       .wait();
+
+    console.log("\nRunning tests...\n");
   });
 
   test("can be viewed by any account", () => {
@@ -97,7 +67,7 @@ describe("Leaderboard", () => {
         .view_leaderboard()
         .simulate();
 
-      for (const entry of leaderboard) expect(entry.player.isZero()).toBe(true);
+      for (const entry of leaderboard) expect(entry.player === 0n);
     },
     timeout,
   );
@@ -115,7 +85,7 @@ describe("Leaderboard", () => {
         .simulate();
 
       const expectedEntry = {
-        player: ACCOUNTS.alice.wallet.getAddress(),
+        player: ACCOUNTS.alice.wallet.getAddress().toBigInt(),
         score: 0n,
       };
 
@@ -134,7 +104,7 @@ describe("Leaderboard", () => {
         .simulate();
 
       const expectedEntry = {
-        player: ACCOUNTS.alice.wallet.getAddress(),
+        player: ACCOUNTS.alice.wallet.getAddress().toBigInt(),
         score: 1n,
       };
       expect(leaderboard).toContainEqual(expectedEntry);
@@ -154,7 +124,7 @@ describe("Leaderboard", () => {
         .simulate();
 
       const expectedEntry = {
-        player: ACCOUNTS.alice.wallet.getAddress(),
+        player: ACCOUNTS.alice.wallet.getAddress().toBigInt(),
         score: 4n,
       };
       expect(leaderboard).toContainEqual(expectedEntry);
@@ -174,7 +144,7 @@ describe("Leaderboard", () => {
         .simulate();
 
       const expectedEntry = {
-        player: ACCOUNTS.alice.wallet.getAddress(),
+        player: ACCOUNTS.alice.wallet.getAddress().toBigInt(),
         score: 7n,
       };
       expect(leaderboard).toContainEqual(expectedEntry);

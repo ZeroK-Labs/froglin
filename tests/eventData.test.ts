@@ -2,11 +2,12 @@ import { TxStatus } from "@aztec/aztec.js";
 import { assert } from "console";
 import { beforeAll, describe, expect, test } from "bun:test";
 
-import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
 import { GAME_MASTER, ACCOUNTS } from "./accounts";
+import { deploy_contract } from "./gateway_contract";
+import { test_error } from "./test_error";
 
 describe("Event Data", () => {
-  const timeout = 40_000;
+  const timeout = 60_000;
   const FROGLIN_COUNT = 5;
   const EPOCH_COUNT = 3;
   const EPOCH_DURATION = 20_000;
@@ -32,57 +33,42 @@ describe("Event Data", () => {
   }
 
   beforeAll(async () => {
-    console.log("Deploying contract...");
+    console.log("\nSetting up test suite...\n");
 
-    GAME_MASTER.contracts.gateway = await FroglinGatewayContract.deploy(
-      GAME_MASTER.wallet,
-    )
-      .send()
-      .deployed();
+    await deploy_contract([ACCOUNTS.alice]);
 
-    expect(GAME_MASTER.contracts.gateway).not.toBeNull();
-
-    // register deployed contract in each PXE
-    let promises: Promise<any>[] = [
-      ACCOUNTS.alice.pxe.registerContract({
-        instance: GAME_MASTER.contracts.gateway.instance,
-        artifact: GAME_MASTER.contracts.gateway.artifact,
-      }),
-    ];
-    await Promise.all(promises);
-
-    // create a contract instance per wallet
-    ACCOUNTS.alice.contracts.gateway = GAME_MASTER.contracts.gateway.withWallet(
-      ACCOUNTS.alice.wallet,
-    );
+    console.log("\nRunning tests...\n");
   });
 
-  test("fails when game master tries to start the event with froglin count less than minimum allowed", () => {
-    expect(
+  test_error(
+    "game master tries to start the event with froglin count less than minimum allowed",
+    () =>
       GAME_MASTER.contracts.gateway.methods
         .start_event(0, EPOCH_COUNT, EPOCH_DURATION, Date.now())
         .send()
         .wait(),
-    ).rejects.toThrow("Assertion failed: froglin count should be at least 5");
-  });
+    "Froglin count should be at least 5",
+  );
 
-  test("fails when game master tries to start the event with epoch count less than minimum allowed", () => {
-    expect(
+  test_error(
+    "game master tries to start the event with epoch count less than minimum allowed",
+    () =>
       GAME_MASTER.contracts.gateway.methods
         .start_event(FROGLIN_COUNT, 0, EPOCH_DURATION, Date.now())
         .send()
         .wait(),
-    ).rejects.toThrow("Assertion failed: epoch count should be at least 3");
-  });
+    "epoch count should be at least 3",
+  );
 
-  test("fails when game master tries to start the event with epoch duration less than minimum allowed", () => {
-    expect(
+  test_error(
+    "game master tries start the event with epoch duration less than minimum allowed",
+    () =>
       GAME_MASTER.contracts.gateway.methods
         .start_event(FROGLIN_COUNT, EPOCH_COUNT, 0, Date.now())
         .send()
         .wait(),
-    ).rejects.toThrow("Assertion failed: epoch duration should be at least 20 seconds");
-  });
+    "epoch duration should be at least 20 seconds",
+  );
 
   test(
     "game master can start the event with acceptable parameters",
@@ -117,23 +103,28 @@ describe("Event Data", () => {
     timeout,
   );
 
-  test("fails when game master tries to start an ongoing event", () => {
-    expect(
+  test_error(
+    "game master tries to start an ongoing event",
+    () =>
       GAME_MASTER.contracts.gateway.methods
         .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
         .send()
         .wait(),
-    ).rejects.toThrow("Assertion failed: event already started");
-  });
+    "event already started",
+  );
 
-  test("fails when other account tries to start the event", () => {
-    expect(
-      ACCOUNTS.alice.contracts.gateway.methods
-        .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
-        .send()
-        .wait(),
-    ).rejects.toThrow(); //"Assertion failed: only game master can call this method");
-  });
+  test(
+    "fails when other account tries to advance the epoch",
+    () => {
+      expect(
+        ACCOUNTS.alice.contracts.gateway.methods
+          .start_event(FROGLIN_COUNT, EPOCH_COUNT, EPOCH_DURATION, Date.now())
+          .send()
+          .wait(),
+      ).rejects.toThrowError(); //"Assertion failed: only game master can call this method");
+    },
+    timeout,
+  );
 
   test(
     "game master can advance the epoch when time elapsed",
@@ -171,13 +162,13 @@ describe("Event Data", () => {
     () => {
       expect(
         ACCOUNTS.alice.contracts.gateway.methods.advance_epoch().send().wait(),
-      ).rejects.toThrow(); //"Assertion failed: only game master can call this method");
+      ).rejects.toThrowError(); //"Assertion failed: only game master can call this method");
     },
     timeout,
   );
 
-  test(
-    "fails when game master tries to advance the epoch after the event expires",
+  test_error(
+    "game master tries to advance the epoch after the event expires",
     async () => {
       // there are three epochs in total and we already advanced the epoch once in the tests above
 
@@ -196,9 +187,9 @@ describe("Event Data", () => {
         `epoch_count expected to be 1, found ${new_epoch_count}`,
       );
 
-      expect(advance_epoch()).rejects.toThrow("Assertion failed: event expired");
+      return advance_epoch();
     },
-    timeout,
+    "event expired",
   );
 
   test(

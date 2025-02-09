@@ -1,56 +1,26 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 
-import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
-import { GAME_MASTER, ACCOUNTS } from "./accounts";
+import { ACCOUNTS } from "./accounts";
+
+import { deploy_contract } from "./gateway_contract";
 import { stringToBigInt } from "common/utils/bigint";
 
-describe("Registration", () => {
+describe("Events Registration", () => {
   const timeout = 40_000;
 
   beforeAll(async () => {
-    console.log("Deploying contract...");
+    console.log("\nSetting up test suite...\n");
 
-    GAME_MASTER.contracts.gateway = await FroglinGatewayContract.deploy(
-      GAME_MASTER.wallet,
-    )
-      .send()
-      .deployed();
+    await deploy_contract([ACCOUNTS.alice]);
 
-    expect(GAME_MASTER.contracts.gateway).not.toBeNull();
-
-    // register deployed contract in each PXE
-    let promises: Promise<any>[] = [
-      ACCOUNTS.alice.pxe.registerContract({
-        instance: GAME_MASTER.contracts.gateway.instance,
-        artifact: GAME_MASTER.contracts.gateway.artifact,
-      }),
-      ACCOUNTS.bob.pxe.registerContract({
-        instance: GAME_MASTER.contracts.gateway.instance,
-        artifact: GAME_MASTER.contracts.gateway.artifact,
-      }),
-      ACCOUNTS.charlie.pxe.registerContract({
-        instance: GAME_MASTER.contracts.gateway.instance,
-        artifact: GAME_MASTER.contracts.gateway.artifact,
-      }),
-    ];
-    await Promise.all(promises);
-
-    // create a contract instance per wallet
-    ACCOUNTS.alice.contracts.gateway = await FroglinGatewayContract.at(
-      GAME_MASTER.contracts.gateway.address,
-      ACCOUNTS.alice.wallet,
-    );
-    ACCOUNTS.bob.contracts.gateway = GAME_MASTER.contracts.gateway.withWallet(
-      ACCOUNTS.bob.wallet,
-    );
-    ACCOUNTS.charlie.contracts.gateway = GAME_MASTER.contracts.gateway.withWallet(
-      ACCOUNTS.charlie.wallet,
-    );
+    console.log("Registering players...");
 
     await ACCOUNTS.alice.contracts.gateway.methods
       .register(stringToBigInt("alice"))
       .send()
       .wait();
+
+    console.log("\nRunning tests...\n");
   });
 
   test(
@@ -67,11 +37,12 @@ describe("Registration", () => {
         .view_events(ACCOUNTS.alice.wallet.getAddress())
         .simulate();
 
-      expect(events.length).toBe(4);
+      expect(events.length).toBe(5);
       expect(events[0]).toBe(event_name);
       expect(events[1]).toBe(0n);
       expect(events[2]).toBe(0n);
       expect(events[3]).toBe(0n);
+      expect(events[4]).toBe(0n);
     },
     timeout,
   );
@@ -90,11 +61,12 @@ describe("Registration", () => {
         .view_events(ACCOUNTS.alice.wallet.getAddress())
         .simulate();
 
-      expect(events.length).toBe(4);
+      expect(events.length).toBe(5);
       expect(events[0]).toBe(0n);
       expect(events[1]).toBe(0n);
       expect(events[2]).toBe(0n);
       expect(events[3]).toBe(0n);
+      expect(events[4]).toBe(0n);
     },
     timeout,
   );
