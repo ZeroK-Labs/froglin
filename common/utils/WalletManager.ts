@@ -7,13 +7,12 @@ import { SingleKeyAccountContract } from "@aztec/accounts/single_key";
 
 export async function createWallet(secret: string, pxe: PXE): Promise<AccountWallet> {
   const bigNumber = BigInt(secret);
-  const reducedSecret = bigNumber % Fr.MODULUS;
-  const secretKey = new Fr(reducedSecret);
+  const secretKey = new Fr(bigNumber % Fr.MODULUS);
   const signingPrivateKey = deriveMasterIncomingViewingSecretKey(secretKey);
-  const contract = new SingleKeyAccountContract(signingPrivateKey);
-  const account = new AccountManager(pxe, secretKey, contract, Fr.ZERO);
+  const accountContract = new SingleKeyAccountContract(signingPrivateKey);
+  const account = await AccountManager.create(pxe, secretKey, accountContract, Fr.ZERO);
 
   const wallet = await account.waitSetup();
-  console.log("Wallet ready", wallet.getAddress().toString());
+  console.log(`Wallet ready \x1b[34m${wallet.getAddress().toString()}\x1b[0m`);
   return wallet;
 }

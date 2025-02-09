@@ -1,0 +1,5 @@
+pub global PLAYER_COUNT: u8 = 32;
+pub global PLAYER_COUNT_U32: u32 = PLAYER_COUNT as u32;
+
+pub global FROGLIN_TYPE_COUNT: u8 = 12;
+pub global FROGLIN_TYPE_COUNT_U32: u32 = FROGLIN_TYPE_COUNT as u32;

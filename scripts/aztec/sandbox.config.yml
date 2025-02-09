@@ -20,15 +20,15 @@ services:
     ports:
       - "${PXE_PORT:-8080}:${PXE_PORT:-8080}"
     environment:
-      DEBUG: "aztec:simulator:client_execution_context, aztec:sandbox, aztec:avm_simulator:debug_log"
+      LOG_LEVEL: '${LOG_LEVEL:-info; warn: sequencer; verbose: simulator:avm:debug_log}'
       HOST_WORKDIR: "${PWD}" # Loaded from the user shell to show log files absolute path in host
       ETHEREUM_HOST: ${ETHEREUM_HOST:-http://ethereum:${ANVIL_PORT:-8545}}
       L1_CHAIN_ID: 31337
-      ARCHIVER_POLLING_INTERVAL_MS: 500
+      ARCHIVER_POLLING_INTERVAL_MS: 100
       ARCHIVER_VIEM_POLLING_INTERVAL_MS: 500
-      PXE_BLOCK_POLLING_INTERVAL_MS: 600
-      SEQ_TX_POLLING_INTERVAL_MS: 400
-      P2P_BLOCK_CHECK_INTERVAL_MS: 700
+      PXE_BLOCK_POLLING_INTERVAL_MS: 125
+      SEQ_TX_POLLING_INTERVAL_MS: 150
+      P2P_BLOCK_CHECK_INTERVAL_MS: 200
       WS_BLOCK_CHECK_INTERVAL_MS: 1000
       PXE_PORT: ${PXE_PORT:-8080}
       PORT: ${AZTEC_NODE_PORT:-8080}

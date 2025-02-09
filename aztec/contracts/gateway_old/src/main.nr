@@ -1,4 +1,3 @@
-mod notes;
 mod settings;
 mod types;
 
@@ -7,10 +6,9 @@ use dep::aztec::macros::aztec;
 #[aztec]
 contract FroglinGateway {
     use dep::aztec::{
-        encrypted_logs::log_assembly_strategies::default_aes128::note::encode_and_encrypt_note,
-        note::note_interface::{NoteInterface, NoteProperties},
+        encrypted_logs::encrypted_note_emission::encode_and_encrypt_note,
+        keys::getters::get_public_keys,
         prelude::{AztecAddress, Map, NoteGetterOptions, NoteViewerOptions},
-        protocol_types::traits::{FromField, Hash, Serialize, ToField},
         state_vars::{PrivateMutable, PrivateSet, PublicImmutable, PublicMutable},
         utils::comparison::Comparator,
     };
@@ -20,33 +18,35 @@ contract FroglinGateway {
     };
     use dep::aztec::oracle::debug_log::debug_log;
 
-    use crate::notes::{
-        battle_note::BattleNote, date_note::DateNote, events_note::EventsNote,
-        player_note::PlayerNote, stash_note::StashNote, win_note::WinNote,
-    };
     use crate::settings;
-    use crate::types::{
-        battle_proposal::BattleProposal, battle_response::BattleResponse,
-        date_proposal::DateProposal, leaderboard_entry::LeaderBoardEntry,
-        swap_proposal::SwapProposal,
-    };
+    use crate::types::battle_note::BattleNote;
+    use crate::types::battle_proposal::BattleProposal;
+    use crate::types::battle_response::BattleResponse;
+    use crate::types::date_note::DateNote;
+    use crate::types::date_proposal::DateProposal;
+    use crate::types::events_note::EventsNote;
+    use crate::types::leaderboard_entry::LeaderBoardEntry;
+    use crate::types::player_note::PlayerNote;
+    use crate::types::stash_note::StashNote;
+    use crate::types::swap_proposal::SwapProposal;
+    use crate::types::win_note::WinNote;
 
     global stash_midpoint_index: u8 = settings::FROGLIN_TYPE_COUNT / 2;
 
     #[storage]
     struct Storage<Context> {
         game_master: PublicImmutable<AztecAddress, Context>,
-        accounts_count: PublicMutable<u8, Context>,
+        accounts_size: PublicMutable<u8, Context>,
         accounts: Map<AztecAddress, PrivateMutable<PlayerNote, Context>, Context>,
-        froglin_count: PublicMutable<u8, Context>,
         stashes: Map<AztecAddress, PrivateMutable<StashNote, Context>, Context>,
+        froglin_count: PublicMutable<u8, Context>,
         epoch_count: PublicMutable<u8, Context>,
         epoch_duration: PublicMutable<u64, Context>,
         epoch_start_time: PublicMutable<u64, Context>,
         leaderboard: Map<u8, PublicMutable<LeaderBoardEntry, Context>, Context>,
         public_stash: Map<u8, PublicMutable<u8, Context>, Context>,
-        swap_proposal_count: PublicMutable<u8, Context>,
         swap_proposals: Map<u8, PublicMutable<SwapProposal, Context>, Context>,
+        swap_proposal_count: PublicMutable<u8, Context>,
         battle_proposals: Map<u32, PublicMutable<BattleProposal, Context>, Context>,
         battle_proposal_count: PublicMutable<u32, Context>,
         battle_notes_1: Map<u32, PrivateMutable<BattleNote, Context>, Context>,
@@ -65,7 +65,7 @@ contract FroglinGateway {
         let game_master = context.msg_sender();
         storage.game_master.initialize(game_master);
 
-        storage.accounts_count.write(0);
+        storage.accounts_size.write(0);
         storage.froglin_count.write(0);
         storage.epoch_count.write(0);
         storage.epoch_duration.write(0);
@@ -80,7 +80,7 @@ contract FroglinGateway {
 
     #[view]
     #[internal]
-    unconstrained fn _assert_registration(player: AztecAddress) {
+    unconstrained fn _check_registration(player: AztecAddress) {
         assert(
             storage.accounts.at(player).is_initialized(),
             "only registered players can call this method",
@@ -89,45 +89,52 @@ contract FroglinGateway {
 
     #[view]
     #[internal]
-    unconstrained fn _assert_availability(player: AztecAddress) {
+    unconstrained fn _check_availability(player: AztecAddress) {
         assert(!storage.accounts.at(player).is_initialized(), "player is already registered");
+    }
+
+    #[view]
+    #[internal]
+    unconstrained fn _view_trader_id(player: AztecAddress) -> pub Field {
+        storage.accounts.at(player).view_note().trader_id
     }
 
     // for external calls from other contracts
     #[private]
     fn check_registration(player: AztecAddress) {
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
+        unsafe {
+            _check_registration(player);
+        }
     }
 
     #[internal]
     #[public]
     unconstrained fn _register(player: AztecAddress) {
-        // increment number of acounts
-        let accounts_count = storage.accounts_count.read();
-        storage.accounts_count.write(accounts_count + 1);
-
-        // create leaderboard entry
-        storage.leaderboard.at(accounts_count).write(LeaderBoardEntry::new(player, 0));
+        let accounts_size = storage.accounts_size.read();
+        storage.leaderboard.at(accounts_size).write(LeaderBoardEntry::new(player, 0));
+        storage.accounts_size.write(accounts_size + 1);
     }
 
     #[private]
     fn register(name: Field) {
-        /// SAFETY:
         unsafe {
-            assert(view_accounts_count() <= settings::PLAYER_COUNT, "registration is fully booked");
+            assert(view_accounts_size() <= settings::PLAYER_COUNT, "registration is fully booked");
         }
 
         let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_availability(player) };
+        unsafe {
+            _check_availability(player);
+        }
 
         assert(player != storage.game_master.read(), "game master cannot register as player");
+
+        let keys = get_public_keys(player);
 
         // initialize player account details
         let mut player_note = PlayerNote::new(name, player);
         storage.accounts.at(player).initialize(&mut player_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
@@ -136,6 +143,7 @@ contract FroglinGateway {
         let mut player_stash_note = StashNote::new(player);
         storage.stashes.at(player).initialize(&mut player_stash_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
@@ -143,7 +151,7 @@ contract FroglinGateway {
         // initialize player events
         let mut player_events_note = EventsNote::new(player);
         storage.player_events.at(player).initialize(&mut player_events_note).emit(
-            encode_and_encrypt_note(&mut context, player, player),
+            encode_and_encrypt_note(&mut context, keys.ovpk_m, player, player),
         );
 
         // modify public data
@@ -153,12 +161,16 @@ contract FroglinGateway {
     #[private]
     fn update_name(name: Field) {
         let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
+        unsafe {
+            _check_registration(player);
+        }
+
+        let keys = get_public_keys(player);
 
         let mut new_player_note = PlayerNote::new(name, player);
         storage.accounts.at(player).replace(&mut new_player_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
@@ -208,23 +220,23 @@ contract FroglinGateway {
     #[internal]
     #[public]
     fn _capture_froglin(player: AztecAddress) {
-        // update remaining Froglin count
         let new_froglin_count = storage.froglin_count.read() - 1;
         storage.froglin_count.write(new_froglin_count);
 
-        // find player index in leaderboard map-array
-        let accounts_count = storage.accounts_count.read();
+        let accounts_size = storage.accounts_size.read();
         let mut player_index = settings::PLAYER_COUNT;
-        for i in 0..accounts_count {
+        for i in 0..accounts_size {
             if (player == storage.leaderboard.at(i).read().player) {
                 player_index = i;
+                break;
             }
         }
-        assert(player_index < accounts_count, "missing player can't capture Froglin");
 
-        // update leaderboard at player's index
+        assert(player_index != settings::PLAYER_COUNT, "missing player can't capture Froglin");
+
         let mut new_leaderboard_entry = storage.leaderboard.at(player_index).read();
         new_leaderboard_entry.score = new_leaderboard_entry.score + 1;
+
         storage.leaderboard.at(player_index).write(new_leaderboard_entry);
     }
 
@@ -236,17 +248,18 @@ contract FroglinGateway {
             "tried to capture an unknown Froglin type",
         );
 
-        /// SAFETY:
+        // ensure state is correct
         unsafe {
-            // ensure state is correct
             assert(view_epoch_count() != 0, "event is stopped");
             assert(view_froglin_count() != 0, "all available Froglins have been captured");
         }
 
-        // get player address
+        // get player address and keys
         let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
 
         // select stash
         let stash = storage.stashes.at(player);
@@ -258,6 +271,7 @@ contract FroglinGateway {
 
         stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
@@ -297,10 +311,12 @@ contract FroglinGateway {
             "Cannot swap for the same Froglin type",
         );
 
-        // get player address
+        // get player address and keys
         let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
 
         // select stash
         let stash = storage.stashes.at(player);
@@ -316,13 +332,13 @@ contract FroglinGateway {
 
         stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
 
         // increment the Froglin count of the player
-        /// SAFETY:
-        let trader_id = unsafe { view_trader_id(player) };
+        let trader_id = unsafe { _view_trader_id(player) };
 
         FroglinGateway::at(context.this_address())
             ._create_swap_proposal(trader_id, offered_froglin_type, wanted_froglin_type)
@@ -347,14 +363,15 @@ contract FroglinGateway {
     #[private]
     fn accept_swap_proposal(proposal_id: u8) {
         // ensure state is correct
-        /// SAFETY:
         let proposal = unsafe { view_swap_proposal(proposal_id) };
         assert(proposal.status == 1, "proposal is not active");
 
-        // get player address
+        // get player address and keys
         let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
 
         // select stash
         let stash = storage.stashes.at(player);
@@ -367,47 +384,13 @@ contract FroglinGateway {
 
         stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
 
         // change status of the proposal to claimable and settle the public stash
         FroglinGateway::at(context.this_address())._accept_swap_proposal(proposal_id).enqueue(
-            &mut context,
-        );
-    }
-
-    #[private]
-    fn cancel_swap_proposal(proposal_id: u8) {
-        // get player address
-        let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
-
-        /// SAFETY:
-        let proposal = unsafe { view_swap_proposal(proposal_id) };
-        assert(proposal.status == 1, "proposal is not active");
-
-        /// SAFETY:
-        let trader_id = unsafe { view_trader_id(player) };
-        assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
-
-        // select stash
-        let stash = storage.stashes.at(player);
-
-        // create new note for selected stash
-        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
-
-        new_stash_note.increment_slot(proposal.offered_froglin_type);
-
-        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
-            &mut context,
-            player,
-            player,
-        ));
-
-        // mark the proposal as completed
-        FroglinGateway::at(context.this_address())._complete_swap_proposal(proposal_id).enqueue(
             &mut context,
         );
     }
@@ -423,17 +406,17 @@ contract FroglinGateway {
 
     #[private]
     fn claim_swap_proposal(proposal_id: u8) {
-        // get player address
+        // get player address and keys
         let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
 
-        /// SAFETY:
         let proposal = unsafe { view_swap_proposal(proposal_id) };
         assert(proposal.status == 2, "proposal is not claimable");
 
-        /// SAFETY:
-        let trader_id = unsafe { view_trader_id(player) };
+        let trader_id = unsafe { _view_trader_id(player) };
         assert(trader_id == proposal.trader_id, "only the trader can claim the proposal");
 
         // select stash
@@ -446,6 +429,115 @@ contract FroglinGateway {
 
         stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        // mark the proposal as completed
+        FroglinGateway::at(context.this_address())._complete_swap_proposal(proposal_id).enqueue(
+            &mut context,
+        );
+    }
+
+    #[private]
+    fn cancel_battle_proposal(proposal_id: u32) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        let proposal = unsafe { view_battle_proposal(proposal_id) };
+        assert(proposal.status == 1, "proposal is not active");
+
+        let trader_id = unsafe { _view_trader_id(player) };
+        assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
+
+        // select stash
+        let stash = storage.stashes.at(player);
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
+
+        new_stash_note.increment_slot(proposal.offered_froglin_type);
+
+        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        // mark the proposal as completed
+        FroglinGateway::at(context.this_address())
+            ._change_battle_proposal_status(proposal_id, 4)
+            .enqueue(&mut context);
+    }
+
+    #[private]
+    fn cancel_date_proposal(proposal_id: u32) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        let proposal = unsafe { view_date_proposal(proposal_id) };
+        assert(proposal.status == 1, "proposal is not active");
+
+        let trader_id = unsafe { _view_trader_id(player) };
+        assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
+
+        // select stash
+        let stash = storage.stashes.at(player);
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
+
+        new_stash_note.increment_slot(proposal.offered_froglin_type);
+
+        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
+            player,
+            player,
+        ));
+
+        // mark the proposal as completed
+        FroglinGateway::at(context.this_address())
+            ._change_date_proposal_status(proposal_id, 4)
+            .enqueue(&mut context);
+    }
+
+    #[private]
+    fn cancel_swap_proposal(proposal_id: u8) {
+        // get player address and keys
+        let player = context.msg_sender();
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
+
+        let proposal = unsafe { view_swap_proposal(proposal_id) };
+        assert(proposal.status == 1, "proposal is not active");
+
+        let trader_id = unsafe { _view_trader_id(player) };
+        assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
+
+        // select stash
+        let stash = storage.stashes.at(player);
+
+        // create new note for selected stash
+        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
+
+        new_stash_note.increment_slot(proposal.offered_froglin_type);
+
+        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
+            &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
@@ -491,10 +583,12 @@ contract FroglinGateway {
             "Cannot battle for the same Froglin type",
         );
 
-        // get player address
+        // get player address and keys
         let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
 
         debug_log("create_battle_proposal");
 
@@ -512,24 +606,25 @@ contract FroglinGateway {
 
         stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
 
         let game_master = storage.game_master.read();
+        let game_master_keys = get_public_keys(game_master);
 
         // create 1st note for game_master
-        /// SAFETY:
         let battle_id = unsafe { view_battle_proposals_count() };
         let mut note = BattleNote::new(game_master, choices as Field, battle_id as Field, player);
 
         storage.battle_notes_1.at(battle_id).initialize(&mut note).emit(encode_and_encrypt_note(
             &mut context,
+            game_master_keys.ovpk_m,
             game_master,
             game_master,
         ));
-        /// SAFETY:
-        let trader_id = unsafe { view_trader_id(player) };
+        let trader_id = unsafe { _view_trader_id(player) };
         // modify public data
         FroglinGateway::at(context.this_address())
             ._create_battle_proposal(trader_id, offered_froglin_type, wanted_froglin_type, battle_id
@@ -539,13 +634,14 @@ contract FroglinGateway {
 
     #[private]
     fn accept_battle_proposal(proposal_id: u32, choices: u16) {
-        // get player address
+        // get player address and keys
         let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
 
         // ensure proposal is active
-        /// SAFETY:
         let proposal = unsafe { view_battle_proposal(proposal_id) };
         assert(proposal.status == 1, "proposal is not active");
 
@@ -562,17 +658,20 @@ contract FroglinGateway {
 
         stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
 
         // create 2nd note for game_master
         let game_master = storage.game_master.read();
+        let game_master_keys = get_public_keys(game_master);
 
         let mut note = BattleNote::new(game_master, choices as Field, proposal_id as Field, player);
 
         storage.battle_notes_2.at(proposal_id).initialize(&mut note).emit(encode_and_encrypt_note(
             &mut context,
+            game_master_keys.ovpk_m,
             game_master,
             game_master,
         ));
@@ -580,41 +679,6 @@ contract FroglinGateway {
         // change status of proposal to 'accepted'
         FroglinGateway::at(context.this_address())
             ._change_battle_proposal_status(proposal_id, 2)
-            .enqueue(&mut context);
-    }
-
-    #[private]
-    fn cancel_battle_proposal(proposal_id: u32) {
-        // get player address
-        let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
-
-        /// SAFETY:
-        let proposal = unsafe { view_battle_proposal(proposal_id) };
-        assert(proposal.status == 1, "proposal is not active");
-
-        /// SAFETY:
-        let trader_id = unsafe { view_trader_id(player) };
-        assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
-
-        // select stash
-        let stash = storage.stashes.at(player);
-
-        // create new note for selected stash
-        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
-
-        new_stash_note.increment_slot(proposal.offered_froglin_type);
-
-        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
-            &mut context,
-            player,
-            player,
-        ));
-
-        // mark the proposal as completed
-        FroglinGateway::at(context.this_address())
-            ._change_battle_proposal_status(proposal_id, 4)
             .enqueue(&mut context);
     }
 
@@ -684,7 +748,6 @@ contract FroglinGateway {
         // get notes from both players
         let player1_note = storage.battle_notes_1.at(proposal_id).get_note().note;
         let player2_note = storage.battle_notes_2.at(proposal_id).get_note().note;
-        /// SAFETY:
         let proposal = unsafe { view_battle_proposal(proposal_id) };
 
         // compare the choices
@@ -692,7 +755,6 @@ contract FroglinGateway {
         let player2_choice = player2_note.choices as u16;
         let mut froglin_won = 101;
         let mut froglin_to_recover = 101;
-        /// SAFETY:
         let battle_result = unsafe { compare_battle_choices(player1_choice, player2_choice) };
         let mut winner_address = AztecAddress::zero();
         let mut loser_address = AztecAddress::zero();
@@ -725,6 +787,7 @@ contract FroglinGateway {
         );
         storage.battle_winners.at(winner_address).insert(&mut note).emit(encode_and_encrypt_note(
             &mut context,
+            get_public_keys(winner_address).ovpk_m,
             winner_address,
             winner_address,
         ));
@@ -732,7 +795,12 @@ contract FroglinGateway {
             WinNote::new(loser_address, 101, proposal.wanted_froglin_type as Field);
 
         storage.battle_winners.at(loser_address).insert(&mut recovery_note).emit(
-            encode_and_encrypt_note(&mut context, loser_address, loser_address),
+            encode_and_encrypt_note(
+                &mut context,
+                get_public_keys(loser_address).ovpk_m,
+                loser_address,
+                loser_address,
+            ),
         );
 
         // change status of proposal to 'completed'
@@ -743,10 +811,12 @@ contract FroglinGateway {
 
     #[private]
     fn claim_winnings(froglin_type: u8) {
-        // get player address
+        // get player address and keys
         let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
 
         let owner_notes = storage.battle_winners.at(player);
         let mut options = NoteGetterOptions::new();
@@ -773,6 +843,7 @@ contract FroglinGateway {
         // increment the battled Froglin
         stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
@@ -780,10 +851,12 @@ contract FroglinGateway {
 
     #[private]
     fn recover_froglin(froglin_type: u8) {
-        // get player address
+        // get player address and keys
         let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
 
         let owner_notes = storage.battle_winners.at(player);
         let mut options = NoteGetterOptions::new();
@@ -809,6 +882,7 @@ contract FroglinGateway {
         // increment the battled Froglin
         stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
@@ -819,10 +893,12 @@ contract FroglinGateway {
         // ensure parameters are correct
         assert(dating_froglin_type < settings::FROGLIN_TYPE_COUNT, "Invalid offered Froglin type");
 
-        // get player address
+        // get player address and keys
         let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
 
         // select stash
         let stash = storage.stashes.at(player);
@@ -838,14 +914,15 @@ contract FroglinGateway {
 
         stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
 
         let game_master = storage.game_master.read();
+        let game_master_keys = get_public_keys(game_master);
 
         // create 1st note for game_master
-        /// SAFETY:
         let proposal_id = unsafe { view_date_proposals_count() };
         let mut note = DateNote::new(
             game_master,
@@ -857,12 +934,12 @@ contract FroglinGateway {
 
         storage.date_notes_1.at(proposal_id).initialize(&mut note).emit(encode_and_encrypt_note(
             &mut context,
+            game_master_keys.ovpk_m,
             game_master,
             game_master,
         ));
 
-        /// SAFETY:
-        let trader_id = unsafe { view_trader_id(player) };
+        let trader_id = unsafe { _view_trader_id(player) };
 
         // modify public data - create public proposal
         FroglinGateway::at(context.this_address())
@@ -880,13 +957,14 @@ contract FroglinGateway {
 
     #[private]
     fn accept_date_proposal(proposal_id: u32, dating_froglin_type: u8, choices: u16) {
-        // get player address
+        // get player address and keys
         let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
 
         // ensure proposal is active
-        /// SAFETY:
         let proposal = unsafe { view_date_proposal(proposal_id) };
         assert(proposal.status == 1, "proposal is not active");
 
@@ -915,12 +993,14 @@ contract FroglinGateway {
 
         stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
 
         // create 2nd note the game_master
         let game_master = storage.game_master.read();
+        let game_master_keys = get_public_keys(game_master);
 
         let mut note = DateNote::new(
             game_master,
@@ -932,6 +1012,7 @@ contract FroglinGateway {
 
         storage.date_notes_2.at(proposal_id).initialize(&mut note).emit(encode_and_encrypt_note(
             &mut context,
+            game_master_keys.ovpk_m,
             game_master,
             game_master,
         ));
@@ -939,41 +1020,6 @@ contract FroglinGateway {
         // change status of the proposal to 'accepted'
         FroglinGateway::at(context.this_address())
             ._change_date_proposal_status(proposal_id, 2)
-            .enqueue(&mut context);
-    }
-
-    #[private]
-    fn cancel_date_proposal(proposal_id: u32) {
-        // get player address
-        let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
-
-        /// SAFETY:
-        let proposal = unsafe { view_date_proposal(proposal_id) };
-        assert(proposal.status == 1, "proposal is not active");
-
-        /// SAFETY:
-        let trader_id = unsafe { view_trader_id(player) };
-        assert(trader_id == proposal.trader_id, "only the trader can cancel the proposal");
-
-        // select stash
-        let stash = storage.stashes.at(player);
-
-        // create new note for selected stash
-        let mut new_stash_note = StashNote::copy(stash.get_note().note, player);
-
-        new_stash_note.increment_slot(proposal.offered_froglin_type);
-
-        stash.replace(&mut new_stash_note).emit(encode_and_encrypt_note(
-            &mut context,
-            player,
-            player,
-        ));
-
-        // mark the proposal as completed
-        FroglinGateway::at(context.this_address())
-            ._change_date_proposal_status(proposal_id, 4)
             .enqueue(&mut context);
     }
 
@@ -1069,7 +1115,6 @@ contract FroglinGateway {
         assert(game_master == storage.game_master.read(), "only game master can call this method");
 
         // ensure proposal is `accepted`
-        /// SAFETY:
         let proposal = unsafe { view_date_proposal(proposal_id) };
         assert(proposal.status == 2, "proposal is not accepted");
 
@@ -1084,16 +1129,13 @@ contract FroglinGateway {
         let mut player1_froglin_to_recover = 101;
         let mut player2_froglin_won = 101;
         let mut player2_froglin_to_recover = 101;
-        /// SAFETY:
         let date_result = unsafe { compare_date_choices(player1_choice, player2_choice) };
         let mut player1 = player1_note.player_address;
         let mut player2 = player2_note.player_address;
         // 1, 2, none, gone
 
         if (date_result == 0) {
-            /// SAFETY:
             player1_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
-            /// SAFETY:
             player2_froglin_won = unsafe { create_random_froglin(player2_choice, player1_choice) };
             player1_froglin_to_recover = player1_note.dating_froglin as u8;
             player2_froglin_to_recover = player2_note.dating_froglin as u8;
@@ -1101,7 +1143,6 @@ contract FroglinGateway {
 
         // player 1 gets the Froglin
         if (date_result == 1) {
-            /// SAFETY:
             player1_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
             player1_froglin_to_recover = proposal.offered_froglin_type;
             player2_froglin_to_recover = player2_note.dating_froglin as u8;
@@ -1109,7 +1150,6 @@ contract FroglinGateway {
         // player 2 gets the Froglin
         if (date_result == 2) {
             player1_froglin_to_recover = player1_note.dating_froglin as u8;
-            /// SAFETY:
             player2_froglin_won = unsafe { create_random_froglin(player1_choice, player2_choice) };
             player2_froglin_to_recover = player2_note.dating_froglin as u8;
         }
@@ -1127,6 +1167,7 @@ contract FroglinGateway {
         );
         storage.battle_winners.at(player1).insert(&mut note).emit(encode_and_encrypt_note(
             &mut context,
+            get_public_keys(player1).ovpk_m,
             player1,
             player1,
         ));
@@ -1138,6 +1179,7 @@ contract FroglinGateway {
 
         storage.battle_winners.at(player2).insert(&mut recovery_note).emit(encode_and_encrypt_note(
             &mut context,
+            get_public_keys(player2).ovpk_m,
             player2,
             player2,
         ));
@@ -1149,12 +1191,13 @@ contract FroglinGateway {
 
     #[private]
     fn join_event(event_name: Field) {
-        // get player address
+        // get player address and keys
         let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
 
-        /// SAFETY:
         let old_events_note = unsafe { view_events_note(player) };
 
         // ensure slot available for joining
@@ -1162,8 +1205,8 @@ contract FroglinGateway {
             (old_events_note.event1_name == 0)
                 | (old_events_note.event2_name == 0)
                 | (old_events_note.event3_name == 0)
-                | (old_events_note.event4_name == 0)
-                | (old_events_note.event5_name == 0),
+                | (old_events_note.event4_name == 0),
+            // (old_events_note.event5_name == 0),
             "Reached max events that can be joined",
         );
 
@@ -1172,7 +1215,7 @@ contract FroglinGateway {
         assert(old_events_note.event2_name != event_name, "Already joined this event");
         assert(old_events_note.event3_name != event_name, "Already joined this event");
         assert(old_events_note.event4_name != event_name, "Already joined this event");
-        assert(old_events_note.event5_name != event_name, "Already joined this event");
+        // assert(old_events_note.event5_name != event_name, "Already joined this event");
 
         // select events
         let events = storage.player_events.at(player);
@@ -1188,12 +1231,12 @@ contract FroglinGateway {
             new_events_note.event3_name = event_name;
         } else if (new_events_note.event4_name == 0) {
             new_events_note.event4_name = event_name;
-        } else if (new_events_note.event5_name == 0) {
-            new_events_note.event5_name = event_name;
         }
+        // else if (new_events_note.event5_name == 0) { new_events_note.event5_name = event_name; }
 
         events.replace(&mut new_events_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
@@ -1201,12 +1244,13 @@ contract FroglinGateway {
 
     #[private]
     fn leave_event(event_name: Field) {
-        // get player address
+        // get player address and keys
         let player = context.msg_sender();
-        /// SAFETY:
-        unsafe { _assert_registration(player) };
+        unsafe {
+            _check_registration(player);
+        }
+        let keys = get_public_keys(player);
 
-        /// SAFETY:
         let old_events_note = unsafe { view_events_note(player) };
 
         // ensure event is joined
@@ -1214,8 +1258,8 @@ contract FroglinGateway {
             (old_events_note.event1_name == event_name)
                 | (old_events_note.event2_name == event_name)
                 | (old_events_note.event3_name == event_name)
-                | (old_events_note.event4_name == event_name)
-                | (old_events_note.event5_name == event_name),
+                | (old_events_note.event4_name == event_name),
+            // (old_events_note.event5_name == event_name),
             "Event not joined",
         );
 
@@ -1233,12 +1277,12 @@ contract FroglinGateway {
             new_events_note.event3_name = 0;
         } else if (new_events_note.event4_name == event_name) {
             new_events_note.event4_name = 0;
-        } else if (new_events_note.event5_name == event_name) {
-            new_events_note.event5_name = 0;
         }
+        // else if (new_events_note.event5_name == event_name) { new_events_note.event5_name = 0; }
 
         events.replace(&mut new_events_note).emit(encode_and_encrypt_note(
             &mut context,
+            keys.ovpk_m,
             player,
             player,
         ));
@@ -1250,33 +1294,44 @@ contract FroglinGateway {
     }
 
     #[view]
-    unconstrained fn view_accounts_count() -> pub u8 {
-        storage.accounts_count.read()
+    unconstrained fn view_accounts_size() -> pub u8 {
+        storage.accounts_size.read()
     }
 
     #[view]
     unconstrained fn view_name(player: AztecAddress) -> pub Field {
-        _assert_registration(player);
+        _check_registration(player);
 
         storage.accounts.at(player).view_note().name
     }
 
     #[view]
     unconstrained fn view_profile(player: AztecAddress) -> pub PlayerNote {
-        _assert_registration(player);
+        _check_registration(player);
 
         storage.accounts.at(player).view_note()
     }
 
     #[view]
-    #[internal]
-    unconstrained fn view_trader_id(player: AztecAddress) -> pub Field {
-        storage.accounts.at(player).view_note().trader_id
+    unconstrained fn view_events_note(player: AztecAddress) -> pub EventsNote {
+        _check_registration(player);
+
+        storage.player_events.at(player).view_note()
     }
 
     #[view]
     unconstrained fn view_froglin_count() -> pub u8 {
         storage.froglin_count.read()
+    }
+
+    #[view]
+    unconstrained fn view_battle_proposals_count() -> pub u32 {
+        storage.battle_proposal_count.read()
+    }
+
+    #[view]
+    unconstrained fn view_date_proposals_count() -> pub u32 {
+        storage.date_proposal_count.read()
     }
 
     #[view]
@@ -1298,7 +1353,7 @@ contract FroglinGateway {
     unconstrained fn view_stash(
         player: AztecAddress,
     ) -> pub [u8; settings::FROGLIN_TYPE_COUNT_U32] {
-        _assert_registration(player);
+        _check_registration(player);
 
         let stash = storage.stashes.at(player).view_note();
 
@@ -1314,7 +1369,7 @@ contract FroglinGateway {
     unconstrained fn view_leaderboard() -> pub [LeaderBoardEntry; settings::PLAYER_COUNT_U32] {
         let mut leaderboard = [LeaderBoardEntry::zero(); settings::PLAYER_COUNT_U32];
 
-        let accounts_size = storage.accounts_count.read();
+        let accounts_size = storage.accounts_size.read();
         for i in 0..accounts_size {
             leaderboard[i] = storage.leaderboard.at(i).read();
         }
@@ -1323,8 +1378,31 @@ contract FroglinGateway {
     }
 
     #[view]
+    unconstrained fn view_events(player: AztecAddress) -> pub [Field; 4] {
+        let mut old_events_note = unsafe { view_events_note(player) };
+
+        [
+            old_events_note.event1_name,
+            old_events_note.event2_name,
+            old_events_note.event3_name,
+            old_events_note.event4_name,
+            // old_events_note.event5_name
+        ]
+    }
+
+    #[view]
     unconstrained fn view_swap_proposal(proposal_id: u8) -> pub SwapProposal {
         storage.swap_proposals.at(proposal_id).read()
+    }
+
+    #[view]
+    unconstrained fn view_battle_proposal(proposal_id: u32) -> pub BattleProposal {
+        storage.battle_proposals.at(proposal_id).read()
+    }
+
+    #[view]
+    unconstrained fn view_date_proposal(proposal_id: u32) -> pub DateProposal {
+        storage.date_proposals.at(proposal_id).read()
     }
 
     #[view]
@@ -1339,6 +1417,20 @@ contract FroglinGateway {
         }
 
         active_proposals
+    }
+
+    #[view]
+    unconstrained fn view_all_proposals() -> pub [SwapProposal; 10] {
+        let proposal_count = storage.swap_proposal_count.read();
+        let mut all_proposals: [SwapProposal; 10] = [SwapProposal::empty(); 10];
+        for i in 0..proposal_count {
+            let proposal = storage.swap_proposals.at(i).read();
+            if i < 10 {
+                all_proposals[i] = proposal;
+            }
+        }
+
+        all_proposals
     }
 
     #[view]
@@ -1358,21 +1450,25 @@ contract FroglinGateway {
     }
 
     #[view]
-    unconstrained fn view_battle_proposals_count() -> pub u32 {
-        storage.battle_proposal_count.read()
-    }
-
-    #[view]
-    unconstrained fn view_battle_proposal(proposal_id: u32) -> pub BattleProposal {
-        storage.battle_proposals.at(proposal_id).read()
-    }
-
-    #[view]
     unconstrained fn view_active_battle_proposals() -> pub [BattleProposal; 10] {
         let proposal_count = storage.battle_proposal_count.read();
         let mut active_proposals: [BattleProposal; 10] = [BattleProposal::empty(); 10];
         for i in 0..proposal_count {
             let proposal = storage.battle_proposals.at(i).read();
+            if (proposal.status == 1) & (i < 10) {
+                active_proposals[i] = proposal;
+            }
+        }
+
+        active_proposals
+    }
+
+    #[view]
+    unconstrained fn view_active_date_proposals() -> pub [DateProposal; 10] {
+        let proposal_count = storage.date_proposal_count.read();
+        let mut active_proposals: [DateProposal; 10] = [DateProposal::empty(); 10];
+        for i in 0..proposal_count {
+            let proposal = storage.date_proposals.at(i).read();
             if (proposal.status == 1) & (i < 10) {
                 active_proposals[i] = proposal;
             }
@@ -1398,49 +1494,5 @@ contract FroglinGateway {
         }
 
         won_notes
-    }
-
-    #[view]
-    unconstrained fn view_date_proposals_count() -> pub u32 {
-        storage.date_proposal_count.read()
-    }
-
-    #[view]
-    unconstrained fn view_date_proposal(proposal_id: u32) -> pub DateProposal {
-        storage.date_proposals.at(proposal_id).read()
-    }
-
-    #[view]
-    unconstrained fn view_active_date_proposals() -> pub [DateProposal; 10] {
-        let proposal_count = storage.date_proposal_count.read();
-        let mut active_proposals: [DateProposal; 10] = [DateProposal::empty(); 10];
-        for i in 0..proposal_count {
-            let proposal = storage.date_proposals.at(i).read();
-            if (proposal.status == 1) & (i < 10) {
-                active_proposals[i] = proposal;
-            }
-        }
-
-        active_proposals
-    }
-
-    #[view]
-    unconstrained fn view_events_note(player: AztecAddress) -> pub EventsNote {
-        _assert_registration(player);
-
-        storage.player_events.at(player).view_note()
-    }
-
-    #[view]
-    unconstrained fn view_events(player: AztecAddress) -> pub [Field; 5] {
-        let mut old_events_note = view_events_note(player);
-
-        [
-            old_events_note.event1_name,
-            old_events_note.event2_name,
-            old_events_note.event3_name,
-            old_events_note.event4_name,
-            old_events_note.event5_name,
-        ]
     }
 }
