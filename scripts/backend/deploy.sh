@@ -4,7 +4,7 @@
 # scripts/aztec/compile.sh || { exit 1; }
 
 # load required env vars
-eval $(node -e "
+eval $(bun -e "
   (async () => {
     const configuration = (await import('./env.config.js')).default;
 
@@ -35,7 +35,6 @@ items=(
   "scripts/prerequisites"
   "scripts/cleanup.sh"
   "scripts/setup.sh"
-  ".nvmrc"
   "bun.lockb"
   "package.json"
   "tsconfig.json"
@@ -49,7 +48,10 @@ for item in "${items[@]}"; do
   -e "ssh -i ~/.ssh/id_rsa_contabo"           \
   "$item"                                     \
   ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_DIR} \
-  || { printf "\nFailed to sync files\n"; exit 1; }
+  || {
+    printf "\nFailed to sync files\n"
+    exit 1
+  }
 done
 
 printf "\nFiles synced successfully!\n"

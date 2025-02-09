@@ -1,6 +1,6 @@
 #!/bin/bash
 
-eval $(node -e "
+eval $(bun -e "
   (async () => {
     const settings = (await import('./env.config.js')).default;
 

@@ -41,7 +41,7 @@ printf "\033[H\033[2J\033[3J"
 
 # install prerequisites
 PREREQUISITES=""
-for pkg in curl unzip nvm node bun docker aztec-sandbox; do
+for pkg in curl unzip bun docker aztec-sandbox; do
   # load the installation script file
   source scripts/prerequisites/$pkg.sh
 

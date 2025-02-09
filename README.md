@@ -29,8 +29,6 @@ If you're using **Windows**, you'll need to [install WSL](https://learn.microsof
 
 In support of the development process, the following prerequisites are used:
 
-- [`nvm`](https://github.com/nvm-sh/nvm/blob/master/README.md)
-- [`node.js` ](https://nodejs.org/en/learn/getting-started/introduction-to-nodejs)
 - [`bun`](https://bun.sh/docs)
 - [`docker` ](https://docs.docker.com/get-started/overview/)
 - [`aztec-sandbox`](https://aztec.network/sandbox/)
