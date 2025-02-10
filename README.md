@@ -182,7 +182,7 @@ bun run test
 <br>
 
 ### [`aztec`](https://github.com/ZeroK-Labs/froglin/blob/main/aztec)
-  - #### [`contracts`](https://github.com/ZeroK-Labs/froglin/blob/main/aztec/contracts) - Aztec L2 Noir contracts
+  - #### [`contracts`](https://github.com/ZeroK-Labs/froglin/blob/main/contracts/aztec) - Aztec L2 Noir contracts
 
 <br>
 

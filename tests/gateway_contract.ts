@@ -1,7 +1,7 @@
 import { expect } from "bun:test";
 
 import { AccountWithContracts } from "common/types";
-import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
+import { FroglinGatewayContract } from "contracts/aztec/gateway/artifact/FroglinGateway";
 import { GAME_MASTER } from "./accounts";
 
 // deploys a new instance of the gateway contract using the GAME_MASTER's account

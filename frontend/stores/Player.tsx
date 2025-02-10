@@ -5,7 +5,7 @@ import { SetStateAction, useEffect, useState } from "react";
 import type { Player } from "frontend/types";
 import type { WorldEvent } from "common/types";
 import { FROGLIN } from "frontend/settings";
-import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
+import { FroglinGatewayContract } from "contracts/aztec/gateway/artifact/FroglinGateway";
 import { StoreFactory, usePXEState } from "frontend/stores";
 import { addSocketEventHandler } from "frontend/utils/sockets";
 import { createWallet } from "common/utils/WalletManager";

@@ -1,7 +1,7 @@
 import type { PXE, AccountWallet } from "@aztec/aztec.js";
 
-import type { FroglinEventContract } from "aztec/contracts/event/artifact/FroglinEvent";
-import type { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
+import type { FroglinEventContract } from "contracts/aztec/event/artifact/FroglinEvent";
+import type { FroglinGatewayContract } from "contracts/aztec/gateway/artifact/FroglinGateway";
 
 type AccountWithContracts = {
   secret: string;

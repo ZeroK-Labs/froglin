@@ -23,8 +23,8 @@ eval $(bun -e "
 printf "\nSyncing files...\n"
 
 items=(
-  "aztec/contracts/gateway/artifact"
-  "aztec/contracts/gateway/target"
+  "contracts/aztec/gateway/artifact"
+  "contracts/aztec/gateway/target"
   "backend"
   "common"
   "frontend/settings.ts"

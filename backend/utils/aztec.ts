@@ -2,7 +2,7 @@ import fs from "fs";
 import { AztecAddress, createPXEClient } from "@aztec/aztec.js";
 
 import type { AccountWithContracts } from "common/types";
-import { FroglinGatewayContract } from "aztec/contracts/gateway/artifact/FroglinGateway";
+import { FroglinGatewayContract } from "contracts/aztec/gateway/artifact/FroglinGateway";
 import { createWallet } from "common/utils/WalletManager";
 
 export const BACKEND_WALLET = {
