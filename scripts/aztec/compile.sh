@@ -1,27 +1,47 @@
 #!/bin/bash
 
-# find all 1st level sub-directories within the base directory and split them into an array
-# IFS=$'\n' read -rd '' -a contracts <<< "$(find "aztec/contracts" -mindepth 1 -maxdepth 1 -type d)"
+clear
 
-contracts=("aztec/contracts/gateway")
-# contracts=("aztec/contracts/gateway" "aztec/contracts/event")
+contracts=(
+  "contracts/aztec/gateway"
+  # "contracts/aztec/registration"
+)
+
+if [[ "${contracts}" == "" ]]; then
+  printf "\nNothing to compile\n"
+  exit 0
+fi
 
 printf "\nCompiling contracts...\n"
 
 for contract in "${contracts[@]}"; do
-  cd "$contract" || { echo "Failed to find contract '$contract'"; exit 1; }
+  printf "\nCleaning '${contract}' artefacts..."
 
-  (
-    export HOME=~
+  artefacts="
+    ${contracts}/artifact
+    ${contracts}/target
+    ${contracts}/codegenCache.json
+  "
+  rm -rf ${artefacts} || {
+    printf "\nFailed to remove artifacts from '$contract'\n"
+    exit 1
+  }
 
-    printf "\nCompiling '$contract'...\n"
-    aztec-nargo compile --silence-warnings || { exit 1; }
+  cd "${contract}" || {
+    printf "\nFailed to find contract '$contract'\n"
+    exit 1
+  }
 
-    printf "Generating '$contract' ABI...\n"
-    aztec codegen target -o artifact || { exit 1; }
-  ) || { exit 1; }
+  printf "\nCompiling '$contract'...\n"
+  aztec-nargo compile --silence-warnings || { exit 1; }
 
-  cd - > /dev/null || { echo "Failed to change back to previous directory"; exit 1; }
+  printf "Generating '$contract' ABI...\n"
+  aztec codegen target -o artifact || { exit 1; }
+
+  cd - > /dev/null || {
+    printf "\nFailed to change back to previous directory\n"
+    exit 1
+  }
 done
 
 printf "\nCompiling contracts done\n"
