@@ -8,7 +8,6 @@ import webpack from "webpack";
 // import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
 
 import "./common/loadenv.js";
-import { assert } from "console";
 
 export default () => {
   // extract 'mode' from command-line args
@@ -32,7 +31,7 @@ export default () => {
   //
   return {
     mode: process.env.NODE_ENV,
-    target: "browserslist",
+    target: ["web", "es2022"],
     devtool: development ? "source-map" : false,
     //
     // https://webpack.js.org/configuration/entry-context
