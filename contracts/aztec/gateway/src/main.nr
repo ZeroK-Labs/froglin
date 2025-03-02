@@ -102,7 +102,7 @@ contract FroglinGateway {
 
     #[internal]
     #[public]
-    unconstrained fn _register(player: AztecAddress) {
+    fn _register(player: AztecAddress) {
         // increment number of acounts
         let accounts_count = storage.accounts_count.read();
         storage.accounts_count.write(accounts_count + 1);
